@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TipoProveedor {
+  CONTADO
+  CREDITO
+}
+
+enum EstadoProveedor {
+  ACTIVO
+  INACTIVO
+}
+
+model Proveedor {
+  id         Int             @id @default(autoincrement())
+  cedulaRuc  String          @unique @map("cedula_ruc") @db.VarChar(13)
+  nombre     String          @db.VarChar(150)
+  ciudad     String          @db.VarChar(100)
+  tipo       TipoProveedor
+  direccion  String          @db.Text
+  telefono   String          @db.VarChar(20)
+  email      String          @db.VarChar(150)
+  estado     EstadoProveedor @default(ACTIVO)
+  deletedAt  DateTime?       @map("deleted_at") @db.Timestamptz
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("proveedores")
+}
