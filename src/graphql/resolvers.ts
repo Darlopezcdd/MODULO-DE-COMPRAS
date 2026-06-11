@@ -49,7 +49,10 @@ export const resolvers = {
       }
 
       return await prisma.proveedor.create({
-        data: input,
+        data: {
+          ...input,
+          created_by: 1
+        },
       });
     },
     actualizarProveedor: async (_: any, { id, input }: any) => {

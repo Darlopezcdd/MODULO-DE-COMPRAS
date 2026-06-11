@@ -1,9 +1,145 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Proveedor {
+  id             Int                   @id @default(autoincrement())
+  cedulaRuc      String                @unique(map: "uq_proveedores_cedula_ruc") @map("cedula_ruc") @db.VarChar(13)
+  nombre         String                @db.VarChar(150)
+  ciudad         String                @db.VarChar(100)
+  tipo           tipo_proveedor_enum @map("tipo_proveedor")
+  direccion      String
+  telefono       String                @db.VarChar(20)
+  email          String                @db.VarChar(150)
+  estado         estado_proveedor_enum @default(ACTIVO)
+  created_by     Int
+  updated_by     Int?
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?             @map("deleted_at") @db.Timestamptz(6)
+
+  @@map("proveedores")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model detalle_factura_compra {
+  id              Int      @id @default(autoincrement())
+  factura_id      Int
+  producto_id     Int
+  producto_nombre String   @db.VarChar(200)
+  producto_codigo String   @db.VarChar(50)
+  cantidad        Decimal  @db.Decimal(14, 4)
+  pvp             Decimal  @db.Decimal(14, 2)
+  graba_iva       Boolean  @default(false)
+  porcentaje_iva  Decimal  @default(0) @db.Decimal(5, 2)
+  subtotal        Decimal  @default(0) @db.Decimal(14, 2)
+  valor_iva       Decimal  @default(0) @db.Decimal(14, 2)
+  total_linea     Decimal  @default(0) @db.Decimal(14, 2)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([factura_id], map: "idx_detalle_factura_id")
+  @@index([producto_codigo], map: "idx_detalle_producto_codigo")
+  @@index([producto_id], map: "idx_detalle_producto_id")
+  @@index([producto_nombre(ops: raw("gin_trgm_ops"))], map: "idx_detalle_producto_nombre_trgm", type: Gin)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model facturas_compra {
+  id                       Int                 @id @default(autoincrement())
+  numero_factura           String              @unique(map: "uq_facturas_compra_numero") @default(dbgenerated("('FC-'::text || lpad((nextval('seq_numero_factura'::regclass))::text, 8, '0'::text))")) @db.VarChar(20)
+  numero_factura_proveedor String?             @db.VarChar(50)
+  fecha                    DateTime            @db.Date
+  proveedor_id             Int
+  tipo_pago                tipo_pago_enum
+  fecha_vencimiento        DateTime?           @db.Date
+  subtotal_sin_iva         Decimal             @default(0) @db.Decimal(14, 2)
+  subtotal_con_iva         Decimal             @default(0) @db.Decimal(14, 2)
+  total_iva                Decimal             @default(0) @db.Decimal(14, 2)
+  total                    Decimal             @default(0) @db.Decimal(14, 2)
+  estado                   estado_factura_enum @default(BORRADOR)
+  pdf_generado             Boolean             @default(false)
+  pdf_url                  String?
+  observaciones            String?
+  created_by               Int
+  updated_by               Int?
+  created_at               DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime            @default(now()) @db.Timestamptz(6)
+
+  @@index([estado], map: "idx_facturas_estado")
+  @@index([fecha], map: "idx_facturas_fecha")
+  @@index([proveedor_id], map: "idx_facturas_proveedor")
+  @@index([tipo_pago], map: "idx_facturas_tipo_pago")
+  @@index([fecha_vencimiento], map: "idx_facturas_vencimiento", where: raw("((tipo_pago = 'CREDITO'::tipo_pago_enum) AND (estado = 'EMITIDA'::estado_factura_enum))"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model pista_auditoria {
+  id               BigInt                @id @default(autoincrement())
+  fecha_hora       DateTime              @default(now()) @db.Timestamptz(6)
+  usuario_id       Int
+  usuario_nombre   String                @db.VarChar(150)
+  accion           accion_auditoria_enum
+  modulo           String                @default("COMPRAS") @db.VarChar(50)
+  tabla_afectada   String                @db.VarChar(100)
+  registro_id      BigInt?
+  datos_anteriores Json?
+  datos_nuevos     Json?
+  resultado        String                @default("EXITO") @db.VarChar(10)
+  descripcion      String?
+  ip_address       String?               @db.VarChar(45)
+  user_agent       String?               @db.VarChar(300)
+  created_at       DateTime              @default(now()) @db.Timestamptz(6)
+
+  @@index([accion], map: "idx_auditoria_accion")
+  @@index([fecha_hora], map: "idx_auditoria_fecha_hora")
+  @@index([tabla_afectada], map: "idx_auditoria_tabla")
+  @@index([usuario_id, fecha_hora(sort: Desc)], map: "idx_auditoria_usuario_fecha")
+  @@index([usuario_id], map: "idx_auditoria_usuario_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model saldos_credito_proveedor {
+  id                Int               @id @default(autoincrement())
+  proveedor_id      Int
+  factura_id        Int?
+  monto_credito     Decimal           @default(0) @db.Decimal(14, 2)
+  monto_pagado      Decimal           @default(0) @db.Decimal(14, 2)
+  saldo_pendiente   Decimal?          @default(dbgenerated("(monto_credito - monto_pagado)")) @db.Decimal(14, 2)
+  fecha_vencimiento DateTime?         @db.Date
+  estado            estado_saldo_enum @default(PENDIENTE)
+  created_at        DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime          @default(now()) @db.Timestamptz(6)
+
+  @@index([estado], map: "idx_saldos_estado")
+  @@index([proveedor_id], map: "idx_saldos_proveedor_id")
+  @@index([proveedor_id], map: "idx_saldos_proveedor_pendiente", where: raw("(estado = 'PENDIENTE'::estado_saldo_enum)"))
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sesiones_usuario {
+  id               BigInt    @id @default(autoincrement())
+  usuario_id       Int
+  usuario_nombre   String    @db.VarChar(150)
+  token_jti        String    @unique(map: "uq_sesiones_token") @db.VarChar(100)
+  ip_address       String?   @db.VarChar(45)
+  user_agent       String?   @db.VarChar(300)
+  fecha_login      DateTime  @default(now()) @db.Timestamptz(6)
+  fecha_expiracion DateTime  @db.Timestamptz(6)
+  fecha_logout     DateTime? @db.Timestamptz(6)
+  activa           Boolean   @default(true)
+
+  @@index([token_jti], map: "idx_sesiones_token_jti")
+  @@index([usuario_id, activa], map: "idx_sesiones_usuario_activa")
 }
 
 enum TipoProveedor {
@@ -16,19 +152,48 @@ enum EstadoProveedor {
   INACTIVO
 }
 
-model Proveedor {
-  id         Int             @id @default(autoincrement())
-  cedulaRuc  String          @unique @map("cedula_ruc") @db.VarChar(13)
-  nombre     String          @db.VarChar(150)
-  ciudad     String          @db.VarChar(100)
-  tipo       TipoProveedor
-  direccion  String          @db.Text
-  telefono   String          @db.VarChar(20)
-  email      String          @db.VarChar(150)
-  estado     EstadoProveedor @default(ACTIVO)
-  deletedAt  DateTime?       @map("deleted_at") @db.Timestamptz
-  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt  DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+enum accion_audit_enum {
+  LOGIN
+  LOGOUT
+  CREAR
+  ACTUALIZAR
+  ELIMINAR
+  IMPRIMIR
+  EXPORTAR
+}
 
-  @@map("proveedores")
+enum accion_auditoria_enum {
+  LOGIN
+  LOGOUT
+  CREAR
+  ACTUALIZAR
+  ELIMINAR
+  IMPRIMIR
+}
+
+enum estado_factura_enum {
+  BORRADOR
+  EMITIDA
+  ANULADA
+}
+
+enum estado_proveedor_enum {
+  ACTIVO
+  INACTIVO
+}
+
+enum estado_saldo_enum {
+  PENDIENTE
+  PAGADO
+  VENCIDO
+}
+
+enum tipo_pago_enum {
+  CONTADO
+  CREDITO
+}
+
+enum tipo_proveedor_enum {
+  CONTADO
+  CREDITO
 }
