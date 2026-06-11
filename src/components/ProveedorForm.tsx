@@ -1,0 +1,164 @@
+'use client';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+const proveedorSchema = z.object({
+  cedulaRuc: z.string().regex(/^\d{10}$|^\d{13}$/, 'Debe tener 10 o 13 dígitos numéricos'),
+  nombre: z.string().regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/, 'No se permiten números ni caracteres especiales'),
+  ciudad: z.string().min(1, 'La ciudad es requerida'),
+  tipo: z.enum(['CONTADO', 'CREDITO'], { required_error: 'Selecciona un tipo de proveedor' }),
+  direccion: z.string().min(1, 'La dirección es requerida'),
+  telefono: z.string().regex(/^[0-9+\-\s()]{7,20}$/, 'Formato de teléfono inválido'),
+  email: z.string().email('Formato de correo inválido'),
+});
+
+type ProveedorFormValues = z.infer<typeof proveedorSchema>;
+
+export default function ProveedorForm({ defaultValues, isEdit = false, id }: { defaultValues?: Partial<ProveedorFormValues>, isEdit?: boolean, id?: number }) {
+  const router = useRouter();
+  const [serverError, setServerError] = useState('');
+  
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProveedorFormValues>({
+    resolver: zodResolver(proveedorSchema),
+    defaultValues: defaultValues || {
+      tipo: 'CONTADO'
+    }
+  });
+
+  const onSubmit = async (data: ProveedorFormValues) => {
+    setServerError('');
+    try {
+      const mutation = isEdit 
+        ? `mutation Actualizar($id: Int!, $input: ProveedorUpdateInput!) { actualizarProveedor(id: $id, input: $input) { id } }`
+        : `mutation Crear($input: ProveedorInput!) { crearProveedor(input: $input) { id } }`;
+      
+      const variables = isEdit ? { id, input: data } : { input: data };
+
+      const res = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: mutation, variables })
+      });
+      
+      const result = await res.json();
+      if (result.errors) {
+        setServerError(result.errors[0].message);
+      } else {
+        router.push('/proveedores');
+      }
+    } catch (e) {
+      setServerError('Ocurrió un error inesperado al guardar');
+    }
+  };
+
+  return (
+    <div className="glass-panel p-8 rounded-xl max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-white">{isEdit ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
+      
+      {serverError && (
+        <div className="bg-red-500/20 border border-red-500 text-red-200 p-4 rounded-lg mb-6">
+          {serverError}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Cédula / RUC</label>
+            <input 
+              {...register('cedulaRuc')} 
+              disabled={isEdit}
+              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              placeholder="1234567890" 
+            />
+            {errors.cedulaRuc && <p className="text-red-400 text-xs mt-1">{errors.cedulaRuc.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Nombre / Razón Social</label>
+            <input 
+              {...register('nombre')} 
+              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              placeholder="Juan Pérez" 
+            />
+            {errors.nombre && <p className="text-red-400 text-xs mt-1">{errors.nombre.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Ciudad</label>
+            <input 
+              {...register('ciudad')} 
+              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              placeholder="Quito" 
+            />
+            {errors.ciudad && <p className="text-red-400 text-xs mt-1">{errors.ciudad.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Tipo de Proveedor</label>
+            <select 
+              {...register('tipo')} 
+              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors"
+            >
+              <option value="CONTADO">Contado</option>
+              <option value="CREDITO">Crédito</option>
+            </select>
+            {errors.tipo && <p className="text-red-400 text-xs mt-1">{errors.tipo.message}</p>}
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-300 mb-1">Dirección</label>
+            <input 
+              {...register('direccion')} 
+              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              placeholder="Av. Principal 123" 
+            />
+            {errors.direccion && <p className="text-red-400 text-xs mt-1">{errors.direccion.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Teléfono</label>
+            <input 
+              {...register('telefono')} 
+              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              placeholder="0999999999" 
+            />
+            {errors.telefono && <p className="text-red-400 text-xs mt-1">{errors.telefono.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Correo Electrónico</label>
+            <input 
+              {...register('email')} 
+              type="email"
+              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              placeholder="correo@ejemplo.com" 
+            />
+            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+          </div>
+        </div>
+
+        <div className="flex gap-4 pt-4 border-t border-white/10">
+          <button 
+            type="button" 
+            onClick={() => router.push('/proveedores')}
+            className="flex-1 bg-white/5 hover:bg-white/10 text-white py-3 rounded-lg font-medium transition-colors"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-lg font-medium transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? 'Guardando...' : 'Guardar Proveedor'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
