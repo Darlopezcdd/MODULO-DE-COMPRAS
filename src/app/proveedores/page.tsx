@@ -16,6 +16,7 @@ export default function ProveedoresPage() {
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [filtroEstado, setFiltroEstado] = useState('');
   const [filtroTipo, setFiltroTipo] = useState('');
+  const [aviso, setAviso] = useState('');
 
   const fetchProveedores = async () => {
     try {
@@ -72,7 +73,9 @@ export default function ProveedoresPage() {
           variables: { id },
         }),
       });
-      fetchProveedores();
+      await fetchProveedores();
+      setAviso('Proveedor desactivado correctamente');
+      setTimeout(() => setAviso(''), 3000);
     } catch (e) {
       console.error(e);
     }
@@ -87,6 +90,12 @@ export default function ProveedoresPage() {
             + Nuevo Proveedor
           </Link>
         </div>
+
+        {aviso && (
+          <div className="bg-emerald-500/20 border border-emerald-500 text-emerald-200 px-4 py-3 rounded-lg">
+            ✓ {aviso}
+          </div>
+        )}
 
         <div className="glass-panel p-4 rounded-xl flex gap-4 items-center">
           <span className="text-sm font-semibold text-gray-300">Filtros:</span>
