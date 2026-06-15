@@ -10,7 +10,7 @@ const proveedorSchema = z.object({
   cedulaRuc: z.string().regex(/^\d{10}$|^\d{13}$/, 'Debe tener 10 o 13 dígitos numéricos'),
   nombre: z.string().regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/, 'No se permiten números ni caracteres especiales'),
   ciudad: z.string().min(1, 'La ciudad es requerida'),
-  tipo: z.enum(['CONTADO', 'CREDITO'], { required_error: 'Selecciona un tipo de proveedor' }),
+  tipo: z.enum(['CONTADO', 'CREDITO'], { error: 'Selecciona un tipo de proveedor' }),
   direccion: z.string().min(1, 'La dirección es requerida'),
   telefono: z.string().regex(/^[0-9+\-\s()]{7,20}$/, 'Formato de teléfono inválido'),
   email: z.string().email('Formato de correo inválido'),
@@ -21,9 +21,11 @@ type ProveedorFormValues = z.infer<typeof proveedorSchema>;
 export default function ProveedorForm({ defaultValues, isEdit = false, id }: { defaultValues?: Partial<ProveedorFormValues>, isEdit?: boolean, id?: number }) {
   const router = useRouter();
   const [serverError, setServerError] = useState('');
-  
+  const [successMsg, setSuccessMsg] = useState('');
+
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProveedorFormValues>({
     resolver: zodResolver(proveedorSchema),
+    mode: 'onChange',
     defaultValues: defaultValues || {
       tipo: 'CONTADO'
     }
@@ -32,10 +34,10 @@ export default function ProveedorForm({ defaultValues, isEdit = false, id }: { d
   const onSubmit = async (data: ProveedorFormValues) => {
     setServerError('');
     try {
-      const mutation = isEdit 
+      const mutation = isEdit
         ? `mutation Actualizar($id: Int!, $input: ProveedorUpdateInput!) { actualizarProveedor(id: $id, input: $input) { id } }`
         : `mutation Crear($input: ProveedorInput!) { crearProveedor(input: $input) { id } }`;
-      
+
       const variables = isEdit ? { id, input: data } : { input: data };
 
       const res = await fetch('/api/graphql', {
@@ -43,14 +45,15 @@ export default function ProveedorForm({ defaultValues, isEdit = false, id }: { d
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: mutation, variables })
       });
-      
+
       const result = await res.json();
       if (result.errors) {
         setServerError(result.errors[0].message);
       } else {
-        router.push('/proveedores');
+        setSuccessMsg('Registro guardado con éxito');
+        setTimeout(() => router.push('/proveedores'), 1200);
       }
-    } catch (e) {
+    } catch {
       setServerError('Ocurrió un error inesperado al guardar');
     }
   };
@@ -62,6 +65,12 @@ export default function ProveedorForm({ defaultValues, isEdit = false, id }: { d
       {serverError && (
         <div className="bg-red-500/20 border border-red-500 text-red-200 p-4 rounded-lg mb-6">
           {serverError}
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="bg-emerald-500/20 border border-emerald-500 text-emerald-200 p-4 rounded-lg mb-6">
+          ✓ {successMsg}
         </div>
       )}
 
@@ -150,12 +159,12 @@ export default function ProveedorForm({ defaultValues, isEdit = false, id }: { d
           >
             Cancelar
           </button>
-          <button 
-            type="submit" 
-            disabled={isSubmitting}
+          <button
+            type="submit"
+            disabled={isSubmitting || !!successMsg}
             className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-lg font-medium transition-colors disabled:opacity-50"
           >
-            {isSubmitting ? 'Guardando...' : 'Guardar Proveedor'}
+            {successMsg ? 'Guardado ✓' : isSubmitting ? 'Guardando...' : 'Guardar Proveedor'}
           </button>
         </div>
       </form>
