@@ -36,3 +36,7 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# ignore requirements and db scripts
+02 REQUERIMIENTO MÓDULO COMPRAS (1).pdf
+modulo_compras.sql
