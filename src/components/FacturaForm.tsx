@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { useQuery, gql, ApolloProvider } from "@apollo/client";
+import { ApolloProvider, useQuery } from "@apollo/client/react";
+import { gql } from "@apollo/client";
 import { apolloClient } from "@/lib/apolloClient";
 
 const LISTAR_PROVEEDORES = gql`
@@ -67,7 +68,7 @@ function FacturaFormContent() {
   
   totales.total = totales.subtotalSinIva + totales.subtotalConIva + totales.totalIva;
 
-  const { data, loading, error } = useQuery(LISTAR_PROVEEDORES, {
+  const { data, loading, error } = useQuery<any>(LISTAR_PROVEEDORES, {
     variables: { buscar: searchTerm },
     skip: searchTerm.length < 2, // only search if at least 2 chars
   });
