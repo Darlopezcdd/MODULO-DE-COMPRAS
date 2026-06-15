@@ -44,7 +44,7 @@ export const typeDefs = `
   }
 
   type Query {
-    listarProveedores(estado: EstadoProveedor, tipo: TipoProveedor): [Proveedor!]!
+    listarProveedores(estado: EstadoProveedor, tipo: TipoProveedor, buscar: String): [Proveedor!]!
     obtenerProveedor(id: Int!): Proveedor
   }
 
