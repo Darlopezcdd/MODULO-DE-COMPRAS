@@ -3,23 +3,27 @@ import { GraphQLError } from 'graphql';
 
 // Validations
 const validateCedulaRuc = (val: string) => {
-  if (!/^\d{10}$|^\d{13}$/.test(val)) throw new GraphQLError('Cédula/RUC inválido (debe tener 10 o 13 dígitos numéricos).');
+  if (!/^\d{10}(\d{3})?$/.test(val)) throw new GraphQLError('Cédula/RUC inválido (debe tener 10 o 13 dígitos numéricos).');
 };
 
 const validateNombre = (val: string) => {
-  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/.test(val)) throw new GraphQLError('El nombre no puede contener caracteres especiales ni números.');
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]{3,100}$/.test(val)) throw new GraphQLError('El nombre debe tener entre 3 y 100 caracteres y no puede contener caracteres especiales ni números.');
+};
+
+const validateCiudad = (val: string) => {
+  if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s\-\.,]{3,50}$/.test(val)) throw new GraphQLError('La ciudad debe tener entre 3 y 50 caracteres y solo permite letras, espacios y algunos signos de puntuación.');
 };
 
 const validateTelefono = (val: string) => {
-  if (!/^[0-9+\-\s()]{7,20}$/.test(val)) throw new GraphQLError('Formato de teléfono inválido.');
+  if (!/^(0[1-9]\d{7,8}|\+?[1-9]\d{9,14})$/.test(val)) throw new GraphQLError('Formato de teléfono inválido.');
 };
 
 const validateEmail = (val: string) => {
-  if (!/^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/.test(val)) throw new GraphQLError('Formato de correo inválido.');
+  if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) throw new GraphQLError('Formato de correo inválido.');
 };
 
 const validateDireccion = (val: string) => {
-  if (!val || val.trim() === '') throw new GraphQLError('La dirección no puede estar vacía.');
+  if (!/^[A-Za-z0-9ÁÉÍÓÚáéíóúÑñÜü\s\-\.,#]{5,200}$/.test(val)) throw new GraphQLError('La dirección debe tener entre 5 y 200 caracteres y puede contener números y letras.');
 };
 
 export const resolvers = {
@@ -38,6 +42,7 @@ export const resolvers = {
     crearProveedor: async (_: any, { input }: any) => {
       validateCedulaRuc(input.cedulaRuc);
       validateNombre(input.nombre);
+      validateCiudad(input.ciudad);
       validateTelefono(input.telefono);
       validateEmail(input.email);
       validateDireccion(input.direccion);
@@ -57,6 +62,7 @@ export const resolvers = {
     },
     actualizarProveedor: async (_: any, { id, input }: any) => {
       if (input.nombre) validateNombre(input.nombre);
+      if (input.ciudad) validateCiudad(input.ciudad);
       if (input.telefono) validateTelefono(input.telefono);
       if (input.email) validateEmail(input.email);
       if (input.direccion) validateDireccion(input.direccion);
