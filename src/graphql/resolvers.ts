@@ -24,10 +24,16 @@ const validateDireccion = (val: string) => {
 
 export const resolvers = {
   Query: {
-    listarProveedores: async (_: any, { estado, tipo }: any) => {
+    listarProveedores: async (_: any, { estado, tipo, buscar }: any) => {
       const where: any = { deletedAt: null };
       if (estado) where.estado = estado;
       if (tipo) where.tipo = tipo;
+      if (buscar) {
+        where.OR = [
+          { nombre: { contains: buscar, mode: 'insensitive' } },
+          { cedulaRuc: { contains: buscar } },
+        ];
+      }
       return await prisma.proveedor.findMany({ where, orderBy: { createdAt: 'desc' } });
     },
     obtenerProveedor: async (_: any, { id }: any) => {
