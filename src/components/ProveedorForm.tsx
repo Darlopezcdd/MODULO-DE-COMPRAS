@@ -7,13 +7,13 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 const proveedorSchema = z.object({
-  cedulaRuc: z.string().regex(/^\d{10}$|^\d{13}$/, 'Debe tener 10 o 13 dígitos numéricos'),
-  nombre: z.string().regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/, 'No se permiten números ni caracteres especiales'),
-  ciudad: z.string().min(1, 'La ciudad es requerida'),
+  cedulaRuc: z.string().regex(/^\d{10}(\d{3})?$/, 'Debe tener 10 o 13 dígitos numéricos'),
+  nombre: z.string().regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]{3,100}$/, 'Debe tener entre 3 y 100 caracteres, sin números ni caracteres especiales'),
+  ciudad: z.string().regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s\-\.,]{3,50}$/, 'Debe tener entre 3 y 50 caracteres (letras y signos básicos)'),
   tipo: z.enum(['CONTADO', 'CREDITO'], { error: 'Selecciona un tipo de proveedor' }),
-  direccion: z.string().min(1, 'La dirección es requerida'),
-  telefono: z.string().regex(/^[0-9+\-\s()]{7,20}$/, 'Formato de teléfono inválido'),
-  email: z.string().email('Formato de correo inválido'),
+  direccion: z.string().regex(/^[A-Za-z0-9ÁÉÍÓÚáéíóúÑñÜü\s\-\.,#]{5,200}$/, 'Debe tener entre 5 y 200 caracteres alfanuméricos'),
+  telefono: z.string().regex(/^(0[1-9]\d{7,8}|\+?[1-9]\d{9,14})$/, 'Formato de teléfono inválido'),
+  email: z.string().regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Formato de correo inválido'),
 });
 
 type ProveedorFormValues = z.infer<typeof proveedorSchema>;
