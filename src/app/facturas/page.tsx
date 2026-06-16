@@ -7,15 +7,21 @@ export const dynamic = 'force-dynamic';
 
 export default async function FacturasPage() {
   const facturasDb = await prisma.facturas_compra.findMany({
-    include: { proveedor: true },
     orderBy: { fecha: 'desc' }
   });
 
+  const proveedoresIds = [...new Set(facturasDb.map(f => f.proveedor_id))];
+  const proveedores = await prisma.proveedor.findMany({
+    where: { id: { in: proveedoresIds } }
+  });
+
+  const proveedorMap = Object.fromEntries(proveedores.map(p => [p.id, p.nombre]));
+
   const facturasList = facturasDb.map(f => ({
     id: f.id.toString(),
-    proveedor: f.proveedor.nombre,
+    proveedor: proveedorMap[f.proveedor_id] || 'Desconocido',
     fecha: f.fecha.toISOString().split('T')[0],
-    total: `$${f.total.toFixed(2)}`,
+    total: `$${Number(f.total).toFixed(2)}`,
     estado: f.estado || 'PENDIENTE'
   }));
 
