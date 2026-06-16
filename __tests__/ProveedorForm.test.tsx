@@ -21,8 +21,8 @@ describe('ProveedorForm (Frontend Visual Validations - CA1)', () => {
     fireEvent.click(screen.getByText('Guardar Proveedor'));
 
     expect(await screen.findByText('Debe tener 10 o 13 dígitos numéricos')).toBeInTheDocument();
-    expect(await screen.findByText('No se permiten números ni caracteres especiales')).toBeInTheDocument();
-    expect(await screen.findByText('La ciudad es requerida')).toBeInTheDocument();
+    expect(await screen.findByText('Debe tener entre 3 y 100 caracteres, sin números ni caracteres especiales')).toBeInTheDocument();
+    expect(await screen.findByText('Debe tener entre 3 y 50 caracteres (letras y signos básicos)')).toBeInTheDocument();
   });
 
   it('Valida formato estricto de teléfono', async () => {
