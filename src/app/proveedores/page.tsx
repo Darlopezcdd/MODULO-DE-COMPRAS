@@ -53,6 +53,7 @@ export default function ProveedoresPage() {
 
   useEffect(() => {
     fetchProveedores();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtroEstado, filtroTipo]);
 
   const desactivarProveedor = async (id: number) => {

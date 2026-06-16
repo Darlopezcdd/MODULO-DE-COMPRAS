@@ -34,7 +34,7 @@ export default function AutocompleteProveedor({ onSelect, value }: AutocompleteP
   const [selectedProveedor, setSelectedProveedor] = useState<Proveedor | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const { data, loading, error } = useQuery(LISTAR_PROVEEDORES, {
+  const { data, loading, error } = useQuery<{ listarProveedores: Proveedor[] }>(LISTAR_PROVEEDORES, {
     variables: { buscar: searchTerm },
     skip: searchTerm.length < 2,
   });

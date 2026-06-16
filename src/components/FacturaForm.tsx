@@ -13,8 +13,16 @@ export default function FacturaForm() {
   );
 }
 
+interface ProveedorSeleccionado {
+  id?: number;
+  cedulaRuc?: string;
+  nombre?: string;
+  direccion?: string;
+  telefono?: string;
+}
+
 function FacturaFormContent() {
-  const [selectedProveedor, setSelectedProveedor] = useState<any>(null);
+  const [selectedProveedor, setSelectedProveedor] = useState<ProveedorSeleccionado | null>(null);
 
   const [productos, setProductos] = useState([
     { descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }
@@ -28,13 +36,14 @@ function FacturaFormContent() {
     setProductos(productos.filter((_, i) => i !== index));
   };
 
-  const updateProduct = (index: number, field: string, value: any) => {
+  const updateProduct = (index: number, field: string, value: string | number | boolean) => {
     const newProductos = [...productos];
     newProductos[index] = { ...newProductos[index], [field]: value };
     setProductos(newProductos);
   };
 
   const roundToTwo = (num: number): number => Math.round((num + Number.EPSILON) * 100) / 100;
+
 
   const totales = {
     subtotalSinIva: 0,
