@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../src/lib/prisma';
 import * as bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
 
 async function main() {
   const adminExists = await prisma.usuarios.findUnique({

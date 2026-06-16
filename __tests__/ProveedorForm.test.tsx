@@ -41,7 +41,7 @@ describe('ProveedorForm (Frontend Visual Validations - CA1)', () => {
 
   it('Llama a la API si los datos son correctos', async () => {
     render(<ProveedorForm />);
-    
+
     fireEvent.change(screen.getByPlaceholderText('1234567890'), { target: { value: '1234567890' } });
     fireEvent.change(screen.getByPlaceholderText('Juan Pérez'), { target: { value: 'Juan Perez' } });
     fireEvent.change(screen.getByPlaceholderText('Quito'), { target: { value: 'Quito' } });
