@@ -224,7 +224,7 @@ export async function generarReporteProveedoresPDF(
       .strokeColor(COLORS.border).lineWidth(0.5).stroke();
 
     // ── PIE DE PÁGINA ─────────────────────────────────────────────────────────
-    const pageCount = (doc as any)._pageBuffer?.length ?? 1;
+    // const pageCount = (doc as any)._pageBuffer?.length ?? 1;
     const footerY = doc.page.height - 30;
     doc.rect(0, footerY - 8, pageW, 38).fill(COLORS.primary);
     doc.font('Helvetica').fontSize(8).fillColor('#A0C4E8')

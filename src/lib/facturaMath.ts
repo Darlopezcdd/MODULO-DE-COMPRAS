@@ -1,7 +1,7 @@
 // src/lib/facturaMath.ts
 
 export const roundToTwo = (num: number): number => {
-  return Math.round((num + Number.EPSILON) * 100) / 100;
+  return Number(Math.round(Number(num + 'e2')) + 'e-2');
 };
 
 export const calculateLineaTotal = (cantidad: number, pvp: number): number => {

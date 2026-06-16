@@ -13,7 +13,7 @@ const proveedorSchema = z.object({
   cedulaRuc: z.string().regex(/^\d{10}(\d{3})?$/, 'Debe tener 10 o 13 dígitos numéricos'),
   nombre: z.string().regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]{3,100}$/, 'Debe tener entre 3 y 100 caracteres, sin números ni caracteres especiales'),
   ciudad: z.string().regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s\-\.,]{3,50}$/, 'Debe tener entre 3 y 50 caracteres (letras y signos básicos)'),
-  tipo: z.enum(['CONTADO', 'CREDITO'], { error: 'Selecciona un tipo de proveedor' }),
+  tipo: z.enum(['CONTADO', 'CREDITO'], { message: 'Selecciona un tipo de proveedor' }),
   direccion: z.string().regex(/^[A-Za-z0-9ÁÉÍÓÚáéíóúÑñÜü\s\-\.,#]{5,200}$/, 'Debe tener entre 5 y 200 caracteres alfanuméricos'),
   telefono: z.string().regex(/^(0[1-9]\d{7,8}|\+?[1-9]\d{9,14})$/, 'Formato de teléfono inválido'),
   email: z.string().regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Formato de correo inválido'),
@@ -54,6 +54,7 @@ function ProveedorFormContent({ defaultValues, isEdit = false, id }: { defaultVa
     setSuccessMsg('');
     try {
       if (isEdit) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { cedulaRuc, ...updateData } = data;
         await actualizarProveedor({ variables: { id, input: updateData } });
       } else {
@@ -61,9 +62,8 @@ function ProveedorFormContent({ defaultValues, isEdit = false, id }: { defaultVa
       }
       setSuccessMsg('Proveedor guardado con éxito');
       setTimeout(() => router.push('/proveedores'), 1200);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : 'Ocurrió un error inesperado al guardar';
-      setServerError(message);
+    } catch {
+      setServerError('Ocurrió un error inesperado al guardar');
     }
   };
 

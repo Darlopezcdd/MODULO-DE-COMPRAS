@@ -68,7 +68,7 @@ export async function POST(req: Request) {
             <td class="text-right">Cant.</td>
             <td class="text-right">Subtotal</td>
           </tr>
-          ${(data.items || []).map((item: any) => `
+          ${(data.items || []).map((item: { descripcion: string, aplicaIva: boolean, precioUnitario: number, cantidad: number }) => `
             <tr class="item">
               <td>${item.descripcion} ${item.aplicaIva ? '(IVA)' : ''}</td>
               <td class="text-right">$${Number(item.precioUnitario).toFixed(2)}</td>
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
     });
 
     const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    await page.setContent(htmlContent, { waitUntil: 'load' });
 
     const pdfBuffer = await page.pdf({
       format: 'A4',
@@ -114,7 +114,7 @@ export async function POST(req: Request) {
 
     await browser.close();
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(Buffer.from(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

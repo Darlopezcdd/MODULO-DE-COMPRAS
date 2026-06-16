@@ -53,20 +53,6 @@ const validateFechaVencimiento = (fecha: string, fechaVencimiento: string) => {
 
 export const resolvers = {
   Query: {
-<<<<<<< HEAD
-    listarProveedores: async (_: any, { estado, tipo, buscar }: any) => {
-      const where: any = { deletedAt: null };
-      if (estado) where.estado = estado;
-      if (tipo) where.tipo = tipo;
-      if (buscar) {
-        where.OR = [
-          { nombre: { contains: buscar, mode: 'insensitive' } },
-          { cedulaRuc: { contains: buscar } },
-        ];
-      }
-      return await prisma.proveedor.findMany({ where, orderBy: { createdAt: 'desc' } });
-=======
-    // ── Proveedores ─────────────────────────────────────────
     listarProveedores: async (_: any, { estado, tipo, buscar }: any) => {
       try {
         const where: any = { deletedAt: null };
@@ -74,7 +60,7 @@ export const resolvers = {
         if (tipo) where.tipo = tipo;
         if (buscar) {
           where.OR = [
-            { nombre: { contains: buscar } },
+            { nombre: { contains: buscar, mode: 'insensitive' } },
             { cedulaRuc: { contains: buscar } },
           ];
         }
@@ -84,7 +70,6 @@ export const resolvers = {
         console.error('listarProveedores error:', e);
         throw new GraphQLError(e?.message || 'Error al listar proveedores');
       }
->>>>>>> origin/main
     },
     obtenerProveedor: async (_: any, { id }: any) => {
       return await prisma.proveedor.findUnique({ where: { id, deletedAt: null } });

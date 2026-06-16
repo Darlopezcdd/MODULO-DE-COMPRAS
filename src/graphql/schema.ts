@@ -1,4 +1,3 @@
-import { Proveedor } from '@prisma/client';
 
 export const typeDefs = `
   # ── Proveedores ──────────────────────────────────────────
@@ -44,16 +43,10 @@ export const typeDefs = `
     estado: EstadoProveedor
   }
 
-<<<<<<< HEAD
-  type Query {
-    listarProveedores(estado: EstadoProveedor, tipo: TipoProveedor, buscar: String): [Proveedor!]!
-    obtenerProveedor(id: Int!): Proveedor
-=======
   # ── Facturas de Compra (HU2) ──────────────────────────────
   enum TipoPago {
     CONTADO
     CREDITO
->>>>>>> origin/main
   }
 
   enum EstadoFactura {
