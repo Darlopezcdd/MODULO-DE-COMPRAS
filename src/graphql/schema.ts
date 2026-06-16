@@ -62,6 +62,7 @@ export const typeDefs = `
     numeroFacturaProveedor: String
     fecha: String!
     proveedorId: Int!
+    proveedorNombre: String
     tipoPago: TipoPago!
     fechaVencimiento: String
     subtotalSinIva: Float!
@@ -85,7 +86,7 @@ export const typeDefs = `
   type Query {
     listarProveedores(estado: EstadoProveedor, tipo: TipoProveedor, buscar: String): [Proveedor!]!
     obtenerProveedor(id: Int!): Proveedor
-    listarFacturas(estado: EstadoFactura): [FacturaCompra!]!
+    listarFacturas(estado: EstadoFactura, fechaInicio: String, fechaFin: String): [FacturaCompra!]!
     obtenerFactura(id: Int!): FacturaCompra
   }
 

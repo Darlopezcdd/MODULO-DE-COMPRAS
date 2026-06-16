@@ -97,14 +97,14 @@ describe('GraphQL Resolvers - Proveedores', () => {
     });
   });
 
-  describe('crearFactura (Fechas y Tipo de Pago)', () => {
+  describe('crearFacturaCabecera (Fechas y Tipo de Pago)', () => {
     it('Falla si la fecha de emisión es futura', async () => {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       
       try {
-        await resolvers.Mutation.crearFactura(null, {
-          input: { fecha: tomorrow.toISOString().split('T')[0], tipo_pago: 'CONTADO' }
+        await resolvers.Mutation.crearFacturaCabecera(null, {
+          input: { fecha: tomorrow.toISOString().split('T')[0], tipoPago: 'CONTADO', proveedorId: 1 }
         });
         throw new Error('Debió fallar');
       } catch (e: any) {
@@ -113,34 +113,39 @@ describe('GraphQL Resolvers - Proveedores', () => {
     });
 
     it('Falla si es CRÉDITO y no hay fecha de vencimiento', async () => {
+      (prisma.proveedor.findUnique as jest.Mock).mockResolvedValueOnce({ id: 1, estado: 'ACTIVO', tipo: 'CREDITO', deletedAt: null });
+
       try {
-        await resolvers.Mutation.crearFactura(null, {
-          input: { fecha: '2025-01-01', tipo_pago: 'CREDITO' }
+        await resolvers.Mutation.crearFacturaCabecera(null, {
+          input: { fecha: '2025-01-01', tipoPago: 'CREDITO', proveedorId: 1 }
         });
         throw new Error('Debió fallar');
       } catch (e: any) {
-        expect(e.message).toContain('obligatoria para crédito');
+        expect(e.message).toContain('obligatoria');
       }
     });
 
     it('Falla si la fecha de vencimiento es menor a la emisión', async () => {
+      (prisma.proveedor.findUnique as jest.Mock).mockResolvedValueOnce({ id: 1, estado: 'ACTIVO', tipo: 'CREDITO', deletedAt: null });
+
       try {
-        await resolvers.Mutation.crearFactura(null, {
-          input: { fecha: '2025-01-02', fecha_vencimiento: '2025-01-01', tipo_pago: 'CREDITO' }
+        await resolvers.Mutation.crearFacturaCabecera(null, {
+          input: { fecha: '2025-01-02', fechaVencimiento: '2025-01-01', tipoPago: 'CREDITO', proveedorId: 1 }
         });
         throw new Error('Debió fallar');
       } catch (e: any) {
-        expect(e.message).toContain('menor a la emisión');
+        expect(e.message).toContain('posterior');
       }
     });
 
     it('Crea la factura exitosamente si los datos son válidos (CONTADO)', async () => {
       const d = new Date();
       const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      (prisma.facturas_compra.create as jest.Mock).mockResolvedValueOnce({ id: 1, fecha: today });
+      (prisma.proveedor.findUnique as jest.Mock).mockResolvedValueOnce({ id: 1, estado: 'ACTIVO', tipo: 'CONTADO', deletedAt: null });
+      (prisma.facturas_compra.create as jest.Mock).mockResolvedValueOnce({ id: 1, fecha: new Date(today), tipo_pago: 'CONTADO', subtotal_sin_iva: 0, subtotal_con_iva: 0, total_iva: 0, total: 0 });
       
-      const res = await resolvers.Mutation.crearFactura(null, {
-        input: { fecha: today, tipo_pago: 'CONTADO', proveedor_id: 1 }
+      const res = await resolvers.Mutation.crearFacturaCabecera(null, {
+        input: { fecha: today, tipoPago: 'CONTADO', proveedorId: 1 }
       });
       expect(res.id).toBe(1);
     });
