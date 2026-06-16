@@ -5,6 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { gql } from '@apollo/client';
+import { useMutation, ApolloProvider } from '@apollo/client/react';
+import { apolloClient } from '@/lib/apolloClient';
 
 const proveedorSchema = z.object({
   cedulaRuc: z.string().regex(/^\d{10}(\d{3})?$/, 'Debe tener 10 o 13 dígitos numéricos'),
@@ -18,9 +21,22 @@ const proveedorSchema = z.object({
 
 type ProveedorFormValues = z.infer<typeof proveedorSchema>;
 
-export default function ProveedorForm({ defaultValues, isEdit = false, id }: { defaultValues?: Partial<ProveedorFormValues>, isEdit?: boolean, id?: number }) {
+const CREAR_PROVEEDOR = gql`
+  mutation CrearProveedor($input: ProveedorInput!) {
+    crearProveedor(input: $input) { id }
+  }
+`;
+
+const ACTUALIZAR_PROVEEDOR = gql`
+  mutation ActualizarProveedor($id: Int!, $input: ProveedorUpdateInput!) {
+    actualizarProveedor(id: $id, input: $input) { id }
+  }
+`;
+
+function ProveedorFormContent({ defaultValues, isEdit = false, id }: { defaultValues?: Partial<ProveedorFormValues>, isEdit?: boolean, id?: number }) {
   const router = useRouter();
   const [serverError, setServerError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProveedorFormValues>({
     resolver: zodResolver(proveedorSchema),
@@ -29,29 +45,23 @@ export default function ProveedorForm({ defaultValues, isEdit = false, id }: { d
     }
   });
 
+  const [crearProveedor] = useMutation(CREAR_PROVEEDOR);
+  const [actualizarProveedor] = useMutation(ACTUALIZAR_PROVEEDOR);
+
   const onSubmit = async (data: ProveedorFormValues) => {
     setServerError('');
+    setSuccessMsg('');
     try {
-      const mutation = isEdit 
-        ? `mutation Actualizar($id: Int!, $input: ProveedorUpdateInput!) { actualizarProveedor(id: $id, input: $input) { id } }`
-        : `mutation Crear($input: ProveedorInput!) { crearProveedor(input: $input) { id } }`;
-      
-      const variables = isEdit ? { id, input: data } : { input: data };
-
-      const res = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: mutation, variables })
-      });
-      
-      const result = await res.json();
-      if (result.errors) {
-        setServerError(result.errors[0].message);
+      if (isEdit) {
+        await actualizarProveedor({ variables: { id, input: data } });
       } else {
-        router.push('/proveedores');
+        await crearProveedor({ variables: { input: data } });
       }
+      setSuccessMsg('Proveedor guardado con éxito');
+      setTimeout(() => router.push('/proveedores'), 1200);
     } catch (e) {
-      setServerError('Ocurrió un error inesperado al guardar');
+      const message = e instanceof Error ? e.message : 'Ocurrió un error inesperado al guardar';
+      setServerError(message);
     }
   };
 
@@ -59,6 +69,13 @@ export default function ProveedorForm({ defaultValues, isEdit = false, id }: { d
     <div className="glass-panel p-8 rounded-xl max-w-2xl mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-white">{isEdit ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
       
+      {successMsg && (
+        <div className="bg-emerald-500/20 border border-emerald-500 text-emerald-200 p-4 rounded-lg mb-6 flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+          {successMsg}
+        </div>
+      )}
+
       {serverError && (
         <div className="bg-red-500/20 border border-red-500 text-red-200 p-4 rounded-lg mb-6">
           {serverError}
@@ -160,5 +177,13 @@ export default function ProveedorForm({ defaultValues, isEdit = false, id }: { d
         </div>
       </form>
     </div>
+  );
+}
+
+export default function ProveedorForm(props: { defaultValues?: Partial<ProveedorFormValues>, isEdit?: boolean, id?: number }) {
+  return (
+    <ApolloProvider client={apolloClient}>
+      <ProveedorFormContent {...props} />
+    </ApolloProvider>
   );
 }
