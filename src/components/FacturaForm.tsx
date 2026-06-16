@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ApolloProvider } from "@apollo/client/react";
 import { apolloClient } from "@/lib/apolloClient";
 import AutocompleteProveedor from "./AutocompleteProveedor";
+import AutocompleteProducto from "./AutocompleteProducto";
 
 export default function FacturaForm() {
   return (
@@ -17,11 +18,11 @@ function FacturaFormContent() {
   const [selectedProveedor, setSelectedProveedor] = useState<any>(null);
 
   const [productos, setProductos] = useState([
-    { descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }
+    { codigo: "", descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }
   ]);
 
   const handleAddProduct = () => {
-    setProductos([...productos, { descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }]);
+    setProductos([...productos, { codigo: "", descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }]);
   };
 
   const handleRemoveProduct = (index: number) => {
@@ -119,12 +120,14 @@ function FacturaFormContent() {
                 return (
                   <tr key={index} data-testid={`product-row-${index}`} className="border-b text-sm">
                     <td className="p-3">
-                      <input
-                        type="text"
-                        data-testid={`desc-${index}`}
-                        className="w-full px-2 py-1 border rounded text-gray-900"
-                        value={prod.descripcion}
-                        onChange={(e) => updateProduct(index, "descripcion", e.target.value)}
+                      <AutocompleteProducto
+                        onSelect={(p) => {
+                          updateProduct(index, "codigo", p.codigo);
+                          updateProduct(index, "descripcion", p.nombre);
+                          updateProduct(index, "pvp", p.precioUnitario);
+                          updateProduct(index, "grabaIva", p.grabaIva);
+                          updateProduct(index, "porcentajeIva", p.porcentajeIva);
+                        }}
                       />
                     </td>
                     <td className="p-3">
