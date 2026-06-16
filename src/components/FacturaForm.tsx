@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ApolloProvider } from "@apollo/client/react";
 import { apolloClient } from "@/lib/apolloClient";
 import AutocompleteProveedor from "./AutocompleteProveedor";
+import { FacturaPdfPreview } from './FacturaPdfPreview';
 
 export default function FacturaForm() {
   return (
@@ -204,6 +205,11 @@ function FacturaFormContent() {
             <div className="flex justify-between mt-3 pt-3 border-t border-slate-600 text-lg font-bold text-white">
               <span>Total:</span>
               <span data-testid="total-general" className="text-blue-400">${totales.total.toFixed(2)}</span>
+            </div>
+            
+            {/* Componente de Previsualización de PDF */}
+            <div className="mt-5">
+              <FacturaPdfPreview data={{ proveedor: selectedProveedor, productos, totales }} />
             </div>
           </div>
         </div>
