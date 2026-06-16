@@ -79,17 +79,17 @@ function FacturaFormContent() {
   };
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-100 mb-8 mt-6">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">
+    <div className="p-6 bg-slate-900 rounded-xl shadow-2xl border border-slate-700 mb-8 mt-6">
+      <h2 className="text-2xl font-semibold mb-6 text-white border-b border-slate-700 pb-4">
         Cabecera de Factura
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Buscar Proveedor</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1">Buscar Proveedor</label>
           <input
             type="text"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm outline-none"
+            className="w-full px-4 py-2 bg-slate-800 border border-slate-600 text-white placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm outline-none"
             placeholder="Cédula, RUC o Nombre..."
             value={searchTerm}
             onChange={(e) => {
@@ -100,15 +100,15 @@ function FacturaFormContent() {
           
           {/* Autocomplete Dropdown */}
           {searchTerm.length >= 2 && !selectedProveedor && data?.listarProveedores && data.listarProveedores.length > 0 && (
-            <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+            <ul className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-2xl max-h-60 overflow-auto">
               {data.listarProveedores.map((prov: any) => (
                 <li
                   key={prov.id}
-                  className="px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors border-b last:border-b-0 border-gray-100"
+                  className="px-4 py-2 hover:bg-slate-700 cursor-pointer transition-colors border-b last:border-b-0 border-slate-700"
                   onClick={() => handleSelect(prov)}
                 >
-                  <div className="font-medium text-gray-800">{prov.nombre}</div>
-                  <div className="text-xs text-gray-500 flex justify-between">
+                  <div className="font-medium text-white">{prov.nombre}</div>
+                  <div className="text-xs text-slate-400 flex justify-between">
                     <span>{prov.cedulaRuc}</span>
                     <span>{prov.direccion}</span>
                   </div>
@@ -116,39 +116,39 @@ function FacturaFormContent() {
               ))}
             </ul>
           )}
-          {loading && <div className="text-sm text-gray-500 mt-1">Buscando...</div>}
-          {error && <div className="text-sm text-red-500 mt-1">Error al buscar proveedores.</div>}
+          {loading && <div className="text-sm text-slate-400 mt-1">Buscando...</div>}
+          {error && <div className="text-sm text-red-400 mt-1">Error al buscar proveedores.</div>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Cédula / RUC</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1">Cédula / RUC</label>
           <input
             type="text"
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 outline-none"
+            className="w-full px-4 py-2 border border-slate-600 rounded-lg bg-slate-800/50 text-white outline-none"
             readOnly
             value={selectedProveedor?.cedulaRuc || ""}
           />
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+          <label className="block text-sm font-medium text-slate-300 mb-1">Dirección</label>
           <input
             type="text"
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 outline-none"
+            className="w-full px-4 py-2 border border-slate-600 rounded-lg bg-slate-800/50 text-white outline-none"
             readOnly
             value={selectedProveedor?.direccion || ""}
           />
         </div>
       </div>
 
-      <div className="mt-8 border-t pt-6">
+      <div className="mt-8 border-t border-slate-700 pt-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-800">Detalle de Productos</h3>
+          <h3 className="text-xl font-semibold text-white">Detalle de Productos</h3>
           <button
             type="button"
             data-testid="add-product-btn"
             onClick={handleAddProduct}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm font-medium"
           >
             + Agregar Producto
           </button>
@@ -157,25 +157,25 @@ function FacturaFormContent() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 text-gray-700 text-sm">
-                <th className="p-3 border-b">Descripción</th>
-                <th className="p-3 border-b w-24">Cantidad</th>
-                <th className="p-3 border-b w-32">PVP</th>
-                <th className="p-3 border-b w-24 text-center">Graba IVA</th>
-                <th className="p-3 border-b w-32 text-right">Total</th>
-                <th className="p-3 border-b w-16"></th>
+              <tr className="bg-slate-800 text-slate-300 text-sm">
+                <th className="p-3 border-b border-slate-700">Descripción</th>
+                <th className="p-3 border-b border-slate-700 w-24">Cantidad</th>
+                <th className="p-3 border-b border-slate-700 w-32">PVP</th>
+                <th className="p-3 border-b border-slate-700 w-24 text-center">Graba IVA</th>
+                <th className="p-3 border-b border-slate-700 w-32 text-right">Total</th>
+                <th className="p-3 border-b border-slate-700 w-16"></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-800">
               {productos.map((prod, index) => {
                 const subtotal = roundToTwo(prod.cantidad * prod.pvp);
                 return (
-                  <tr key={index} data-testid={`product-row-${index}`} className="border-b text-sm">
+                  <tr key={index} data-testid={`product-row-${index}`} className="border-b border-slate-700 text-sm">
                     <td className="p-3">
                       <input
                         type="text"
                         data-testid={`desc-${index}`}
-                        className="w-full px-2 py-1 border rounded"
+                        className="w-full px-2 py-1 bg-slate-800 border border-slate-600 text-white rounded outline-none focus:border-blue-500"
                         value={prod.descripcion}
                         onChange={(e) => updateProduct(index, "descripcion", e.target.value)}
                       />
@@ -184,7 +184,7 @@ function FacturaFormContent() {
                       <input
                         type="number"
                         data-testid={`qty-${index}`}
-                        className="w-full px-2 py-1 border rounded"
+                        className="w-full px-2 py-1 bg-slate-800 border border-slate-600 text-white rounded outline-none focus:border-blue-500"
                         min="1"
                         value={prod.cantidad}
                         onChange={(e) => updateProduct(index, "cantidad", parseFloat(e.target.value) || 0)}
@@ -194,7 +194,7 @@ function FacturaFormContent() {
                       <input
                         type="number"
                         data-testid={`pvp-${index}`}
-                        className="w-full px-2 py-1 border rounded"
+                        className="w-full px-2 py-1 bg-slate-800 border border-slate-600 text-white rounded outline-none focus:border-blue-500"
                         min="0"
                         step="0.01"
                         value={prod.pvp}
@@ -207,9 +207,10 @@ function FacturaFormContent() {
                         data-testid={`iva-${index}`}
                         checked={prod.grabaIva}
                         onChange={(e) => updateProduct(index, "grabaIva", e.target.checked)}
+                        className="accent-blue-500"
                       />
                     </td>
-                    <td className="p-3 text-right font-medium text-gray-700">
+                    <td className="p-3 text-right font-medium text-slate-300">
                       ${subtotal.toFixed(2)}
                     </td>
                     <td className="p-3 text-center">
@@ -217,7 +218,7 @@ function FacturaFormContent() {
                         type="button"
                         data-testid={`remove-${index}`}
                         onClick={() => handleRemoveProduct(index)}
-                        className="text-red-500 hover:text-red-700 font-bold"
+                        className="text-red-400 hover:text-red-300 font-bold"
                       >
                         X
                       </button>
@@ -230,22 +231,22 @@ function FacturaFormContent() {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <div className="w-64 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="w-64 bg-slate-800 p-4 rounded-lg border border-slate-700 shadow-lg">
             <div className="flex justify-between mb-2 text-sm">
-              <span className="text-gray-600">Subtotal (Sin IVA):</span>
-              <span data-testid="subtotal-sin-iva" className="font-medium">${totales.subtotalSinIva.toFixed(2)}</span>
+              <span className="text-slate-400">Subtotal (Sin IVA):</span>
+              <span data-testid="subtotal-sin-iva" className="font-medium text-white">${totales.subtotalSinIva.toFixed(2)}</span>
             </div>
             <div className="flex justify-between mb-2 text-sm">
-              <span className="text-gray-600">Subtotal (Con IVA):</span>
-              <span data-testid="subtotal-con-iva" className="font-medium">${totales.subtotalConIva.toFixed(2)}</span>
+              <span className="text-slate-400">Subtotal (Con IVA):</span>
+              <span data-testid="subtotal-con-iva" className="font-medium text-white">${totales.subtotalConIva.toFixed(2)}</span>
             </div>
             <div className="flex justify-between mb-2 text-sm">
-              <span className="text-gray-600">IVA (15%):</span>
-              <span data-testid="total-iva" className="font-medium">${totales.totalIva.toFixed(2)}</span>
+              <span className="text-slate-400">IVA (15%):</span>
+              <span data-testid="total-iva" className="font-medium text-white">${totales.totalIva.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between mt-3 pt-3 border-t border-gray-300 text-lg font-bold text-gray-800">
+            <div className="flex justify-between mt-3 pt-3 border-t border-slate-600 text-lg font-bold text-white">
               <span>Total:</span>
-              <span data-testid="total-general">${totales.total.toFixed(2)}</span>
+              <span data-testid="total-general" className="text-blue-400">${totales.total.toFixed(2)}</span>
             </div>
           </div>
         </div>
