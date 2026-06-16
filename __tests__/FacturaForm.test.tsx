@@ -1,62 +1,54 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import FacturaForm from '@/components/FacturaForm';
-import { useRouter } from 'next/navigation';
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import FacturaForm from '../src/components/FacturaForm';
 
-// Mock Next.js router
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(),
-}));
+jest.mock('@apollo/client/react', () => {
+  const actual = jest.requireActual('@apollo/client/react');
+  return {
+    ...actual,
+    ApolloProvider: ({ children }: any) => children,
+    useQuery: () => ({ data: null, loading: false, error: null }),
+  };
+});
 
-global.fetch = jest.fn() as jest.Mock;
+describe('FacturaForm DOM Mutations', () => {
+  it('agrega y elimina líneas de productos correctamente', () => {
+    render(<FacturaForm />);
 
-describe('FacturaForm Validations', () => {
-  beforeEach(() => {
-    (useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });
-    jest.clearAllMocks();
+    expect(screen.getByTestId('product-row-0')).toBeInTheDocument();
+
+    const addBtn = screen.getByTestId('add-product-btn');
+    fireEvent.click(addBtn);
+
+    expect(screen.getByTestId('product-row-0')).toBeInTheDocument();
+    expect(screen.getByTestId('product-row-1')).toBeInTheDocument();
+
+    const removeBtn = screen.getByTestId('remove-0');
+    fireEvent.click(removeBtn);
+
+    expect(screen.getByTestId('product-row-0')).toBeInTheDocument();
+    expect(screen.queryByTestId('product-row-1')).not.toBeInTheDocument();
   });
 
-  it('Bloquea fecha de emisión en el futuro', async () => {
+  it('actualiza los totales al cambiar cantidades y precios', () => {
     render(<FacturaForm />);
-    
-    // Configurar una fecha futura
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const futureDate = tomorrow.toISOString().split('T')[0];
 
-    fireEvent.change(screen.getByLabelText(/Fecha de Emisión/i), { target: { value: futureDate } });
-    fireEvent.click(screen.getByText('Guardar Factura'));
+    const qtyInput = screen.getByTestId('qty-0');
+    const pvpInput = screen.getByTestId('pvp-0');
+    const ivaCheckbox = screen.getByTestId('iva-0');
 
-    expect(await screen.findByText('La fecha de emisión no puede ser futura')).toBeInTheDocument();
-  });
+    fireEvent.change(qtyInput, { target: { value: '2' } });
+    fireEvent.change(pvpInput, { target: { value: '50' } });
 
-  it('Bloquea fecha de vencimiento en el pasado', async () => {
-    render(<FacturaForm />);
-    
-    // Configurar una fecha pasada
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const pastDate = yesterday.toISOString().split('T')[0];
-    
-    // Hoy
-    const today = new Date().toISOString().split('T')[0];
+    expect(screen.getByTestId('subtotal-con-iva')).toHaveTextContent('100.00');
+    expect(screen.getByTestId('total-iva')).toHaveTextContent('15.00');
+    expect(screen.getByTestId('total-general')).toHaveTextContent('115.00');
 
-    // Para crédito es obligatorio fecha vencimiento
-    fireEvent.change(screen.getByLabelText(/Tipo de Pago/i), { target: { value: 'CREDITO' } });
-    fireEvent.change(screen.getByLabelText(/Fecha de Emisión/i), { target: { value: today } });
-    fireEvent.change(screen.getByLabelText(/Fecha de Vencimiento/i), { target: { value: pastDate } });
-    
-    fireEvent.click(screen.getByText('Guardar Factura'));
+    fireEvent.click(ivaCheckbox);
 
-    expect(await screen.findByText('La fecha de vencimiento no puede ser menor a la emisión')).toBeInTheDocument();
-  });
-
-  it('Requiere fecha de vencimiento si el pago es a CRÉDITO', async () => {
-    render(<FacturaForm />);
-    
-    fireEvent.change(screen.getByLabelText(/Tipo de Pago/i), { target: { value: 'CREDITO' } });
-    // Dejar vacío vencimiento
-    fireEvent.click(screen.getByText('Guardar Factura'));
-
-    expect(await screen.findByText('La fecha de vencimiento es obligatoria para crédito')).toBeInTheDocument();
+    expect(screen.getByTestId('subtotal-sin-iva')).toHaveTextContent('100.00');
+    expect(screen.getByTestId('total-iva')).toHaveTextContent('0.00');
+    expect(screen.getByTestId('total-general')).toHaveTextContent('100.00');
   });
 });

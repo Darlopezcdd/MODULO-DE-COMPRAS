@@ -39,8 +39,13 @@ describe('facturaMath', () => {
 
       expect(totales.subtotalSinIva).toBe(30.00);
       expect(totales.subtotalConIva).toBe(131.50);
+<<<<<<< HEAD
       expect(totales.totalIva).toBe(19.73); // 15 + 4.725 rounded -> 4.73 => 19.73
       expect(totales.total).toBe(181.23); // 30 + 131.50 + 19.73 = 181.23
+=======
+      expect(totales.totalIva).toBe(19.72); // 15 + 4.725 rounded -> 4.72 => 19.72
+      expect(totales.total).toBe(181.22); // 30 + 131.50 + 19.72 = 181.22
+>>>>>>> origin/main
     });
   });
 });

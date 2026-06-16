@@ -1,6 +1,7 @@
 import { Proveedor } from '@prisma/client';
 
 export const typeDefs = `
+  # ── Proveedores ──────────────────────────────────────────
   enum TipoProveedor {
     CONTADO
     CREDITO
@@ -9,25 +10,6 @@ export const typeDefs = `
   enum EstadoProveedor {
     ACTIVO
     INACTIVO
-  }
-
-  enum TipoPago {
-    CONTADO
-    CREDITO
-  }
-
-  type Factura {
-    id: Int!
-    fecha: String!
-    fecha_vencimiento: String
-    tipo_pago: TipoPago!
-  }
-
-  input FacturaInput {
-    fecha: String!
-    fecha_vencimiento: String
-    tipo_pago: TipoPago!
-    proveedor_id: Int!
   }
 
   type Proveedor {
@@ -62,15 +44,62 @@ export const typeDefs = `
     estado: EstadoProveedor
   }
 
+<<<<<<< HEAD
   type Query {
     listarProveedores(estado: EstadoProveedor, tipo: TipoProveedor, buscar: String): [Proveedor!]!
     obtenerProveedor(id: Int!): Proveedor
+=======
+  # ── Facturas de Compra (HU2) ──────────────────────────────
+  enum TipoPago {
+    CONTADO
+    CREDITO
+>>>>>>> origin/main
   }
 
+  enum EstadoFactura {
+    BORRADOR
+    EMITIDA
+    ANULADA
+  }
+
+  type FacturaCompra {
+    id: Int!
+    numeroFactura: String!
+    numeroFacturaProveedor: String
+    fecha: String!
+    proveedorId: Int!
+    tipoPago: TipoPago!
+    fechaVencimiento: String
+    subtotalSinIva: Float!
+    subtotalConIva: Float!
+    totalIva: Float!
+    total: Float!
+    estado: EstadoFactura!
+    observaciones: String
+  }
+
+  input FacturaCabeceraInput {
+    numeroFacturaProveedor: String
+    fecha: String!
+    proveedorId: Int!
+    tipoPago: TipoPago!
+    fechaVencimiento: String
+    observaciones: String
+  }
+
+  # ── Queries ───────────────────────────────────────────────
+  type Query {
+    listarProveedores(estado: EstadoProveedor, tipo: TipoProveedor, buscar: String): [Proveedor!]!
+    obtenerProveedor(id: Int!): Proveedor
+    listarFacturas(estado: EstadoFactura): [FacturaCompra!]!
+    obtenerFactura(id: Int!): FacturaCompra
+  }
+
+  # ── Mutations ─────────────────────────────────────────────
   type Mutation {
     crearProveedor(input: ProveedorInput!): Proveedor!
     actualizarProveedor(id: Int!, input: ProveedorUpdateInput!): Proveedor!
     eliminarProveedor(id: Int!): Proveedor!
-    crearFactura(input: FacturaInput!): Factura!
+    crearFacturaCabecera(input: FacturaCabeceraInput!): FacturaCompra!
   }
 `;
