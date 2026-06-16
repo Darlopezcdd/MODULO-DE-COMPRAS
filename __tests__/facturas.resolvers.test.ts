@@ -1,6 +1,10 @@
 import { resolvers } from '@/graphql/resolvers';
 import { GraphQLError } from 'graphql';
 
+jest.mock('@/lib/authUtils', () => ({
+  getUserFromRequest: jest.fn().mockResolvedValue(null)
+}));
+
 // ── Mock de Prisma ────────────────────────────────────────────────────────────
 jest.mock('@/lib/prisma', () => ({
   __esModule: true,
@@ -64,7 +68,7 @@ describe('GraphQL Resolvers — HU2: crearFacturaCabecera', () => {
       await expect(
         resolvers.Mutation.crearFacturaCabecera(null, {
           input: { ...inputBase, fecha: fechaMananaStr },
-        })
+        }, {})
       ).rejects.toThrow('CA1');
     });
   });
@@ -74,7 +78,7 @@ describe('GraphQL Resolvers — HU2: crearFacturaCabecera', () => {
     it('Lanza error si el proveedor no existe', async () => {
       (prisma.proveedor.findUnique as jest.Mock).mockResolvedValueOnce(null);
       await expect(
-        resolvers.Mutation.crearFacturaCabecera(null, { input: inputBase })
+        resolvers.Mutation.crearFacturaCabecera(null, { input: inputBase }, {})
       ).rejects.toThrow('CA2');
     });
 
@@ -84,7 +88,7 @@ describe('GraphQL Resolvers — HU2: crearFacturaCabecera', () => {
         estado: 'INACTIVO',
       });
       await expect(
-        resolvers.Mutation.crearFacturaCabecera(null, { input: inputBase })
+        resolvers.Mutation.crearFacturaCabecera(null, { input: inputBase }, {})
       ).rejects.toThrow('CA2');
     });
   });
@@ -96,7 +100,7 @@ describe('GraphQL Resolvers — HU2: crearFacturaCabecera', () => {
       await expect(
         resolvers.Mutation.crearFacturaCabecera(null, {
           input: { ...inputBase, proveedorId: 2, tipoPago: 'CREDITO', fechaVencimiento: fechaVenceStr },
-        })
+        }, {})
       ).rejects.toThrow('CA3');
     });
   });
@@ -108,7 +112,7 @@ describe('GraphQL Resolvers — HU2: crearFacturaCabecera', () => {
       await expect(
         resolvers.Mutation.crearFacturaCabecera(null, {
           input: { ...inputBase, tipoPago: 'CREDITO', fechaVencimiento: undefined },
-        })
+        }, {})
       ).rejects.toThrow('CA4');
     });
   });
@@ -120,7 +124,7 @@ describe('GraphQL Resolvers — HU2: crearFacturaCabecera', () => {
       await expect(
         resolvers.Mutation.crearFacturaCabecera(null, {
           input: { ...inputBase, tipoPago: 'CREDITO', fechaVencimiento: fechaHoy }, // mismo día
-        })
+        }, {})
       ).rejects.toThrow('CA5');
     });
   });
@@ -147,7 +151,7 @@ describe('GraphQL Resolvers — HU2: crearFacturaCabecera', () => {
 
       const res = await resolvers.Mutation.crearFacturaCabecera(null, {
         input: { ...inputBase, proveedorId: 2, tipoPago: 'CONTADO' },
-      });
+      }, {});
 
       expect(res.estado).toBe('BORRADOR');
       expect(res.fechaVencimiento).toBeNull();
@@ -183,7 +187,7 @@ describe('GraphQL Resolvers — HU2: crearFacturaCabecera', () => {
           fechaVencimiento: fechaVenceStr,
           numeroFacturaProveedor: 'PROV-001',
         },
-      });
+      }, {});
 
       expect(res.estado).toBe('BORRADOR');
       expect(res.tipoPago).toBe('CREDITO');

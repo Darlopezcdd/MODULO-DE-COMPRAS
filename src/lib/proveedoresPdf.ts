@@ -27,6 +27,7 @@ interface ProveedorRow {
   telefono: string;
   email: string;
   estado: string;
+  saldo_pendiente?: number;
 }
 
 // ── Función principal ─────────────────────────────────────────────────────────
@@ -130,12 +131,13 @@ export async function generarReporteProveedoresPDF(
     // Definición de columnas
     const cols = [
       { header: '#',          key: 'idx',       w: 28,  align: 'center' as const },
-      { header: 'Cédula/RUC', key: 'cedulaRuc', w: 90,  align: 'left'   as const },
-      { header: 'Nombre',     key: 'nombre',    w: 155, align: 'left'   as const },
-      { header: 'Ciudad',     key: 'ciudad',    w: 70,  align: 'left'   as const },
+      { header: 'Cédula/RUC', key: 'cedulaRuc', w: 85,  align: 'left'   as const },
+      { header: 'Nombre',     key: 'nombre',    w: 135, align: 'left'   as const },
+      { header: 'Ciudad',     key: 'ciudad',    w: 60,  align: 'left'   as const },
       { header: 'Tipo',       key: 'tipo',      w: 58,  align: 'center' as const },
-      { header: 'Teléfono',   key: 'telefono',  w: 85,  align: 'left'   as const },
-      { header: 'Email',      key: 'email',     w: 155, align: 'left'   as const },
+      { header: 'Teléfono',   key: 'telefono',  w: 75,  align: 'left'   as const },
+      { header: 'Email',      key: 'email',     w: 135, align: 'left'   as const },
+      { header: 'Saldo Cr.',  key: 'saldo',     w: 65,  align: 'right'  as const },
       { header: 'Estado',     key: 'estado',    w: 55,  align: 'center' as const },
     ];
 
@@ -190,6 +192,7 @@ export async function generarReporteProveedoresPDF(
           tipo:      prov.tipo,
           telefono:  prov.telefono,
           email:     prov.email,
+          saldo:     prov.saldo_pendiente ? `$${prov.saldo_pendiente.toFixed(2)}` : 'Sin saldo',
           estado:    prov.estado,
         };
 
