@@ -11,6 +11,25 @@ export const typeDefs = `
     INACTIVO
   }
 
+  enum TipoPago {
+    CONTADO
+    CREDITO
+  }
+
+  type Factura {
+    id: Int!
+    fecha: String!
+    fecha_vencimiento: String
+    tipo_pago: TipoPago!
+  }
+
+  input FacturaInput {
+    fecha: String!
+    fecha_vencimiento: String
+    tipo_pago: TipoPago!
+    proveedor_id: Int!
+  }
+
   type Proveedor {
     id: Int!
     cedulaRuc: String!
@@ -52,5 +71,6 @@ export const typeDefs = `
     crearProveedor(input: ProveedorInput!): Proveedor!
     actualizarProveedor(id: Int!, input: ProveedorUpdateInput!): Proveedor!
     eliminarProveedor(id: Int!): Proveedor!
+    crearFactura(input: FacturaInput!): Factura!
   }
 `;

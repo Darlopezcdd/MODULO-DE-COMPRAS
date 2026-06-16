@@ -26,6 +26,30 @@ const validateDireccion = (val: string) => {
   if (!/^[A-Za-z0-9ÁÉÍÓÚáéíóúÑñÜü\s\-\.,#]{5,200}$/.test(val)) throw new GraphQLError('La dirección debe tener entre 5 y 200 caracteres y puede contener números y letras.');
 };
 
+const validateFechasFactura = (emision: string, vencimiento?: string, tipoPago?: string) => {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const fechaEmi = new Date(emision + 'T00:00:00');
+  fechaEmi.setHours(0, 0, 0, 0);
+
+  if (fechaEmi > hoy) {
+    throw new GraphQLError('La fecha de emisión no puede ser futura');
+  }
+
+  if (tipoPago === 'CREDITO') {
+    if (!vencimiento) {
+      throw new GraphQLError('La fecha de vencimiento es obligatoria para crédito');
+    }
+    const fechaVen = new Date(vencimiento + 'T00:00:00');
+    fechaVen.setHours(0, 0, 0, 0);
+
+    if (fechaVen < fechaEmi) {
+      throw new GraphQLError('La fecha de vencimiento no puede ser menor a la emisión');
+    }
+  }
+};
+
 export const resolvers = {
   Query: {
     listarProveedores: async (_: any, { estado, tipo }: any) => {
@@ -80,6 +104,16 @@ export const resolvers = {
           estado: 'INACTIVO',
           deletedAt: new Date(),
         },
+      });
+    },
+    crearFactura: async (_: any, { input }: any) => {
+      validateFechasFactura(input.fecha, input.fecha_vencimiento, input.tipo_pago);
+      
+      return await prisma.facturas_compra.create({
+        data: {
+          ...input,
+          created_by: 1
+        }
       });
     },
   },
