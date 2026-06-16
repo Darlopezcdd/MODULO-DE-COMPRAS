@@ -1,5 +1,7 @@
 import prisma from '../lib/prisma';
 import { GraphQLError } from 'graphql';
+import { getUserFromRequest } from '../lib/authUtils';
+import { registrarAuditoria } from '../lib/auditoriaService';
 
 // ── Validaciones Proveedores (HU1) ────────────────────────────────────────────
 const validateCedulaRuc = (val: string) => {
@@ -119,7 +121,7 @@ export const resolvers = {
 
   Mutation: {
     // ── Proveedores ─────────────────────────────────────────
-    crearProveedor: async (_: any, { input }: any) => {
+    crearProveedor: async (_: any, { input }: any, context: any) => {
       validateCedulaRuc(input.cedulaRuc);
       validateNombre(input.nombre);
       validateCiudad(input.ciudad);
@@ -127,44 +129,83 @@ export const resolvers = {
       validateEmail(input.email);
       validateDireccion(input.direccion);
 
-      // CA2: Check if cedula exists
+      // CA2: Check if cedula exists manually
       const exists = await prisma.proveedor.findUnique({ where: { cedulaRuc: input.cedulaRuc } });
       if (exists) {
         throw new GraphQLError('Ya existe un proveedor con esta Cédula/RUC.');
       }
 
-      return await prisma.proveedor.create({
-        data: {
-          ...input,
-          created_by: 1
-        },
-      });
+      try {
+        const nuevo = await prisma.proveedor.create({
+          data: {
+            ...input,
+            created_by: 1
+          },
+        });
+        
+        if (context?.request) {
+          const usuario = await getUserFromRequest(context.request);
+          if (usuario) {
+            await registrarAuditoria(usuario.id as number, usuario.nombre as string, 'CREAR', 'proveedor', nuevo.id, null, nuevo, 'Creación de proveedor');
+          }
+        }
+        
+        return nuevo;
+      } catch (err: any) {
+        if (err.code === 'P2002') throw new GraphQLError('La cédula/RUC ya está registrada en el sistema.');
+        throw err;
+      }
     },
-    actualizarProveedor: async (_: any, { id, input }: any) => {
+    actualizarProveedor: async (_: any, { id, input }: any, context: any) => {
       if (input.nombre) validateNombre(input.nombre);
       if (input.ciudad) validateCiudad(input.ciudad);
       if (input.telefono) validateTelefono(input.telefono);
       if (input.email) validateEmail(input.email);
       if (input.direccion) validateDireccion(input.direccion);
 
-      return await prisma.proveedor.update({
-        where: { id },
-        data: input,
-      });
+      try {
+        const anterior = await prisma.proveedor.findUnique({ where: { id } });
+        const actualizado = await prisma.proveedor.update({
+          where: { id },
+          data: input,
+        });
+
+        if (context?.request) {
+          const usuario = await getUserFromRequest(context.request);
+          if (usuario) {
+            await registrarAuditoria(usuario.id as number, usuario.nombre as string, 'ACTUALIZAR', 'proveedor', actualizado.id, anterior, actualizado, 'Actualización de proveedor');
+          }
+        }
+
+        return actualizado;
+      } catch (err: any) {
+        if (err.code === 'P2002') throw new GraphQLError('La cédula/RUC ya está registrada en el sistema.');
+        throw err;
+      }
     },
-    eliminarProveedor: async (_: any, { id }: any) => {
+    eliminarProveedor: async (_: any, { id }: any, context: any) => {
       // CA3: Soft delete (cambiar estado a INACTIVO)
-      return await prisma.proveedor.update({
+      const anterior = await prisma.proveedor.findUnique({ where: { id } });
+      const borrado = await prisma.proveedor.update({
         where: { id },
         data: {
           estado: 'INACTIVO',
           deletedAt: new Date(),
         },
       });
+
+      if (context?.request) {
+        const usuario = await getUserFromRequest(context.request);
+        if (usuario) {
+          await registrarAuditoria(usuario.id as number, usuario.nombre as string, 'ELIMINAR', 'proveedor', borrado.id, anterior, borrado, 'Eliminación lógica de proveedor');
+        }
+      }
+
+      return borrado;
     },
 
     // ── Facturas (HU2) ──────────────────────────────────────
-    crearFacturaCabecera: async (_: any, { input }: any) => {
+    crearFacturaCabecera: async (_: any, { input }: any, context: any) => {
       const { fecha, proveedorId, tipoPago, fechaVencimiento, numeroFacturaProveedor, observaciones } = input;
 
       // CA1: Fecha no puede ser futura
@@ -207,6 +248,13 @@ export const resolvers = {
           created_by: 1,
         },
       });
+
+      if (context?.request) {
+        const usuario = await getUserFromRequest(context.request);
+        if (usuario) {
+          await registrarAuditoria(usuario.id as number, usuario.nombre as string, 'CREAR', 'facturas_compra', nueva.id, null, nueva, 'Creación de cabecera de factura');
+        }
+      }
 
       return {
         id: nueva.id,
