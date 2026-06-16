@@ -1,7 +1,7 @@
 import prisma from '../lib/prisma';
 import { GraphQLError } from 'graphql';
 
-// Validations
+// ── Validaciones Proveedores (HU1) ────────────────────────────────────────────
 const validateCedulaRuc = (val: string) => {
   if (!/^\d{10}(\d{3})?$/.test(val)) throw new GraphQLError('Cédula/RUC inválido (debe tener 10 o 13 dígitos numéricos).');
 };
@@ -26,32 +26,34 @@ const validateDireccion = (val: string) => {
   if (!/^[A-Za-z0-9ÁÉÍÓÚáéíóúÑñÜü\s\-\.,#]{5,200}$/.test(val)) throw new GraphQLError('La dirección debe tener entre 5 y 200 caracteres y puede contener números y letras.');
 };
 
-const validateFechasFactura = (emision: string, vencimiento?: string, tipoPago?: string) => {
+// ── Validaciones Facturas (HU2) ───────────────────────────────────────────────
+
+/**
+ * CA1: La fecha de la factura no puede ser futura.
+ */
+const validateFechaNoFutura = (fecha: string) => {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
-
-  const fechaEmi = new Date(emision + 'T00:00:00');
-  fechaEmi.setHours(0, 0, 0, 0);
-
-  if (fechaEmi > hoy) {
-    throw new GraphQLError('La fecha de emisión no puede ser futura');
+  const fechaFactura = new Date(fecha + 'T00:00:00');
+  if (fechaFactura > hoy) {
+    throw new GraphQLError('CA1: La fecha de la factura no puede ser una fecha futura.');
   }
+};
 
-  if (tipoPago === 'CREDITO') {
-    if (!vencimiento) {
-      throw new GraphQLError('La fecha de vencimiento es obligatoria para crédito');
-    }
-    const fechaVen = new Date(vencimiento + 'T00:00:00');
-    fechaVen.setHours(0, 0, 0, 0);
-
-    if (fechaVen < fechaEmi) {
-      throw new GraphQLError('La fecha de vencimiento no puede ser menor a la emisión');
-    }
+/**
+ * CA5: La fecha de vencimiento debe ser estrictamente posterior a la fecha de emisión.
+ */
+const validateFechaVencimiento = (fecha: string, fechaVencimiento: string) => {
+  const fEmision = new Date(fecha + 'T00:00:00');
+  const fVence = new Date(fechaVencimiento + 'T00:00:00');
+  if (fVence <= fEmision) {
+    throw new GraphQLError('CA5: La fecha de vencimiento debe ser posterior a la fecha de emisión.');
   }
 };
 
 export const resolvers = {
   Query: {
+    // ── Proveedores ─────────────────────────────────────────
     listarProveedores: async (_: any, { estado, tipo, buscar }: any) => {
       try {
         const where: any = { deletedAt: null };
@@ -73,8 +75,51 @@ export const resolvers = {
     obtenerProveedor: async (_: any, { id }: any) => {
       return await prisma.proveedor.findUnique({ where: { id, deletedAt: null } });
     },
+
+    // ── Facturas (HU2) ──────────────────────────────────────
+    listarFacturas: async (_: any, { estado }: any) => {
+      const where: any = {};
+      if (estado) where.estado = estado;
+      const rows = await prisma.facturas_compra.findMany({ where, orderBy: { created_at: 'desc' } });
+      return rows.map((r: any) => ({
+        id: r.id,
+        numeroFactura: r.numero_factura,
+        numeroFacturaProveedor: r.numero_factura_proveedor,
+        fecha: r.fecha?.toISOString().split('T')[0],
+        proveedorId: r.proveedor_id,
+        tipoPago: r.tipo_pago,
+        fechaVencimiento: r.fecha_vencimiento?.toISOString().split('T')[0] ?? null,
+        subtotalSinIva: Number(r.subtotal_sin_iva),
+        subtotalConIva: Number(r.subtotal_con_iva),
+        totalIva: Number(r.total_iva),
+        total: Number(r.total),
+        estado: r.estado,
+        observaciones: r.observaciones,
+      }));
+    },
+    obtenerFactura: async (_: any, { id }: any) => {
+      const r = await prisma.facturas_compra.findUnique({ where: { id } });
+      if (!r) return null;
+      return {
+        id: r.id,
+        numeroFactura: r.numero_factura,
+        numeroFacturaProveedor: r.numero_factura_proveedor,
+        fecha: r.fecha?.toISOString().split('T')[0],
+        proveedorId: r.proveedor_id,
+        tipoPago: r.tipo_pago,
+        fechaVencimiento: r.fecha_vencimiento?.toISOString().split('T')[0] ?? null,
+        subtotalSinIva: Number(r.subtotal_sin_iva),
+        subtotalConIva: Number(r.subtotal_con_iva),
+        totalIva: Number(r.total_iva),
+        total: Number(r.total),
+        estado: r.estado,
+        observaciones: r.observaciones,
+      };
+    },
   },
+
   Mutation: {
+    // ── Proveedores ─────────────────────────────────────────
     crearProveedor: async (_: any, { input }: any) => {
       validateCedulaRuc(input.cedulaRuc);
       validateNombre(input.nombre);
@@ -118,15 +163,68 @@ export const resolvers = {
         },
       });
     },
-    crearFactura: async (_: any, { input }: any) => {
-      validateFechasFactura(input.fecha, input.fecha_vencimiento, input.tipo_pago);
-      
-      return await prisma.facturas_compra.create({
-        data: {
-          ...input,
-          created_by: 1
+
+    // ── Facturas (HU2) ──────────────────────────────────────
+    crearFacturaCabecera: async (_: any, { input }: any) => {
+      const { fecha, proveedorId, tipoPago, fechaVencimiento, numeroFacturaProveedor, observaciones } = input;
+
+      // CA1: Fecha no puede ser futura
+      validateFechaNoFutura(fecha);
+
+      // CA2: Proveedor debe existir y estar ACTIVO
+      const proveedor = await prisma.proveedor.findUnique({ where: { id: proveedorId } });
+      if (!proveedor || proveedor.deletedAt !== null) {
+        throw new GraphQLError('CA2: El proveedor no existe.');
+      }
+      if (proveedor.estado !== 'ACTIVO') {
+        throw new GraphQLError('CA2: El proveedor está inactivo y no puede emitir facturas.');
+      }
+
+      // CA3: Permiso de Crédito — solo proveedores tipo CREDITO pueden pagar a crédito
+      if (tipoPago === 'CREDITO' && proveedor.tipo !== 'CREDITO') {
+        throw new GraphQLError('CA3: El proveedor no tiene habilitado el tipo de pago a Crédito.');
+      }
+
+      // CA4 y CA5: Validaciones de fecha de vencimiento para CREDITO
+      if (tipoPago === 'CREDITO') {
+        if (!fechaVencimiento) {
+          throw new GraphQLError('CA4: La fecha de vencimiento es obligatoria para facturas a Crédito.');
         }
+        validateFechaVencimiento(fecha, fechaVencimiento); // CA5
+      }
+
+      // CA6: CONTADO no debe tener fecha de vencimiento
+      const fechaVencimientoFinal = tipoPago === 'CONTADO' ? null : new Date(fechaVencimiento + 'T00:00:00');
+
+      const nueva = await prisma.facturas_compra.create({
+        data: {
+          fecha: new Date(fecha + 'T00:00:00'),
+          proveedor_id: proveedorId,
+          tipo_pago: tipoPago,
+          fecha_vencimiento: fechaVencimientoFinal,
+          numero_factura_proveedor: numeroFacturaProveedor ?? null,
+          observaciones: observaciones ?? null,
+          estado: 'BORRADOR',
+          created_by: 1,
+        },
       });
+
+      return {
+        id: nueva.id,
+        numeroFactura: nueva.numero_factura,
+        numeroFacturaProveedor: nueva.numero_factura_proveedor,
+        fecha: nueva.fecha?.toISOString().split('T')[0],
+        proveedorId: nueva.proveedor_id,
+        tipoPago: nueva.tipo_pago,
+        fechaVencimiento: nueva.fecha_vencimiento?.toISOString().split('T')[0] ?? null,
+        subtotalSinIva: Number(nueva.subtotal_sin_iva),
+        subtotalConIva: Number(nueva.subtotal_con_iva),
+        totalIva: Number(nueva.total_iva),
+        total: Number(nueva.total),
+        estado: nueva.estado,
+        observaciones: nueva.observaciones,
+      };
     },
   },
 };
+
