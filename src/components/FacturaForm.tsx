@@ -1,20 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useQuery, gql, ApolloProvider } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client/react";
 import { apolloClient } from "@/lib/apolloClient";
-
-const LISTAR_PROVEEDORES = gql`
-  query ListarProveedores($buscar: String) {
-    listarProveedores(buscar: $buscar) {
-      id
-      cedulaRuc
-      nombre
-      direccion
-      telefono
-    }
-  }
-`;
+import AutocompleteProveedor from "./AutocompleteProveedor";
 
 export default function FacturaForm() {
   return (
@@ -25,7 +14,6 @@ export default function FacturaForm() {
 }
 
 function FacturaFormContent() {
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedProveedor, setSelectedProveedor] = useState<any>(null);
 
   const [productos, setProductos] = useState([
@@ -67,16 +55,6 @@ function FacturaFormContent() {
   
   totales.total = totales.subtotalSinIva + totales.subtotalConIva + totales.totalIva;
 
-  const { data, loading, error } = useQuery(LISTAR_PROVEEDORES, {
-    variables: { buscar: searchTerm },
-    skip: searchTerm.length < 2, // only search if at least 2 chars
-  });
-
-  const handleSelect = (proveedor: any) => {
-    setSelectedProveedor(proveedor);
-    setSearchTerm(proveedor.nombre); // or cedula
-  };
-
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-100 mb-8 mt-6">
       <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">
@@ -84,40 +62,10 @@ function FacturaFormContent() {
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Buscar Proveedor</label>
-          <input
-            type="text"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm outline-none"
-            placeholder="Cédula, RUC o Nombre..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setSelectedProveedor(null);
-            }}
-          />
-          
-          {/* Autocomplete Dropdown */}
-          {searchTerm.length >= 2 && !selectedProveedor && data?.listarProveedores && data.listarProveedores.length > 0 && (
-            <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-              {data.listarProveedores.map((prov: any) => (
-                <li
-                  key={prov.id}
-                  className="px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors border-b last:border-b-0 border-gray-100"
-                  onClick={() => handleSelect(prov)}
-                >
-                  <div className="font-medium text-gray-800">{prov.nombre}</div>
-                  <div className="text-xs text-gray-500 flex justify-between">
-                    <span>{prov.cedulaRuc}</span>
-                    <span>{prov.direccion}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-          {loading && <div className="text-sm text-gray-500 mt-1">Buscando...</div>}
-          {error && <div className="text-sm text-red-500 mt-1">Error al buscar proveedores.</div>}
-        </div>
+        <AutocompleteProveedor
+          onSelect={(prov) => setSelectedProveedor(prov)}
+          value={selectedProveedor?.nombre || ''}
+        />
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Cédula / RUC</label>
@@ -174,7 +122,7 @@ function FacturaFormContent() {
                       <input
                         type="text"
                         data-testid={`desc-${index}`}
-                        className="w-full px-2 py-1 border rounded"
+                        className="w-full px-2 py-1 border rounded text-gray-900"
                         value={prod.descripcion}
                         onChange={(e) => updateProduct(index, "descripcion", e.target.value)}
                       />
@@ -183,7 +131,7 @@ function FacturaFormContent() {
                       <input
                         type="number"
                         data-testid={`qty-${index}`}
-                        className="w-full px-2 py-1 border rounded"
+                        className="w-full px-2 py-1 border rounded text-gray-900"
                         min="1"
                         value={prod.cantidad}
                         onChange={(e) => updateProduct(index, "cantidad", parseFloat(e.target.value) || 0)}
@@ -193,7 +141,7 @@ function FacturaFormContent() {
                       <input
                         type="number"
                         data-testid={`pvp-${index}`}
-                        className="w-full px-2 py-1 border rounded"
+                        className="w-full px-2 py-1 border rounded text-gray-900"
                         min="0"
                         step="0.01"
                         value={prod.pvp}

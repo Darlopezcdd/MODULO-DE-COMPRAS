@@ -13,6 +13,8 @@
     "@hookform/resolvers": "^5.4.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@radix-ui/react-dialog": "^1.1.16",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.2",
     "clsx": "^2.1.1",
     "graphql": "^16.14.2",
     "graphql-yoga": "^5.21.2",

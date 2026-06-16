@@ -25,16 +25,22 @@ const validateDireccion = (val: string) => {
 export const resolvers = {
   Query: {
     listarProveedores: async (_: any, { estado, tipo, buscar }: any) => {
-      const where: any = { deletedAt: null };
-      if (estado) where.estado = estado;
-      if (tipo) where.tipo = tipo;
-      if (buscar) {
-        where.OR = [
-          { nombre: { contains: buscar, mode: 'insensitive' } },
-          { cedulaRuc: { contains: buscar } },
-        ];
+      try {
+        const where: any = { deletedAt: null };
+        if (estado) where.estado = estado;
+        if (tipo) where.tipo = tipo;
+        if (buscar) {
+          where.OR = [
+            { nombre: { contains: buscar } },
+            { cedulaRuc: { contains: buscar } },
+          ];
+        }
+        const res = await prisma.proveedor.findMany({ where, orderBy: { createdAt: 'desc' } });
+        return res;
+      } catch (e: any) {
+        console.error('listarProveedores error:', e);
+        throw new GraphQLError(e?.message || 'Error al listar proveedores');
       }
-      return await prisma.proveedor.findMany({ where, orderBy: { createdAt: 'desc' } });
     },
     obtenerProveedor: async (_: any, { id }: any) => {
       return await prisma.proveedor.findUnique({ where: { id, deletedAt: null } });

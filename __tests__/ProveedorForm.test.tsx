@@ -2,13 +2,18 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ProveedorForm from '@/components/ProveedorForm';
 import { useRouter } from 'next/navigation';
 
-// Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-// Mock fetch
-global.fetch = jest.fn() as jest.Mock;
+jest.mock('@apollo/client/react', () => {
+  const actual = jest.requireActual('@apollo/client/react');
+  return {
+    ...actual,
+    ApolloProvider: ({ children }: any) => children,
+    useMutation: () => [jest.fn().mockResolvedValue({})],
+  };
+});
 
 describe('ProveedorForm (Frontend Visual Validations - CA1)', () => {
   beforeEach(() => {
@@ -35,10 +40,6 @@ describe('ProveedorForm (Frontend Visual Validations - CA1)', () => {
   });
 
   it('Llama a la API si los datos son correctos', async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
-      json: jest.fn().mockResolvedValueOnce({ data: { crearProveedor: { id: 1 } } })
-    });
-
     render(<ProveedorForm />);
     
     fireEvent.change(screen.getByPlaceholderText('1234567890'), { target: { value: '1234567890' } });
@@ -51,7 +52,7 @@ describe('ProveedorForm (Frontend Visual Validations - CA1)', () => {
     fireEvent.click(screen.getByText('Guardar Proveedor'));
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalled();
+      expect(screen.getByText('Proveedor guardado con éxito')).toBeInTheDocument();
     });
   });
 });
