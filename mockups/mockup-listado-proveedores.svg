@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="1100" height="720" fill="#09090b"/>
+
+  <!-- App frame -->
+  <rect x="24" y="24" width="1052" height="672" rx="16" fill="#0c0c0f" stroke="#27272a"/>
+
+  <!-- Top bar -->
+  <text x="56" y="76" fill="#fafafa" font-size="26" font-weight="700">Proveedores</text>
+  <text x="56" y="100" fill="#a1a1aa" font-size="13">Módulo de Compras · Administración de proveedores</text>
+
+  <!-- New button -->
+  <rect x="876" y="56" width="168" height="44" rx="10" fill="#3b82f6"/>
+  <text x="900" y="83" fill="#0b1220" font-size="14" font-weight="700">+  Nuevo Proveedor</text>
+
+  <!-- Filters bar -->
+  <rect x="56" y="128" width="988" height="64" rx="12" fill="#ffffff" fill-opacity="0.04" stroke="#27272a"/>
+  <text x="76" y="152" fill="#a1a1aa" font-size="11">ESTADO</text>
+  <rect x="76" y="158" width="180" height="30" rx="8" fill="#27272a" stroke="#3f3f46"/>
+  <text x="90" y="178" fill="#fafafa" font-size="13">Todos ▾</text>
+
+  <text x="280" y="152" fill="#a1a1aa" font-size="11">TIPO</text>
+  <rect x="280" y="158" width="180" height="30" rx="8" fill="#27272a" stroke="#3f3f46"/>
+  <text x="294" y="178" fill="#fafafa" font-size="13">Todos ▾</text>
+
+  <rect x="744" y="156" width="280" height="32" rx="8" fill="#27272a" stroke="#3f3f46"/>
+  <text x="760" y="177" fill="#71717a" font-size="13">🔎  Buscar por nombre o cédula…</text>
+
+  <!-- Table header -->
+  <rect x="56" y="212" width="988" height="40" rx="8" fill="#18181b"/>
+  <text x="76" y="237" fill="#a1a1aa" font-size="12" font-weight="700">CÉDULA / RUC</text>
+  <text x="236" y="237" fill="#a1a1aa" font-size="12" font-weight="700">NOMBRE</text>
+  <text x="486" y="237" fill="#a1a1aa" font-size="12" font-weight="700">CIUDAD</text>
+  <text x="616" y="237" fill="#a1a1aa" font-size="12" font-weight="700">TIPO</text>
+  <text x="746" y="237" fill="#a1a1aa" font-size="12" font-weight="700">ESTADO</text>
+  <text x="916" y="237" fill="#a1a1aa" font-size="12" font-weight="700">ACCIONES</text>
+
+  <!-- Rows -->
+  <!-- row1 -->
+  <line x1="56" y1="292" x2="1044" y2="292" stroke="#27272a"/>
+  <text x="76" y="278" fill="#fafafa" font-size="13">1791234567001</text>
+  <text x="236" y="278" fill="#fafafa" font-size="13">Distribuidora Andina</text>
+  <text x="486" y="278" fill="#d4d4d8" font-size="13">Quito</text>
+  <rect x="616" y="262" width="74" height="22" rx="11" fill="#1e3a8a"/>
+  <text x="628" y="277" fill="#bfdbfe" font-size="11" font-weight="600">CRÉDITO</text>
+  <rect x="746" y="262" width="74" height="22" rx="11" fill="#14532d"/>
+  <text x="760" y="277" fill="#86efac" font-size="11" font-weight="600">ACTIVO</text>
+  <text x="916" y="278" fill="#60a5fa" font-size="13">✎ Editar</text>
+  <text x="990" y="278" fill="#f87171" font-size="13">⊘ Desactivar</text>
+
+  <!-- row2 -->
+  <line x1="56" y1="344" x2="1044" y2="344" stroke="#27272a"/>
+  <text x="76" y="330" fill="#fafafa" font-size="13">0912345678</text>
+  <text x="236" y="330" fill="#fafafa" font-size="13">Juan Pérez Comercial</text>
+  <text x="486" y="330" fill="#d4d4d8" font-size="13">Guayaquil</text>
+  <rect x="616" y="314" width="78" height="22" rx="11" fill="#3f3f46"/>
+  <text x="628" y="329" fill="#e4e4e7" font-size="11" font-weight="600">CONTADO</text>
+  <rect x="746" y="314" width="74" height="22" rx="11" fill="#14532d"/>
+  <text x="760" y="329" fill="#86efac" font-size="11" font-weight="600">ACTIVO</text>
+  <text x="916" y="330" fill="#60a5fa" font-size="13">✎ Editar</text>
+  <text x="990" y="330" fill="#f87171" font-size="13">⊘ Desactivar</text>
+
+  <!-- row3 (inactivo) -->
+  <line x1="56" y1="396" x2="1044" y2="396" stroke="#27272a"/>
+  <text x="76" y="382" fill="#71717a" font-size="13">1790011223001</text>
+  <text x="236" y="382" fill="#71717a" font-size="13">Insumos del Valle</text>
+  <text x="486" y="382" fill="#71717a" font-size="13">Cuenca</text>
+  <rect x="616" y="366" width="74" height="22" rx="11" fill="#1e3a8a" fill-opacity="0.5"/>
+  <text x="628" y="381" fill="#93c5fd" font-size="11" font-weight="600">CRÉDITO</text>
+  <rect x="746" y="366" width="86" height="22" rx="11" fill="#450a0a"/>
+  <text x="760" y="381" fill="#fca5a5" font-size="11" font-weight="600">INACTIVO</text>
+  <text x="916" y="382" fill="#60a5fa" font-size="13">✎ Editar</text>
+  <text x="990" y="382" fill="#52525b" font-size="13">⊘ Desactivar</text>
+
+  <!-- row4 -->
+  <line x1="56" y1="448" x2="1044" y2="448" stroke="#27272a"/>
+  <text x="76" y="434" fill="#fafafa" font-size="13">1722334455</text>
+  <text x="236" y="434" fill="#fafafa" font-size="13">María González</text>
+  <text x="486" y="434" fill="#d4d4d8" font-size="13">Ambato</text>
+  <rect x="616" y="418" width="78" height="22" rx="11" fill="#3f3f46"/>
+  <text x="628" y="433" fill="#e4e4e7" font-size="11" font-weight="600">CONTADO</text>
+  <rect x="746" y="418" width="74" height="22" rx="11" fill="#14532d"/>
+  <text x="760" y="433" fill="#86efac" font-size="11" font-weight="600">ACTIVO</text>
+  <text x="916" y="434" fill="#60a5fa" font-size="13">✎ Editar</text>
+  <text x="990" y="434" fill="#f87171" font-size="13">⊘ Desactivar</text>
+
+  <!-- empty rows -->
+  <line x1="56" y1="500" x2="1044" y2="500" stroke="#1c1c1f"/>
+  <line x1="56" y1="552" x2="1044" y2="552" stroke="#1c1c1f"/>
+
+  <!-- footer / pagination -->
+  <text x="56" y="612" fill="#a1a1aa" font-size="12">Mostrando 4 de 4 proveedores</text>
+  <rect x="876" y="596" width="34" height="30" rx="8" fill="#27272a"/>
+  <text x="888" y="616" fill="#a1a1aa" font-size="13">‹</text>
+  <rect x="918" y="596" width="34" height="30" rx="8" fill="#3b82f6"/>
+  <text x="931" y="616" fill="#0b1220" font-size="13" font-weight="700">1</text>
+  <rect x="960" y="596" width="34" height="30" rx="8" fill="#27272a"/>
+  <text x="972" y="616" fill="#a1a1aa" font-size="13">›</text>
+
+  <text x="56" y="676" fill="#52525b" font-size="11">Mockup — Pantalla de Listado de Proveedores · tema oscuro (paleta real del proyecto)</text>
+</svg>

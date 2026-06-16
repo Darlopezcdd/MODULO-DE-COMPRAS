@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="760" viewBox="0 0 1100 760" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="1100" height="760" fill="#09090b"/>
+
+  <!-- card -->
+  <rect x="250" y="40" width="600" height="680" rx="16" fill="#ffffff" fill-opacity="0.04" stroke="#27272a"/>
+
+  <text x="288" y="92" fill="#fafafa" font-size="22" font-weight="700">Nuevo Proveedor</text>
+  <text x="288" y="114" fill="#a1a1aa" font-size="12">Completa los datos. Los campos con * son obligatorios.</text>
+
+  <!-- server error banner (example state) -->
+  <rect x="288" y="132" width="524" height="44" rx="8" fill="#3f1d1d" stroke="#ef4444"/>
+  <text x="306" y="159" fill="#fecaca" font-size="13">⚠  Ya existe un proveedor con esta Cédula/RUC.</text>
+
+  <!-- Row 1: cedula / nombre -->
+  <text x="288" y="208" fill="#d4d4d8" font-size="12">Cédula / RUC *</text>
+  <rect x="288" y="216" width="250" height="40" rx="8" fill="#27272a" stroke="#3f3f46"/>
+  <text x="304" y="241" fill="#fafafa" font-size="13">1791234567001</text>
+
+  <text x="562" y="208" fill="#d4d4d8" font-size="12">Nombre / Razón Social *</text>
+  <rect x="562" y="216" width="250" height="40" rx="8" fill="#27272a" stroke="#3f3f46"/>
+  <text x="578" y="241" fill="#fafafa" font-size="13">Distribuidora Andina</text>
+
+  <!-- Row 2: ciudad / tipo -->
+  <text x="288" y="288" fill="#d4d4d8" font-size="12">Ciudad *</text>
+  <rect x="288" y="296" width="250" height="40" rx="8" fill="#27272a" stroke="#3f3f46"/>
+  <text x="304" y="321" fill="#fafafa" font-size="13">Quito</text>
+
+  <text x="562" y="288" fill="#d4d4d8" font-size="12">Tipo de Proveedor *</text>
+  <rect x="562" y="296" width="250" height="40" rx="8" fill="#27272a" stroke="#3f3f46"/>
+  <text x="578" y="321" fill="#fafafa" font-size="13">Crédito</text>
+  <text x="788" y="321" fill="#a1a1aa" font-size="13">▾</text>
+
+  <!-- Row 3: direccion full -->
+  <text x="288" y="368" fill="#d4d4d8" font-size="12">Dirección *</text>
+  <rect x="288" y="376" width="524" height="40" rx="8" fill="#27272a" stroke="#3f3f46"/>
+  <text x="304" y="401" fill="#fafafa" font-size="13">Av. Amazonas N34-120 y Av. Atahualpa</text>
+
+  <!-- Row 4: telefono (error) / email -->
+  <text x="288" y="448" fill="#d4d4d8" font-size="12">Teléfono *</text>
+  <rect x="288" y="456" width="250" height="40" rx="8" fill="#27272a" stroke="#ef4444"/>
+  <text x="304" y="481" fill="#fafafa" font-size="13">abc-123</text>
+  <text x="288" y="514" fill="#f87171" font-size="11">Formato de teléfono inválido</text>
+
+  <text x="562" y="448" fill="#d4d4d8" font-size="12">Correo Electrónico *</text>
+  <rect x="562" y="456" width="250" height="40" rx="8" fill="#27272a" stroke="#3f3f46"/>
+  <text x="578" y="481" fill="#fafafa" font-size="13">ventas@andina.com</text>
+
+  <!-- divider -->
+  <line x1="288" y1="556" x2="812" y2="556" stroke="#27272a"/>
+
+  <!-- buttons -->
+  <rect x="288" y="580" width="250" height="48" rx="10" fill="#ffffff" fill-opacity="0.06" stroke="#3f3f46"/>
+  <text x="382" y="610" fill="#e4e4e7" font-size="14" font-weight="600">Cancelar</text>
+
+  <rect x="562" y="580" width="250" height="48" rx="10" fill="#3b82f6"/>
+  <text x="628" y="610" fill="#0b1220" font-size="14" font-weight="700">Guardar Proveedor</text>
+
+  <!-- helper notes -->
+  <text x="288" y="668" fill="#71717a" font-size="11">CA1 — Validación en vivo (Zod) + validación en el resolver GraphQL.</text>
+  <text x="288" y="688" fill="#71717a" font-size="11">CA2 — Banner rojo si la cédula/RUC ya existe.   CA4 — Al guardar correcto → "Guardado con éxito".</text>
+
+  <text x="250" y="744" fill="#52525b" font-size="11">Mockup — Formulario de Proveedor (modo crear / editar) · estado con errores de ejemplo</text>
+</svg>
