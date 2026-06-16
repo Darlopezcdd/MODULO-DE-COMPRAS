@@ -54,7 +54,8 @@ function ProveedorFormContent({ defaultValues, isEdit = false, id }: { defaultVa
     setSuccessMsg('');
     try {
       if (isEdit) {
-        await actualizarProveedor({ variables: { id, input: data } });
+        const { cedulaRuc, ...updateData } = data;
+        await actualizarProveedor({ variables: { id, input: updateData } });
       } else {
         await crearProveedor({ variables: { input: data } });
       }
