@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "Administración de proveedores",
 };
 
+import ClientLayout from "@/components/ClientLayout";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );
