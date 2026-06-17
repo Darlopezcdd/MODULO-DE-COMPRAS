@@ -78,16 +78,26 @@ export const resolvers = {
     },
 
     // ── Facturas (HU2) ──────────────────────────────────────
-    listarFacturas: async (_: any, { estado }: any) => {
+    listarFacturas: async (_: any, { estado, fechaInicio, fechaFin }: any) => {
       const where: any = {};
       if (estado) where.estado = estado;
+      if (fechaInicio || fechaFin) {
+        where.fecha = {};
+        if (fechaInicio) where.fecha.gte = new Date(fechaInicio + 'T00:00:00.000Z');
+        if (fechaFin) where.fecha.lte = new Date(fechaFin + 'T23:59:59.999Z');
+      }
       const rows = await prisma.facturas_compra.findMany({ where, orderBy: { created_at: 'desc' } });
+      const proveIds = Array.from(new Set(rows.map((r: any) => r.proveedor_id)));
+      const proveedores = await prisma.proveedor.findMany({ where: { id: { in: proveIds } } });
+      const provMap = new Map(proveedores.map(p => [p.id, p.nombre]));
+
       return rows.map((r: any) => ({
         id: r.id,
         numeroFactura: r.numero_factura,
         numeroFacturaProveedor: r.numero_factura_proveedor,
         fecha: r.fecha?.toISOString().split('T')[0],
         proveedorId: r.proveedor_id,
+        proveedorNombre: provMap.get(r.proveedor_id) || 'Proveedor Desconocido',
         tipoPago: r.tipo_pago,
         fechaVencimiento: r.fecha_vencimiento?.toISOString().split('T')[0] ?? null,
         subtotalSinIva: Number(r.subtotal_sin_iva),

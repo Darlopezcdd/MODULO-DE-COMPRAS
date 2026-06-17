@@ -28,13 +28,13 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
   // ── ESTADO 1: Cargando (Skeletons) ──────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl overflow-hidden mt-6">
-        <div className="px-6 py-5 border-b border-slate-700">
-          <div className="h-6 bg-slate-800 rounded w-48 animate-pulse"></div>
+      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden mt-6">
+        <div className="px-6 py-5 border-b border-slate-200">
+          <div className="h-6 bg-slate-200 rounded w-48 animate-pulse"></div>
         </div>
         <div className="p-6 space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 bg-slate-800/50 rounded-lg animate-pulse"></div>
+            <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse"></div>
           ))}
         </div>
       </div>
@@ -44,12 +44,12 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
   // ── ESTADO 2: Inicial (Sin búsqueda) ────────────────────────────────────────
   if (data === null) {
     return (
-      <div className="bg-slate-900 border border-slate-800 border-dashed rounded-2xl flex flex-col items-center justify-center py-20 mt-6 transition-all">
-        <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-4">
+      <div className="bg-white border border-slate-200 border-dashed rounded-2xl flex flex-col items-center justify-center py-20 mt-6 transition-all shadow-sm">
+        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
           <span className="text-4xl">📅</span>
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">Seleccione un rango de fechas</h3>
-        <p className="text-slate-400 text-sm max-w-sm text-center">
+        <h3 className="text-xl font-bold text-slate-900 mb-2">Seleccione un rango de fechas</h3>
+        <p className="text-slate-500 text-sm max-w-sm text-center">
           Utilice los filtros superiores para seleccionar el rango y generar el reporte de facturas.
         </p>
       </div>
@@ -59,12 +59,12 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
   // ── ESTADO 3: Vacío (Búsqueda sin resultados) ───────────────────────────────
   if (data.length === 0) {
     return (
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl flex flex-col items-center justify-center py-20 mt-6 shadow-2xl">
-        <div className="w-20 h-20 bg-red-900/20 border border-red-500/20 rounded-full flex items-center justify-center mb-4">
+      <div className="bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center py-20 mt-6 shadow-sm">
+        <div className="w-20 h-20 bg-red-50 border border-red-200 rounded-full flex items-center justify-center mb-4">
           <span className="text-4xl opacity-80">📄</span>
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">No se encontraron facturas</h3>
-        <p className="text-slate-400 text-sm max-w-sm text-center">
+        <h3 className="text-xl font-bold text-slate-900 mb-2">No se encontraron facturas</h3>
+        <p className="text-slate-500 text-sm max-w-sm text-center">
           No existen registros de compras en el rango de fechas seleccionado.
         </p>
       </div>
@@ -83,19 +83,19 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
   );
 
   return (
-    <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl overflow-hidden mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="px-6 py-5 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          <span className="text-blue-400">📋</span> Resultados del Reporte
+    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <span className="text-blue-600">📋</span> Resultados del Reporte
         </h3>
-        <span className="bg-blue-500/20 text-blue-400 text-xs font-bold px-3 py-1 rounded-full border border-blue-500/30">
+        <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-200">
           {data.length} Registro(s)
         </span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-400 uppercase bg-slate-800 border-b border-slate-700 tracking-wider">
+          <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200 tracking-wider">
             <tr>
               <th className="px-6 py-4">Factura N°</th>
               <th className="px-6 py-4">Fecha</th>
@@ -106,51 +106,51 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
               <th className="px-6 py-4 text-right">Total</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800">
+          <tbody className="divide-y divide-slate-200">
             {data.map((factura) => (
-              <tr key={factura.id} className="hover:bg-slate-800/50 transition-colors">
-                <td className="px-6 py-4 font-mono text-blue-400 font-medium">
+              <tr key={factura.id} className="hover:bg-slate-50 transition-colors">
+                <td className="px-6 py-4 font-mono text-blue-600 font-medium">
                   {factura.numero}
                 </td>
-                <td className="px-6 py-4 text-slate-300">
+                <td className="px-6 py-4 text-slate-600">
                   {factura.fechaEmision}
                 </td>
-                <td className="px-6 py-4 text-white font-medium">
+                <td className="px-6 py-4 text-slate-900 font-medium">
                   {factura.proveedor}
                 </td>
                 <td className="px-6 py-4 text-center">
                   <span className={`px-2.5 py-1 text-xs font-bold rounded-full border ${
                     factura.tipoPago === 'CONTADO' 
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                      : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      ? 'bg-emerald-50 text-emerald-600 border-emerald-200' 
+                      : 'bg-amber-50 text-amber-600 border-amber-200'
                   }`}>
                     {factura.tipoPago}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-right text-slate-300 font-mono">
+                <td className="px-6 py-4 text-right text-slate-600 font-mono">
                   {fmt(factura.subtotal)}
                 </td>
-                <td className="px-6 py-4 text-right text-slate-400 font-mono">
+                <td className="px-6 py-4 text-right text-slate-600 font-mono">
                   {fmt(factura.iva)}
                 </td>
-                <td className="px-6 py-4 text-right text-emerald-400 font-bold font-mono">
+                <td className="px-6 py-4 text-right text-emerald-600 font-bold font-mono">
                   {fmt(factura.total)}
                 </td>
               </tr>
             ))}
           </tbody>
-          <tfoot className="bg-slate-800/80 border-t border-slate-600">
+          <tfoot className="bg-slate-50 border-t border-slate-200">
             <tr>
-              <td colSpan={4} className="px-6 py-4 text-right font-bold text-white uppercase text-xs tracking-wider">
+              <td colSpan={4} className="px-6 py-4 text-right font-bold text-slate-900 uppercase text-xs tracking-wider">
                 Total General del Período
               </td>
-              <td className="px-6 py-4 text-right font-bold text-slate-300 font-mono">
+              <td className="px-6 py-4 text-right font-bold text-slate-700 font-mono">
                 {fmt(totalesGeneral.subtotal)}
               </td>
-              <td className="px-6 py-4 text-right font-bold text-slate-400 font-mono">
+              <td className="px-6 py-4 text-right font-bold text-slate-700 font-mono">
                 {fmt(totalesGeneral.iva)}
               </td>
-              <td className="px-6 py-4 text-right font-bold text-emerald-400 text-lg font-mono">
+              <td className="px-6 py-4 text-right font-bold text-emerald-600 text-lg font-mono">
                 {fmt(totalesGeneral.total)}
               </td>
             </tr>
