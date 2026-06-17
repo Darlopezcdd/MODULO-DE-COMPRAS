@@ -68,24 +68,24 @@ function ProveedorFormContent({ defaultValues, isEdit = false, id }: { defaultVa
   };
 
   return (
-    <div className="glass-panel p-8 rounded-xl max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-white">{isEdit ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
+    <div className="glass-panel p-8 rounded-xl max-w-2xl mx-auto shadow-sm">
+      <h2 className="text-2xl font-bold mb-6 text-slate-900">{isEdit ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
       
       {successMsg && (
-        <div className="bg-emerald-500/20 border border-emerald-500 text-emerald-200 p-4 rounded-lg mb-6 flex items-center gap-2">
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg mb-6 flex items-center gap-2 shadow-sm">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
           {successMsg}
         </div>
       )}
 
       {serverError && (
-        <div className="bg-red-500/20 border border-red-500 text-red-200 p-4 rounded-lg mb-6">
+        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg mb-6 shadow-sm">
           {serverError}
         </div>
       )}
 
       {successMsg && (
-        <div className="bg-emerald-500/20 border border-emerald-500 text-emerald-200 p-4 rounded-lg mb-6">
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg mb-6 shadow-sm">
           ✓ {successMsg}
         </div>
       )}
@@ -93,92 +93,92 @@ function ProveedorFormContent({ defaultValues, isEdit = false, id }: { defaultVa
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Cédula / RUC</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Cédula / RUC</label>
             <input 
               {...register('cedulaRuc')} 
               disabled={isEdit}
-              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              className="w-full bg-white text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
               placeholder="1234567890" 
             />
-            {errors.cedulaRuc && <p className="text-red-400 text-xs mt-1">{errors.cedulaRuc.message}</p>}
+            {errors.cedulaRuc && <p className="text-red-600 text-xs mt-1">{errors.cedulaRuc.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Nombre / Razón Social</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Nombre / Razón Social</label>
             <input 
               {...register('nombre')} 
-              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              className="w-full bg-white text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
               placeholder="Juan Pérez" 
             />
-            {errors.nombre && <p className="text-red-400 text-xs mt-1">{errors.nombre.message}</p>}
+            {errors.nombre && <p className="text-red-600 text-xs mt-1">{errors.nombre.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Ciudad</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Ciudad</label>
             <input 
               {...register('ciudad')} 
-              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              className="w-full bg-white text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
               placeholder="Quito" 
             />
-            {errors.ciudad && <p className="text-red-400 text-xs mt-1">{errors.ciudad.message}</p>}
+            {errors.ciudad && <p className="text-red-600 text-xs mt-1">{errors.ciudad.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Tipo de Proveedor</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Proveedor</label>
             <select 
               {...register('tipo')} 
-              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors"
+              className="w-full bg-white text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
             >
               <option value="CONTADO">Contado</option>
               <option value="CREDITO">Crédito</option>
             </select>
-            {errors.tipo && <p className="text-red-400 text-xs mt-1">{errors.tipo.message}</p>}
+            {errors.tipo && <p className="text-red-600 text-xs mt-1">{errors.tipo.message}</p>}
           </div>
 
           <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-300 mb-1">Dirección</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Dirección</label>
             <input 
               {...register('direccion')} 
-              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              className="w-full bg-white text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
               placeholder="Av. Principal 123" 
             />
-            {errors.direccion && <p className="text-red-400 text-xs mt-1">{errors.direccion.message}</p>}
+            {errors.direccion && <p className="text-red-600 text-xs mt-1">{errors.direccion.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Teléfono</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
             <input 
               {...register('telefono')} 
-              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              className="w-full bg-white text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
               placeholder="0999999999" 
             />
-            {errors.telefono && <p className="text-red-400 text-xs mt-1">{errors.telefono.message}</p>}
+            {errors.telefono && <p className="text-red-600 text-xs mt-1">{errors.telefono.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Correo Electrónico</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
             <input 
               {...register('email')} 
               type="email"
-              className="w-full bg-secondary text-white px-4 py-2 rounded-lg border border-white/10 focus:border-primary outline-none transition-colors" 
+              className="w-full bg-white text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
               placeholder="correo@ejemplo.com" 
             />
-            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+            {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email.message}</p>}
           </div>
         </div>
 
-        <div className="flex gap-4 pt-4 border-t border-white/10">
+        <div className="flex gap-4 pt-4 border-t border-slate-200">
           <button 
             type="button" 
             onClick={() => router.push('/proveedores')}
-            className="flex-1 bg-white/5 hover:bg-white/10 text-white py-3 rounded-lg font-medium transition-colors"
+            className="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-3 rounded-lg font-medium transition-colors shadow-sm"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isSubmitting || !!successMsg}
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-lg font-medium transition-colors disabled:opacity-50"
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-lg font-medium transition-colors shadow-sm disabled:opacity-50"
           >
             {successMsg ? 'Guardado ✓' : isSubmitting ? 'Guardando...' : 'Guardar Proveedor'}
           </button>

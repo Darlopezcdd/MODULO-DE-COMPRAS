@@ -47,15 +47,15 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl p-6 relative overflow-hidden">
-      {/* Fondo decorativo (Glassmorphism sutil) */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 relative overflow-hidden">
+      {/* Fondo decorativo */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
       <div className="relative z-10">
-        <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-          <span className="text-blue-400">📅</span> Rango del Reporte
+        <h2 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+          <span className="text-blue-600">📅</span> Rango del Reporte
         </h2>
-        <p className="text-slate-400 text-sm mb-6">
+        <p className="text-slate-500 text-sm mb-6">
           Selecciona el rango de fechas para generar el reporte de facturas.
         </p>
 
@@ -63,7 +63,7 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
           
           {/* DatePicker Inicio */}
           <div className="flex-1 w-full relative">
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
               Fecha de Inicio
             </label>
             <input
@@ -71,13 +71,13 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
               value={fechaInicio}
               max={new Date().toISOString().split('T')[0]} // Bloquea futuro en UI
               onChange={(e) => setFechaInicio(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all custom-datepicker"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all custom-datepicker"
             />
           </div>
 
           {/* DatePicker Fin */}
           <div className="flex-1 w-full relative">
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
               Fecha de Fin
             </label>
             <input
@@ -86,7 +86,7 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
               min={fechaInicio} // Bloquea menores a inicio en UI
               max={new Date().toISOString().split('T')[0]}
               onChange={(e) => setFechaFin(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all custom-datepicker"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all custom-datepicker"
             />
           </div>
 
@@ -95,10 +95,10 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
             <button
               onClick={handleGenerar}
               disabled={isLoading}
-              className={`w-full md:w-auto px-8 py-3 rounded-xl font-medium transition-all shadow-lg flex items-center justify-center gap-2 ${
+              className={`w-full md:w-auto px-8 py-3 rounded-xl font-medium transition-all shadow-sm flex items-center justify-center gap-2 ${
                 isLoading 
-                  ? 'bg-slate-700 text-slate-400 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-500 text-white hover:shadow-blue-500/25 hover:-translate-y-0.5'
+                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
+                  : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-md hover:-translate-y-0.5'
               }`}
             >
               {isLoading ? (
@@ -120,7 +120,7 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
 
         {/* Mensaje de Error */}
         {error && (
-          <div className="mt-4 p-3 bg-red-900/40 border border-red-500/50 rounded-lg text-red-200 text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
             <span>⚠️</span> {error}
           </div>
         )}
@@ -131,7 +131,6 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
         .custom-datepicker::-webkit-calendar-picker-indicator {
           background-color: transparent;
           cursor: pointer;
-          filter: invert(1);
           opacity: 0.6;
         }
         .custom-datepicker::-webkit-calendar-picker-indicator:hover {

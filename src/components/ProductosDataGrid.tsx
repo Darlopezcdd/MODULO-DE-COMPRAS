@@ -105,7 +105,7 @@ function BuscadorProducto({ onSelect }: { onSelect: (p: ProductoInventario) => v
             value={query}
             onChange={handleChange}
             placeholder="Buscar por código, nombre o categoría..."
-            className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+            className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-sm"
           />
           {loading && (
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs animate-pulse">
@@ -117,28 +117,28 @@ function BuscadorProducto({ onSelect }: { onSelect: (p: ProductoInventario) => v
 
       {/* Dropdown de resultados */}
       {open && results.length > 0 && (
-        <div className="absolute z-50 left-0 right-0 mt-1 bg-slate-900 border border-slate-600 rounded-xl shadow-2xl overflow-hidden">
-          <div className="px-3 py-1.5 bg-slate-800 border-b border-slate-700">
-            <span className="text-xs text-slate-400">{results.length} resultado(s) encontrado(s)</span>
+        <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+          <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-100">
+            <span className="text-xs text-slate-500">{results.length} resultado(s) encontrado(s)</span>
           </div>
           <ul className="max-h-60 overflow-y-auto">
             {results.map(p => (
               <li
                 key={p.id}
                 onClick={() => handleSelect(p)}
-                className="flex items-center justify-between px-4 py-3 hover:bg-slate-700 cursor-pointer border-b border-slate-800 last:border-0 transition-colors group"
+                className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors group"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-blue-400">{p.codigo}</span>
-                    <span className="text-xs text-slate-500">·</span>
-                    <span className="text-xs text-slate-400">{p.categoria}</span>
+                    <span className="text-xs font-mono text-blue-600">{p.codigo}</span>
+                    <span className="text-xs text-slate-300">·</span>
+                    <span className="text-xs text-slate-500">{p.categoria}</span>
                   </div>
-                  <div className="text-sm text-white font-medium truncate">{p.nombre}</div>
+                  <div className="text-sm text-slate-900 font-medium truncate">{p.nombre}</div>
                 </div>
                 <div className="ml-4 text-right flex-shrink-0">
-                  <div className="text-sm font-bold text-emerald-400">{fmt(p.pvp)}</div>
-                  <div className={`text-xs font-medium ${p.stock > 20 ? 'text-emerald-500' : p.stock > 5 ? 'text-amber-400' : 'text-red-400'}`}>
+                  <div className="text-sm font-bold text-emerald-600">{fmt(p.pvp)}</div>
+                  <div className={`text-xs font-medium ${p.stock > 20 ? 'text-emerald-600' : p.stock > 5 ? 'text-amber-600' : 'text-red-600'}`}>
                     Stock: {p.stock} {p.unidad}
                   </div>
                 </div>
@@ -149,7 +149,7 @@ function BuscadorProducto({ onSelect }: { onSelect: (p: ProductoInventario) => v
       )}
 
       {open && query.length >= 2 && results.length === 0 && !loading && (
-        <div className="absolute z-50 left-0 right-0 mt-1 bg-slate-900 border border-slate-600 rounded-xl p-4 text-center text-slate-400 text-sm shadow-2xl">
+        <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl p-4 text-center text-slate-500 text-sm shadow-xl">
           No se encontraron productos para &quot;{query}&quot;
         </div>
       )}
@@ -206,15 +206,15 @@ export default function ProductosDataGrid() {
   );
 
   return (
-    <div className="bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700 flex items-center justify-between">
+      <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <span className="text-blue-400">📦</span> Detalle de Productos
+          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span className="text-blue-600">📦</span> Detalle de Productos
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             {lineas.length === 0 ? 'Sin líneas agregadas' : `${lineas.length} línea(s) · ${lineas.reduce((a, l) => a + l.cantidad, 0)} unidades`}
           </p>
         </div>
@@ -222,7 +222,7 @@ export default function ProductosDataGrid() {
           <button
             type="button"
             onClick={() => setLineas([])}
-            className="text-xs text-red-400 hover:text-red-300 border border-red-800 hover:border-red-600 px-3 py-1.5 rounded-lg transition-all"
+            className="text-xs text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-all"
           >
             Limpiar todo
           </button>
@@ -230,8 +230,8 @@ export default function ProductosDataGrid() {
       </div>
 
       {/* ── Buscador ────────────────────────────────────────────────────────── */}
-      <div className="px-6 py-4 bg-slate-800/50 border-b border-slate-700">
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+      <div className="px-6 py-4 bg-white border-b border-slate-200">
+        <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
           Agregar Producto desde Inventario
         </label>
         <BuscadorProducto onSelect={agregarProducto} />
@@ -248,7 +248,7 @@ export default function ProductosDataGrid() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-800 text-slate-300 text-xs uppercase tracking-wider">
+              <tr className="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
                 <th className="px-3 py-3 text-center w-8">#</th>
                 <th className="px-3 py-3 text-left w-24">Código</th>
                 <th className="px-3 py-3 text-left">Descripción</th>
@@ -262,7 +262,7 @@ export default function ProductosDataGrid() {
                 <th className="px-3 py-3 w-10"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {lineas.map((linea, idx) => {
                 const sub   = lineaSubtotal(linea);
                 const iva   = lineaIva(linea);
@@ -273,14 +273,14 @@ export default function ProductosDataGrid() {
                   <tr
                     key={linea._key}
                     data-testid={`detalle-row-${idx}`}
-                    className={`transition-colors ${idx % 2 === 0 ? 'bg-slate-900' : 'bg-slate-800/40'} hover:bg-slate-800`}
+                    className={`transition-colors hover:bg-slate-50`}
                   >
                     {/* # */}
                     <td className="px-3 py-2.5 text-center text-slate-500 font-mono text-xs">{idx + 1}</td>
 
                     {/* Código */}
                     <td className="px-3 py-2.5">
-                      <span className="font-mono text-xs text-blue-400 bg-blue-950/50 px-1.5 py-0.5 rounded">
+                      <span className="font-mono text-xs text-blue-700 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded">
                         {linea.codigo}
                       </span>
                     </td>
@@ -292,22 +292,22 @@ export default function ProductosDataGrid() {
                         type="text"
                         value={linea.descripcion}
                         onChange={e => actualizarLinea(linea._key, 'descripcion', e.target.value)}
-                        className="w-full bg-transparent text-white text-sm border-b border-transparent hover:border-slate-600 focus:border-blue-500 focus:outline-none transition-colors py-0.5"
+                        className="w-full bg-transparent text-slate-900 text-sm border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none transition-colors py-0.5"
                       />
                     </td>
 
                     {/* Stock disponible */}
                     <td className="px-3 py-2.5 text-center">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
                         stockBajo
-                          ? 'bg-red-900/50 text-red-400 border border-red-700'
+                          ? 'bg-red-50 text-red-600 border-red-200'
                           : linea.stockDisponible <= 20
-                          ? 'bg-amber-900/50 text-amber-400 border border-amber-700'
-                          : 'bg-emerald-900/50 text-emerald-400 border border-emerald-700'
+                          ? 'bg-amber-50 text-amber-600 border-amber-200'
+                          : 'bg-emerald-50 text-emerald-600 border-emerald-200'
                       }`}>
                         {linea.stockDisponible}
                       </span>
-                      {stockBajo && <div className="text-red-400 text-xs mt-0.5">⚠ Stock insuf.</div>}
+                      {stockBajo && <div className="text-red-500 text-xs mt-0.5">⚠ Stock insuf.</div>}
                     </td>
 
                     {/* Cantidad */}
@@ -319,8 +319,8 @@ export default function ProductosDataGrid() {
                         step="1"
                         value={linea.cantidad}
                         onChange={e => actualizarLinea(linea._key, 'cantidad', parseFloat(e.target.value) || 0)}
-                        className={`w-full text-center bg-slate-800 border rounded-lg px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 transition-all ${
-                          stockBajo ? 'border-red-600 focus:ring-red-500' : 'border-slate-600 focus:ring-blue-500'
+                        className={`w-full text-center bg-white border rounded-lg px-2 py-1 text-slate-900 text-sm focus:outline-none focus:ring-1 transition-all ${
+                          stockBajo ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-slate-200 focus:ring-blue-500 focus:border-blue-500'
                         }`}
                       />
                     </td>
@@ -328,7 +328,7 @@ export default function ProductosDataGrid() {
                     {/* PVP */}
                     <td className="px-3 py-2.5">
                       <div className="relative">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
                         <input
                           data-testid={`pvp-detalle-${idx}`}
                           type="number"
@@ -336,7 +336,7 @@ export default function ProductosDataGrid() {
                           step="0.01"
                           value={linea.pvp}
                           onChange={e => actualizarLinea(linea._key, 'pvp', parseFloat(e.target.value) || 0)}
-                          className="w-full text-right bg-slate-800 border border-slate-600 rounded-lg pl-5 pr-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                          className="w-full text-right bg-white border border-slate-200 rounded-lg pl-5 pr-2 py-1 text-slate-900 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         />
                       </div>
                     </td>
@@ -349,8 +349,8 @@ export default function ProductosDataGrid() {
                         onClick={() => actualizarLinea(linea._key, 'grabaIva', !linea.grabaIva)}
                         className={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all ${
                           linea.grabaIva
-                            ? 'bg-blue-900/60 text-blue-300 border-blue-600 hover:bg-blue-800'
-                            : 'bg-slate-700 text-slate-400 border-slate-600 hover:bg-slate-600'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                            : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
                         {linea.grabaIva ? `${linea.porcentajeIva}%` : '0%'}
@@ -358,13 +358,13 @@ export default function ProductosDataGrid() {
                     </td>
 
                     {/* Subtotal */}
-                    <td className="px-3 py-2.5 text-right text-slate-300 font-mono text-sm">{fmt(sub)}</td>
+                    <td className="px-3 py-2.5 text-right text-slate-700 font-mono text-sm">{fmt(sub)}</td>
 
                     {/* IVA $ */}
-                    <td className="px-3 py-2.5 text-right text-blue-400 font-mono text-sm">{fmt(iva)}</td>
+                    <td className="px-3 py-2.5 text-right text-blue-600 font-mono text-sm">{fmt(iva)}</td>
 
                     {/* Total línea */}
-                    <td className="px-3 py-2.5 text-right text-white font-bold font-mono">{fmt(total)}</td>
+                    <td className="px-3 py-2.5 text-right text-slate-900 font-bold font-mono">{fmt(total)}</td>
 
                     {/* Eliminar */}
                     <td className="px-3 py-2.5 text-center">
@@ -372,7 +372,7 @@ export default function ProductosDataGrid() {
                         data-testid={`remove-detalle-${idx}`}
                         type="button"
                         onClick={() => eliminarLinea(linea._key)}
-                        className="text-slate-500 hover:text-red-400 transition-colors text-lg leading-none"
+                        className="text-slate-400 hover:text-red-500 transition-colors text-lg leading-none"
                         title="Eliminar línea"
                       >
                         ×
@@ -388,23 +388,23 @@ export default function ProductosDataGrid() {
 
       {/* ── Panel de Totales ─────────────────────────────────────────────────── */}
       {lineas.length > 0 && (
-        <div className="px-6 py-5 bg-slate-800 border-t border-slate-700 flex justify-end">
+        <div className="px-6 py-5 bg-slate-50 border-t border-slate-200 flex justify-end">
           <div className="w-72 space-y-2">
-            <div className="flex justify-between text-sm text-slate-300">
+            <div className="flex justify-between text-sm text-slate-600">
               <span>Subtotal sin IVA:</span>
               <span data-testid="subtotal-sin-iva" className="font-mono">{fmt(totales.subtotalSinIva)}</span>
             </div>
-            <div className="flex justify-between text-sm text-slate-300">
+            <div className="flex justify-between text-sm text-slate-600">
               <span>Subtotal con IVA:</span>
               <span data-testid="subtotal-con-iva" className="font-mono">{fmt(totales.subtotalConIva)}</span>
             </div>
-            <div className="flex justify-between text-sm text-blue-400">
+            <div className="flex justify-between text-sm text-blue-600">
               <span>IVA (15%):</span>
               <span data-testid="total-iva" className="font-mono">{fmt(totales.totalIva)}</span>
             </div>
-            <div className="border-t border-slate-600 pt-3 flex justify-between items-center">
-              <span className="text-base font-bold text-white">TOTAL:</span>
-              <span data-testid="total-general" className="text-xl font-bold text-emerald-400 font-mono">
+            <div className="border-t border-slate-200 pt-3 flex justify-between items-center">
+              <span className="text-base font-bold text-slate-900">TOTAL:</span>
+              <span data-testid="total-general" className="text-xl font-bold text-emerald-600 font-mono">
                 {fmt(totales.total)}
               </span>
             </div>

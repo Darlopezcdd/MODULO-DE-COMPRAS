@@ -62,8 +62,8 @@ export function FacturaPdfPreview({ data }: FacturaPdfPreviewProps) {
         disabled={isLoading}
         className={`relative flex items-center justify-center gap-2 font-medium py-2 px-6 rounded-lg transition-all duration-300 shadow-sm
           ${isLoading 
-            ? 'bg-slate-200 text-slate-500 cursor-not-allowed' 
-            : 'bg-slate-800 hover:bg-slate-900 hover:shadow-md hover:-translate-y-0.5 text-white'
+            ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
+            : 'bg-blue-600 hover:bg-blue-700 hover:shadow-md hover:-translate-y-0.5 text-white'
           } w-full`}
       >
         {isLoading ? (
