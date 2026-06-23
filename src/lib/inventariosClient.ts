@@ -1,17 +1,17 @@
 export interface ProductoInventarioExterno {
-  id: number;
   codigo: string;
   nombre: string;
+  descripcion: string;
   stock_actual: number;
-  precio_unitario: number;
+  pvp: string;
   graba_iva: boolean;
-  porcentaje_iva: number;
+  porcentaje_iva_aplicado: number;
 }
 
 export interface ProductoInventarioNormalizado {
-  id: number;
   codigo: string;
   nombre: string;
+  descripcion: string;
   stockActual: number;
   precioUnitario: number;
   grabaIva: boolean;
@@ -30,27 +30,25 @@ const INVENTARIOS_API_URL = process.env.INVENTARIOS_API_URL || '';
 
 function normalizar(producto: ProductoInventarioExterno): ProductoInventarioNormalizado {
   return {
-    id: producto.id,
     codigo: producto.codigo,
     nombre: producto.nombre,
+    descripcion: producto.descripcion,
     stockActual: producto.stock_actual,
-    precioUnitario: producto.precio_unitario,
+    precioUnitario: parseFloat(producto.pvp) || 0,
     grabaIva: producto.graba_iva,
-    porcentajeIva: producto.porcentaje_iva,
+    porcentajeIva: producto.porcentaje_iva_aplicado,
   };
 }
 
-export async function buscarProductos(
-  termino: string,
-  pagina: number = 1,
-  limite: number = 10
-): Promise<InventariosResponse> {
-  const params = new URLSearchParams();
-  if (termino) params.set('termino', termino);
-  params.set('pagina', String(pagina));
-  params.set('limite', String(limite));
+let cacheCatalogo: { data: ProductoInventarioNormalizado[]; timestamp: number } | null = null;
+const CACHE_TTL = 60000;
 
-  const url = `${INVENTARIOS_API_URL}/productos?${params.toString()}`;
+async function fetchCatalogo(): Promise<ProductoInventarioNormalizado[]> {
+  if (cacheCatalogo && Date.now() - cacheCatalogo.timestamp < CACHE_TTL) {
+    return cacheCatalogo.data;
+  }
+
+  const url = `${INVENTARIOS_API_URL}/api/productos/catalogo`;
 
   const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
@@ -63,12 +61,36 @@ export async function buscarProductos(
 
   const body = await res.json();
   const externos: ProductoInventarioExterno[] = body.data ?? body ?? [];
+  const normalizados = externos.map(normalizar);
+
+  cacheCatalogo = { data: normalizados, timestamp: Date.now() };
+  return normalizados;
+}
+
+export async function buscarProductos(
+  termino: string,
+  pagina: number = 1,
+  limite: number = 10
+): Promise<InventariosResponse> {
+  const todos = await fetchCatalogo();
+
+  const filtrados = termino
+    ? todos.filter((p) =>
+        p.nombre.toLowerCase().includes(termino.toLowerCase()) ||
+        p.codigo.toLowerCase().includes(termino.toLowerCase())
+      )
+    : todos;
+
+  const total = filtrados.length;
+  const totalPaginas = Math.ceil(total / limite);
+  const inicio = (pagina - 1) * limite;
+  const data = filtrados.slice(inicio, inicio + limite);
 
   return {
     success: true,
-    data: externos.map(normalizar),
-    total: body.total ?? externos.length,
-    pagina: body.pagina ?? pagina,
-    totalPaginas: body.totalPaginas ?? Math.ceil((body.total ?? externos.length) / limite),
+    data,
+    total,
+    pagina,
+    totalPaginas,
   };
 }
