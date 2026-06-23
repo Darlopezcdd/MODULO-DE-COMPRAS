@@ -10,3 +10,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+// Force restart to pick up new Prisma Client

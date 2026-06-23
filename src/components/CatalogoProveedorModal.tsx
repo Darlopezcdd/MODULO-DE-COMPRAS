@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, gql, ApolloProvider } from "@apollo/client";
+import { useQuery, useMutation, ApolloProvider } from "@apollo/client/react";
+import { gql } from "@apollo/client";
 import { apolloClient } from "@/lib/apolloClient";
 import AutocompleteProducto from "./AutocompleteProducto";
+import NuevoProductoModal from "./NuevoProductoModal";
 
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
@@ -56,6 +58,11 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
 
   const [productosFull, setProductosFull] = useState<any[]>([]);
   const [cargandoDetalles, setCargandoDetalles] = useState(false);
+  const [showNuevoProducto, setShowNuevoProducto] = useState(false);
+  
+  // Estado para la seleccion inline
+  const [productoSeleccionado, setProductoSeleccionado] = useState<any>(null);
+  const [precioInput, setPrecioInput] = useState<string>("");
 
   // Cargar detalles de los productos usando sus códigos
   useEffect(() => {
@@ -104,19 +111,29 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
     }
   };
 
-  const handleAddFromAutocomplete = async (prod: any) => {
-    const precio = prompt(`¿A qué precio te vende este proveedor el producto "${prod.nombre}"?`, "0");
-    if (precio === null) return; // canceló
-    const numPrecio = parseFloat(precio) || 0;
+  const handleAddFromAutocomplete = (prod: any) => {
+    setProductoSeleccionado(prod);
+    setPrecioInput("");
+  };
+
+  const confirmarAgregar = async () => {
+    if (!productoSeleccionado) return;
+    const numPrecio = parseFloat(precioInput) || 0;
+    if (numPrecio <= 0) {
+      alert("Ingrese un precio válido mayor a 0");
+      return;
+    }
     
     try {
       await agregar({
         variables: {
           proveedorId,
-          productoCodigo: prod.codigo,
+          productoCodigo: productoSeleccionado.codigo,
           precioCompra: numPrecio
         }
       });
+      setProductoSeleccionado(null);
+      setPrecioInput("");
       refetch();
     } catch (e: any) {
       alert("Error: " + e.message);
@@ -137,12 +154,58 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
         <div className="p-6 flex-1 overflow-y-auto bg-slate-50/50">
           
           <div className="mb-6 p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
-            <h4 className="text-sm font-semibold text-slate-700 mb-2">Añadir producto existente al catálogo</h4>
-            <div className="w-full">
-              <AutocompleteProducto 
-                onSelect={handleAddFromAutocomplete} 
-              />
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-sm font-semibold text-slate-700">Añadir producto existente al catálogo</h4>
+              <button 
+                onClick={() => setShowNuevoProducto(true)}
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg transition"
+              >
+                + Crear Producto Nuevo
+              </button>
             </div>
+            
+            {!productoSeleccionado ? (
+              <div className="w-full">
+                <AutocompleteProducto 
+                  onSelect={handleAddFromAutocomplete} 
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-900">{productoSeleccionado.nombre}</p>
+                  <p className="text-xs text-slate-500">Código: {productoSeleccionado.codigo}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-slate-700">Precio de compra:</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
+                    <input 
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      className="w-28 pl-7 pr-3 py-1.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition"
+                      value={precioInput}
+                      onChange={(e) => setPrecioInput(e.target.value)}
+                      placeholder="0.00"
+                      autoFocus
+                    />
+                  </div>
+                  <button 
+                    onClick={confirmarAgregar}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-md font-medium text-sm shadow-sm transition"
+                  >
+                    Guardar
+                  </button>
+                  <button 
+                    onClick={() => setProductoSeleccionado(null)}
+                    className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-md font-medium text-sm transition"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
@@ -186,6 +249,17 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
 
         </div>
       </div>
+      
+      {showNuevoProducto && (
+        <NuevoProductoModal
+          proveedorId={proveedorId}
+          onClose={() => setShowNuevoProducto(false)}
+          onSuccess={() => {
+            setShowNuevoProducto(false);
+            refetch();
+          }}
+        />
+      )}
     </div>
   );
 }
