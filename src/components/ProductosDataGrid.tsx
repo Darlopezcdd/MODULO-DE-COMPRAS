@@ -10,12 +10,11 @@ interface ProductoInventario {
   id: number;
   codigo: string;
   nombre: string;
-  categoria: string;
-  pvp: number;
+  descripcion: string;
+  precioUnitario: number;
   grabaIva: boolean;
   porcentajeIva: number;
-  stock: number;
-  unidad: string;
+  stockActual: number;
 }
 
 interface LineaDetalle {
@@ -131,15 +130,14 @@ function BuscadorProducto({ onSelect }: { onSelect: (p: ProductoInventario) => v
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono text-blue-600">{p.codigo}</span>
-                    <span className="text-xs text-slate-300">·</span>
-                    <span className="text-xs text-slate-500">{p.categoria}</span>
                   </div>
                   <div className="text-sm text-slate-900 font-medium truncate">{p.nombre}</div>
+                  <div className="text-xs text-slate-500 truncate">{p.descripcion}</div>
                 </div>
                 <div className="ml-4 text-right flex-shrink-0">
-                  <div className="text-sm font-bold text-emerald-600">{fmt(p.pvp)}</div>
-                  <div className={`text-xs font-medium ${p.stock > 20 ? 'text-emerald-600' : p.stock > 5 ? 'text-amber-600' : 'text-red-600'}`}>
-                    Stock: {p.stock} {p.unidad}
+                  <div className="text-sm font-bold text-emerald-600">{fmt(p.precioUnitario)}</div>
+                  <div className={`text-xs font-medium ${p.stockActual > 20 ? 'text-emerald-600' : p.stockActual > 5 ? 'text-amber-600' : 'text-red-600'}`}>
+                    Stock: {p.stockActual}
                   </div>
                 </div>
               </li>
@@ -174,13 +172,13 @@ export default function ProductosDataGrid() {
       ...prev,
       {
         _key: makeKey(),
-        productoId:       p.id,
+        productoId:       p.id || Date.now(), // Fallback en caso de que id no venga
         codigo:           p.codigo,
         descripcion:      p.nombre,
-        unidad:           p.unidad,
-        stockDisponible:  p.stock,
+        unidad:           "u",
+        stockDisponible:  p.stockActual,
         cantidad:         1,
-        pvp:              p.pvp,
+        pvp:              p.precioUnitario,
         grabaIva:         p.grabaIva,
         porcentajeIva:    p.porcentajeIva,
       },
