@@ -170,6 +170,7 @@ function FacturaFormContent() {
       };
       autoSelect();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productoQuery, apollo]);
 
   const handleAddProduct = () => {
