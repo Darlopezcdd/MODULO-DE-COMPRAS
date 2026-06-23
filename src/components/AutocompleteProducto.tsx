@@ -27,6 +27,10 @@ export default function AutocompleteProducto({ onSelect, value }: AutocompletePr
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    setSearchTerm(value || '');
+  }, [value]);
+
+  useEffect(() => {
     if (searchTerm.length < 2) {
       setProductos([]);
       setOpen(false);
