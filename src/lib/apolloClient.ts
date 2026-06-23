@@ -5,6 +5,7 @@ export const apolloClient = new ApolloClient({
     uri: '/api/graphql',
     fetch: (uri, options) => {
       // Remove the signal to prevent Next.js from throwing unhandled AbortErrors on component unmount
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { signal, ...restOptions } = options || {};
       return fetch(uri, restOptions);
     }
