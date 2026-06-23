@@ -82,11 +82,18 @@ export const typeDefs = `
   }
 
   # ── Queries ───────────────────────────────────────────────
+  type MejorProveedor {
+    proveedor: Proveedor!
+    precioCompra: Float!
+  }
+
   type Query {
     listarProveedores(estado: EstadoProveedor, tipo: TipoProveedor, buscar: String): [Proveedor!]!
     obtenerProveedor(id: Int!): Proveedor
     listarFacturas(estado: EstadoFactura, fechaInicio: String, fechaFin: String): [FacturaCompra!]!
     obtenerFactura(id: Int!): FacturaCompra
+    listarCatalogoProveedor(proveedorId: Int!): [CatalogoProveedor!]!
+    mejorProveedor(productoCodigo: String!): MejorProveedor
   }
 
   # ── Mutations ─────────────────────────────────────────────
