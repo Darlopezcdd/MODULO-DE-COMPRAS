@@ -17,32 +17,43 @@ export async function GET(req: Request) {
       if (tipo === 'dia') {
         const start = new Date(y, m - 1, d, 0, 0, 0);
         const end = new Date(y, m - 1, d, 23, 59, 59, 999);
-        whereClause = { fechaEmision: { gte: start, lte: end } };
+        whereClause = { fecha: { gte: start, lte: end } };
         periodoStr = `Día: ${start.toLocaleDateString('es-ES')}`;
       } else if (tipo === 'mes') {
         const start = new Date(y, m - 1, 1, 0, 0, 0);
         const end = new Date(y, m, 0, 23, 59, 59, 999);
-        whereClause = { fechaEmision: { gte: start, lte: end } };
+        whereClause = { fecha: { gte: start, lte: end } };
         periodoStr = `Mes: ${start.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
       } else if (tipo === 'anio') {
         const start = new Date(y, 0, 1, 0, 0, 0);
         const end = new Date(y, 11, 31, 23, 59, 59, 999);
-        whereClause = { fechaEmision: { gte: start, lte: end } };
+        whereClause = { fecha: { gte: start, lte: end } };
         periodoStr = `Año: ${start.getFullYear()}`;
       }
     }
 
-    const facturas = await prisma.factura_compra.findMany({
+    const facturas = await prisma.facturas_compra.findMany({
       where: whereClause,
-      include: {
-        proveedor: true,
-      },
-      orderBy: { fechaEmision: 'desc' },
+      orderBy: { fecha: 'desc' },
     });
 
-    const totalGastado = facturas.reduce((sum, f) => sum + f.total, 0);
-    const totalPagadas = facturas.filter(f => f.estadoPago === 'PAGADA').length;
-    const totalPendientes = facturas.filter(f => f.estadoPago === 'PENDIENTE').length;
+    const proveedorIds = facturas.map(f => f.proveedor_id);
+    const proveedores = await prisma.proveedor.findMany({
+      where: { id: { in: proveedorIds } },
+      select: { id: true, nombre: true, cedulaRuc: true }
+    });
+
+    const facturasConProveedor = facturas.map(f => {
+      const prov = proveedores.find(p => p.id === f.proveedor_id);
+      return {
+        ...f,
+        proveedor: prov
+      };
+    });
+
+    const totalGastado = facturas.reduce((sum, f) => sum + Number(f.total), 0);
+    const totalEmitidas = facturas.filter(f => f.estado === 'EMITIDA').length;
+    const totalBorrador = facturas.filter(f => f.estado === 'BORRADOR').length;
 
     const htmlContent = `
     <!DOCTYPE html>
@@ -69,8 +80,8 @@ export async function GET(req: Request) {
         .text-right { text-align: right; }
         
         .badge { padding: 3px 8px; border-radius: 12px; font-size: 9px; font-weight: bold; }
-        .badge-pagada { background: #dcfce7; color: #166534; }
-        .badge-pendiente { background: #fef08a; color: #854d0e; }
+        .badge-emitida { background: #dcfce7; color: #166534; }
+        .badge-borrador { background: #fef08a; color: #854d0e; }
         .badge-anulada { background: #fee2e2; color: #991b1b; }
         
         .footer { text-align: center; margin-top: 50px; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }
@@ -93,12 +104,12 @@ export async function GET(req: Request) {
           <div class="summary-label">Inversión Total</div>
         </div>
         <div class="summary-item">
-          <div class="summary-value text-emerald-600">${totalPagadas}</div>
-          <div class="summary-label">Fact. Pagadas</div>
+          <div class="summary-value text-emerald-600">${totalEmitidas}</div>
+          <div class="summary-label">Fact. Emitidas</div>
         </div>
         <div class="summary-item">
-          <div class="summary-value text-amber-600">${totalPendientes}</div>
-          <div class="summary-label">Fact. Pendientes</div>
+          <div class="summary-value text-amber-600">${totalBorrador}</div>
+          <div class="summary-label">Fact. Borrador</div>
         </div>
       </div>
 
@@ -114,19 +125,19 @@ export async function GET(req: Request) {
           </tr>
         </thead>
         <tbody>
-          ${facturas.map(f => {
+          ${facturasConProveedor.map(f => {
             let badgeClass = 'badge-anulada';
-            if (f.estadoPago === 'PAGADA') badgeClass = 'badge-pagada';
-            if (f.estadoPago === 'PENDIENTE') badgeClass = 'badge-pendiente';
+            if (f.estado === 'EMITIDA') badgeClass = 'badge-emitida';
+            if (f.estado === 'BORRADOR') badgeClass = 'badge-borrador';
             
             return `
             <tr>
-              <td>${f.fechaEmision.toLocaleDateString('es-ES')}</td>
-              <td><strong>${f.numeroFactura}</strong></td>
-              <td>${f.proveedor.nombre}</td>
-              <td>${f.proveedor.cedulaRuc}</td>
-              <td><span class="badge ${badgeClass}">${f.estadoPago}</span></td>
-              <td class="text-right"><strong>$${f.total.toFixed(2)}</strong></td>
+              <td>${new Date(f.fecha).toLocaleDateString('es-ES')}</td>
+              <td><strong>${f.numero_factura}</strong></td>
+              <td>${f.proveedor?.nombre || 'Desconocido'}</td>
+              <td>${f.proveedor?.cedulaRuc || '-'}</td>
+              <td><span class="badge ${badgeClass}">${f.estado}</span></td>
+              <td class="text-right"><strong>$${Number(f.total).toFixed(2)}</strong></td>
             </tr>
           `}).join('')}
           ${facturas.length === 0 ? '<tr><td colspan="6" style="text-align: center;">No hay facturas en el período seleccionado</td></tr>' : ''}

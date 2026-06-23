@@ -48,7 +48,8 @@ export default function CatalogoProveedorModalWrapper(props: CatalogoModalProps)
 }
 
 function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: CatalogoModalProps) {
-  const { data, loading, refetch } = useQuery(LISTAR_CATALOGO, {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, loading, refetch } = useQuery<any>(LISTAR_CATALOGO, {
     variables: { proveedorId },
     fetchPolicy: "network-only",
   });

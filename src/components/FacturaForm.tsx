@@ -76,15 +76,17 @@ function FacturaFormContent() {
   
   const router = useRouter();
 
-  const { data: catalogData, refetch: refetchCatalog } = useQuery(LISTAR_CATALOGO, {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: catalogData, refetch: refetchCatalog } = useQuery<any>(LISTAR_CATALOGO, {
     variables: { proveedorId: selectedProveedor?.id },
     skip: !selectedProveedor?.id,
+    fetchPolicy: "network-only",
   });
 
   const [agregarAlCatalogo] = useMutation(AGREGAR_CATALOGO);
 
-  const catalogoMap = new Map(
-    catalogData?.listarCatalogoProveedor?.map((c: any) => [c.productoCodigo, c.precioCompra]) || []
+  const catalogoMap = new Map<string, number>(
+    catalogData?.listarCatalogoProveedor?.map((c: any) => [c.productoCodigo, Number(c.precioCompra)]) || []
   );
 
   const [catalogoRapido, setCatalogoRapido] = useState<any[]>([]);
@@ -138,7 +140,8 @@ function FacturaFormContent() {
           if (!productoGlobal) return;
 
           // 2. Buscar el mejor proveedor en GraphQL
-          const { data } = await apollo.query({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data } = await apollo.query<any>({
             query: MEJOR_PROVEEDOR,
             variables: { productoCodigo: productoQuery },
           });
@@ -458,7 +461,7 @@ function FacturaFormContent() {
                           
                           // Autocompletar precio si está en catálogo
                           if (catalogoMap.has(p.codigo)) {
-                            updateProduct(index, "pvp", catalogoMap.get(p.codigo));
+                            updateProduct(index, "pvp", catalogoMap.get(p.codigo) || 0);
                           } else {
                             updateProduct(index, "pvp", p.precioUnitario || 0);
                           }
