@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { FileText, Eye } from 'lucide-react';
 
 interface Factura {
   id: number;
@@ -86,6 +87,7 @@ export default function FacturasPage() {
                 <th className="p-4 text-sm font-semibold text-slate-600">Tipo de Pago</th>
                 <th className="p-4 text-sm font-semibold text-slate-600 text-right">Total</th>
                 <th className="p-4 text-sm font-semibold text-slate-600">Estado</th>
+                <th className="p-4 text-sm font-semibold text-slate-600 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -110,12 +112,21 @@ export default function FacturasPage() {
                       {f.estado}
                     </span>
                   </td>
+                  <td className="p-4 text-center">
+                    <button 
+                      onClick={() => window.open(`/api/facturas/${f.id}/pdf`, '_blank')}
+                      className="text-slate-400 hover:text-blue-600 transition-colors p-2"
+                      title="Previsualizar PDF"
+                    >
+                      <Eye size={18} />
+                    </button>
+                  </td>
                 </tr>
               ))}
               {facturas.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-12 text-center text-slate-500">
-                    <div className="text-4xl mb-3 opacity-50">📄</div>
+                  <td colSpan={6} className="p-12 text-center text-slate-500">
+                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>No se encontraron facturas registradas.</p>
                   </td>
                 </tr>
