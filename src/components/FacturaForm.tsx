@@ -10,6 +10,7 @@ import { FacturaPdfPreview } from './FacturaPdfPreview';
 import AutocompleteProducto from "./AutocompleteProducto";
 import NuevoProductoModal from "./NuevoProductoModal";
 import { useSearchParams } from "next/navigation";
+import { Zap, Sparkles, Check, Plus, X } from "lucide-react";
 
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
@@ -361,7 +362,7 @@ function FacturaFormContent() {
       {catalogoRapido.length > 0 && (
         <div className="mt-6 border border-blue-100 bg-blue-50/30 p-4 rounded-xl">
           <h4 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
-            <span className="text-lg">⚡</span> Acceso Rápido: Catálogo del Proveedor
+            <Zap className="w-5 h-5 text-blue-500" fill="currentColor" /> Acceso Rápido: Catálogo del Proveedor
           </h4>
           <div className="flex flex-wrap gap-2">
             {catalogoRapido.map((item) => (
@@ -415,18 +416,18 @@ function FacturaFormContent() {
               <button
                 type="button"
                 onClick={() => setShowNewProductModal(true)}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors text-sm font-medium shadow-sm"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
               >
-                ✨ Crear Producto Nuevo
+                <Sparkles className="w-4 h-4" /> Crear Producto Nuevo
               </button>
             )}
             <button
               type="button"
               data-testid="add-product-btn"
               onClick={handleAddProduct}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm font-medium shadow-sm"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
             >
-              + Agregar Fila
+              <Plus className="w-4 h-4" /> Agregar Fila
             </button>
           </div>
         </div>
@@ -532,9 +533,10 @@ function FacturaFormContent() {
                         type="button"
                         data-testid={`remove-${index}`}
                         onClick={() => handleRemoveProduct(index)}
-                        className="text-red-500 hover:text-red-600 font-bold"
+                        className="text-red-400 hover:text-red-600 p-1 rounded-md transition-colors"
+                        title="Eliminar fila"
                       >
-                        X
+                        <X size={18} strokeWidth={2.5} />
                       </button>
                     </td>
                   </tr>
@@ -570,7 +572,11 @@ function FacturaFormContent() {
                 disabled={isSaving}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-300 shadow-sm flex items-center justify-center gap-2"
               >
-                {isSaving ? "Guardando..." : "✅ Guardar Factura"}
+                {isSaving ? "Guardando..." : (
+                  <>
+                    <Check className="w-5 h-5" /> Guardar Factura
+                  </>
+                )}
               </button>
               
               <FacturaPdfPreview 
