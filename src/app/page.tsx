@@ -1,8 +1,37 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Users, FileText, BarChart3, ShieldCheck, Zap, Globe } from 'lucide-react';
+import { ArrowRight, Users, FileText, BarChart3, AlertTriangle, PackageSearch } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const [productos, setProductos] = useState<any[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchInventario = async () => {
+      try {
+        const res = await fetch('/api/inventarios?limite=200');
+        const result = await res.json();
+        if (result.success) {
+          const ordenados = result.data.sort((a: any, b: any) => a.stockActual - b.stockActual);
+          setProductos(ordenados);
+        }
+      } catch (e) {
+        console.error("Error al cargar inventario", e);
+      } finally {
+        setCargando(false);
+      }
+    };
+    fetchInventario();
+  }, []);
+
+  const handleProductClick = (codigo: string) => {
+    router.push(`/facturas/nueva?producto=${encodeURIComponent(codigo)}`);
+  };
+
   return (
     <div className="min-h-screen bg-background font-sans relative overflow-hidden">
       {/* Decorative background elements */}
@@ -12,92 +41,134 @@ export default function Home() {
       <div className="max-w-6xl mx-auto p-8 relative z-10 pt-16 md:pt-24">
         
         {/* Hero Section */}
-        <div className="text-center space-y-6 max-w-4xl mx-auto">
+        <div className="text-center space-y-6 max-w-4xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-emerald-600 text-sm font-medium mb-4 shadow-sm">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            Sistema en línea
+            Panel de Control Activo
           </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
-            Gestión Inteligente de <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">Compras</span>
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
+            Dashboard de <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">Compras</span>
           </h1>
-          <p className="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-3xl mx-auto font-light">
-            Centraliza tus proveedores, automatiza la facturación y obtén métricas en tiempo real. Diseñado para escalar.
+          <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto font-light">
+            Monitorea el nivel de stock global de la empresa y reabastece los productos críticos con un solo clic, al mejor precio posible.
           </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-            <Link href="/facturas/nueva" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl font-medium transition-all hover:scale-105 flex items-center gap-2 text-lg shadow-[0_4px_14px_0_rgba(37,99,235,0.39)]">
-              Comenzar ahora
-              <ArrowRight className="w-5 h-5" />
+          {/* Quick Access Menu - Left Column */}
+          <div className="lg:col-span-1 space-y-4">
+            <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <ArrowRight className="w-5 h-5 text-blue-500" /> Accesos Rápidos
+            </h2>
+            
+            <Link href="/facturas/nueva" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all">
+              <div className="bg-blue-50 p-3 rounded-lg group-hover:bg-blue-100 transition-colors">
+                <FileText className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">Nueva Factura</h3>
+                <p className="text-sm text-slate-500">Registrar una compra</p>
+              </div>
             </Link>
-            <Link href="/reportes" className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-medium transition-colors flex items-center gap-2 text-lg shadow-sm">
-              Ver Dashboard
+
+            <Link href="/proveedores" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all">
+              <div className="bg-emerald-50 p-3 rounded-lg group-hover:bg-emerald-100 transition-colors">
+                <Users className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">Proveedores</h3>
+                <p className="text-sm text-slate-500">Gestionar directorio y catálogos</p>
+              </div>
+            </Link>
+
+            <Link href="/reportes" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-purple-300 hover:shadow-md transition-all">
+              <div className="bg-purple-50 p-3 rounded-lg group-hover:bg-purple-100 transition-colors">
+                <BarChart3 className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">Reportes PDF</h3>
+                <p className="text-sm text-slate-500">Generar informes gerenciales</p>
+              </div>
             </Link>
           </div>
-        </div>
 
-        {/* Quick Access Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32">
-          
-          <Link href="/proveedores" className="group glass-panel p-8 rounded-2xl hover:border-blue-300 transition-all hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(59,130,246,0.08)]">
-            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <Users className="w-8 h-8 text-blue-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-3">Proveedores</h3>
-            <p className="text-slate-600 leading-relaxed">
-              Administra tu cartera de proveedores, evalúa su desempeño y mantén su información actualizada en un solo lugar.
-            </p>
-          </Link>
-
-          <Link href="/facturas" className="group glass-panel p-8 rounded-2xl hover:border-emerald-300 transition-all hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(16,185,129,0.08)]">
-            <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <FileText className="w-8 h-8 text-emerald-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-3">Facturación</h3>
-            <p className="text-slate-600 leading-relaxed">
-              Registra nuevas facturas, controla los estados de pago y organiza el historial detallado de todas tus compras.
-            </p>
-          </Link>
-
-          <Link href="/reportes" className="group glass-panel p-8 rounded-2xl hover:border-purple-300 transition-all hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(168,85,247,0.08)]">
-            <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <BarChart3 className="w-8 h-8 text-purple-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-3">Reportes</h3>
-            <p className="text-slate-600 leading-relaxed">
-              Visualiza gráficas interactivas, revisa tu presupuesto al instante y toma decisiones estratégicas basadas en datos reales.
-            </p>
-          </Link>
-
-        </div>
-
-        {/* Features Highlight */}
-        <div className="mt-32 mb-16 text-center">
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-10">Por qué elegir nuestro módulo</p>
-          <div className="flex flex-wrap justify-center gap-12 md:gap-24">
-            <div className="flex flex-col items-center gap-4 group">
-              <div className="bg-white p-5 rounded-full shadow-sm group-hover:bg-yellow-50 transition-colors border border-slate-100">
-                <Zap className="w-8 h-8 text-yellow-500" />
+          {/* Alerts & Inventory - Right Column */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[600px]">
+              <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <PackageSearch className="w-5 h-5 text-indigo-500" /> Estado del Inventario Global
+                </h2>
+                <span className="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200">
+                  {productos.length} productos
+                </span>
               </div>
-              <span className="text-slate-800 font-medium text-lg">Ultra Rápido</span>
-            </div>
-            <div className="flex flex-col items-center gap-4 group">
-              <div className="bg-white p-5 rounded-full shadow-sm group-hover:bg-green-50 transition-colors border border-slate-100">
-                <ShieldCheck className="w-8 h-8 text-green-500" />
+              
+              <div className="p-6 overflow-y-auto flex-1 bg-slate-50/30">
+                {cargando ? (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                    <p>Sincronizando inventario...</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {productos.map((prod) => {
+                      const isUrgent = prod.stockActual === 0;
+                      const isWarning = prod.stockActual > 0 && prod.stockActual <= 5;
+                      
+                      return (
+                        <button
+                          key={prod.codigo}
+                          onClick={() => handleProductClick(prod.codigo)}
+                          className={`flex flex-col text-left p-4 rounded-xl border transition-all hover:shadow-md hover:-translate-y-1 ${
+                            isUrgent 
+                              ? 'bg-rose-50 border-rose-200 hover:border-rose-400' 
+                              : isWarning
+                                ? 'bg-amber-50 border-amber-200 hover:border-amber-400'
+                                : 'bg-white border-slate-200 hover:border-blue-300'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start w-full mb-2">
+                            <span className={`text-xs font-mono px-2 py-0.5 rounded ${
+                              isUrgent ? 'bg-rose-100 text-rose-700' : isWarning ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+                            }`}>
+                              {prod.codigo}
+                            </span>
+                            {isUrgent && <AlertTriangle className="w-4 h-4 text-rose-500" />}
+                          </div>
+                          
+                          <h3 className="font-bold text-slate-900 truncate w-full mb-1" title={prod.nombre}>
+                            {prod.nombre}
+                          </h3>
+                          
+                          <div className="mt-auto pt-2 flex items-center justify-between w-full border-t border-slate-100/50">
+                            <span className="text-sm text-slate-500">Stock Actual:</span>
+                            <span className={`text-lg font-black ${
+                              isUrgent ? 'text-rose-600' : isWarning ? 'text-amber-600' : 'text-emerald-600'
+                            }`}>
+                              {prod.stockActual}
+                            </span>
+                          </div>
+                          
+                          {isUrgent && (
+                            <div className="mt-2 text-xs font-semibold text-rose-600 bg-white/60 px-2 py-1 rounded w-full text-center">
+                              ¡Requiere compra urgente!
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              <span className="text-slate-800 font-medium text-lg">100% Seguro</span>
-            </div>
-            <div className="flex flex-col items-center gap-4 group">
-              <div className="bg-white p-5 rounded-full shadow-sm group-hover:bg-blue-50 transition-colors border border-slate-100">
-                <Globe className="w-8 h-8 text-blue-500" />
-              </div>
-              <span className="text-slate-800 font-medium text-lg">Acceso Global</span>
             </div>
           </div>
-        </div>
 
+        </div>
       </div>
     </div>
   );

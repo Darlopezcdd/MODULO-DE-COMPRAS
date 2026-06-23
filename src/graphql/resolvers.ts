@@ -349,6 +349,45 @@ export const resolvers = {
         throw new GraphQLError(e.message);
       }
     },
+    listarCatalogoProveedor: async (_: any, { proveedorId }: any) => {
+      try {
+        const res = await prisma.catalogo_proveedor.findMany({
+          where: { proveedor_id: proveedorId },
+          orderBy: { created_at: 'desc' },
+        });
+        return res.map(row => ({
+          id: row.id,
+          proveedorId: row.proveedor_id,
+          productoCodigo: row.producto_codigo,
+          precioCompra: row.precio_compra,
+          createdAt: row.created_at,
+        }));
+      } catch (e: any) {
+        throw new GraphQLError(e.message);
+      }
+    },
+    mejorProveedor: async (_: any, { productoCodigo }: any) => {
+      try {
+        const catalogos = await prisma.catalogo_proveedor.findMany({
+          where: { producto_codigo: productoCodigo },
+          orderBy: { precio_compra: 'asc' },
+          take: 1,
+        });
+        if (catalogos.length === 0) return null;
+        
+        const proveedor = await prisma.proveedor.findUnique({
+          where: { id: catalogos[0].proveedor_id },
+        });
+        
+        if (!proveedor) return null;
+        return {
+          proveedor,
+          precioCompra: catalogos[0].precio_compra,
+        };
+      } catch (e: any) {
+        throw new GraphQLError(e.message);
+      }
+    },
     eliminarDelCatalogo: async (_: any, { id }: any) => {
       try {
         await prisma.catalogo_proveedor.delete({ where: { id } });
