@@ -22,6 +22,7 @@ model Proveedor {
   createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt      DateTime?             @map("deleted_at") @db.Timestamptz(6)
+  catalogos      catalogo_proveedor[]
 
   @@map("proveedores")
 }
@@ -209,4 +210,19 @@ model usuarios {
   updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
   @@map("usuarios")
+}
+
+model catalogo_proveedor {
+  id              Int       @id @default(autoincrement())
+  proveedor_id    Int
+  producto_codigo String    @db.VarChar(50)
+  precio_compra   Decimal   @db.Decimal(14, 2)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  proveedor       Proveedor @relation(fields: [proveedor_id], references: [id], onDelete: Cascade)
+
+  @@unique([proveedor_id, producto_codigo], map: "uq_catalogo_proveedor_producto")
+  @@index([proveedor_id], map: "idx_catalogo_proveedor_id")
+  @@index([producto_codigo], map: "idx_catalogo_producto_codigo")
 }
