@@ -215,21 +215,21 @@ export async function GET(req: Request) {
       take: limit,
     });
 
-    const proveedorIds = facturas.map(f => f.proveedor_id);
+    const proveedorIds = facturas.map((f: any) => f.proveedor_id);
     const proveedores = await prisma.proveedor.findMany({
       where: { id: { in: proveedorIds } },
       select: { id: true, nombre: true, cedulaRuc: true }
     });
     
-    const facturaIds = facturas.map(f => f.id);
+    const facturaIds = facturas.map((f: any) => f.id);
     const detalles = await prisma.detalle_factura_compra.findMany({
       where: { factura_id: { in: facturaIds } }
     });
 
     // Formatear para que sea fácil de consumir por el módulo de inventarios
-    const facturasFormateadas = facturas.map(f => {
-      const prov = proveedores.find(p => p.id === f.proveedor_id);
-      const det = detalles.filter(d => d.factura_id === f.id);
+    const facturasFormateadas = facturas.map((f: any) => {
+      const prov = proveedores.find((p: any) => p.id === f.proveedor_id);
+      const det = detalles.filter((d: any) => d.factura_id === f.id);
       
       return {
         facturaId: f.id,
@@ -237,7 +237,7 @@ export async function GET(req: Request) {
         fechaEmision: f.fecha,
         proveedor: prov?.nombre,
         estado: f.estado,
-        productos: det.map(d => ({
+        productos: det.map((d: any) => ({
           codigoProducto: d.producto_codigo,
           nombreProducto: d.producto_nombre,
           cantidadComprada: Number(d.cantidad),
