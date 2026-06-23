@@ -123,5 +123,6 @@ export const typeDefs = `
   extend type Mutation {
     agregarAlCatalogo(proveedorId: Int!, productoCodigo: String!, precioCompra: Float!): CatalogoProveedor!
     crearProductoGlobalYCatalogo(proveedorId: Int!, precioCompra: Float!, input: ProductoGlobalInput!): CatalogoProveedor!
+    eliminarDelCatalogo(id: Int!): Boolean!
   }
 `;

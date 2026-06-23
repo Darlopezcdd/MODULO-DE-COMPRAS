@@ -52,9 +52,11 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const termino = searchParams.get('termino') || '';
     const pagina = Math.max(1, parseInt(searchParams.get('pagina') || '1', 10));
-    const limite = Math.min(50, Math.max(1, parseInt(searchParams.get('limite') || '10', 10)));
+    const limite = Math.min(200, Math.max(1, parseInt(searchParams.get('limite') || '10', 10)));
+    const codigosParam = searchParams.get('codigos');
+    const codigos = codigosParam ? codigosParam.split(',') : undefined;
 
-    const resultado = await buscarProductos(termino, pagina, limite);
+    const resultado = await buscarProductos(termino, pagina, limite, codigos);
 
     return NextResponse.json(resultado);
   } catch (error) {

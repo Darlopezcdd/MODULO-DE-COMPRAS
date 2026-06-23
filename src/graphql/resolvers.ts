@@ -349,6 +349,14 @@ export const resolvers = {
         throw new GraphQLError(e.message);
       }
     },
+    eliminarDelCatalogo: async (_: any, { id }: any) => {
+      try {
+        await prisma.catalogo_proveedor.delete({ where: { id } });
+        return true;
+      } catch (e: any) {
+        throw new GraphQLError('Error al eliminar del catálogo: ' + e.message);
+      }
+    },
   },
 };
 
