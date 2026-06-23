@@ -210,7 +210,7 @@ export async function GET(req: Request) {
     const estado = searchParams.get('estado') || 'EMITIDA';
 
     const facturas = await prisma.facturas_compra.findMany({
-      where: { estado: estado as import("@prisma/client").$Enums.estado_factura_enum },
+      where: { estado: estado as any },
       orderBy: { created_at: 'desc' },
       take: limit,
     });
