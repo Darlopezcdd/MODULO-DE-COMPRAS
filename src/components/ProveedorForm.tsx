@@ -62,8 +62,9 @@ function ProveedorFormContent({ defaultValues, isEdit = false, id }: { defaultVa
       }
       setSuccessMsg('Proveedor guardado con éxito');
       setTimeout(() => router.push('/proveedores'), 1200);
-    } catch {
-      setServerError('Ocurrió un error inesperado al guardar');
+    } catch (error: any) {
+      const errorMessage = error.message || 'Ocurrió un error inesperado al guardar';
+      setServerError(errorMessage);
     }
   };
 
