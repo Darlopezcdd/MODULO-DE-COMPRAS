@@ -96,14 +96,14 @@ export async function GET(request: Request) {
     });
 
     // CA2: Desglose detallado con productos
-    const facturasIds = facturas.map(f => f.id);
+    const facturasIds = facturas.map((f: any) => f.id);
     const detalles = await prisma.detalle_factura_compra.findMany({
       where: { factura_id: { in: facturasIds } }
     });
 
-    const facturasConDetalle = facturas.map(f => ({
+    const facturasConDetalle = facturas.map((f: any) => ({
       ...f,
-      productos: detalles.filter(d => d.factura_id === f.id)
+      productos: detalles.filter((d: any) => d.factura_id === f.id)
     }));
 
     const usuario = await getUserFromRequest(request);
@@ -128,9 +128,9 @@ export async function GET(request: Request) {
         await registrarAuditoria(usuario.id as number, usuario.nombre as string, 'IMPRIMIR', 'facturas_compra', null, null, null, 'Exportación CSV de facturas');
       }
       let csvContent = 'Factura,Fecha,Estado,Total,Producto,Cantidad,PVP,Total_Linea\n';
-      facturasConDetalle.forEach(f => {
+      facturasConDetalle.forEach((f: any) => {
         if (f.productos.length > 0) {
-          f.productos.forEach(p => {
+          f.productos.forEach((p: any) => {
             csvContent += `${f.numero_factura},${f.fecha.toISOString().split('T')[0]},${f.estado},${f.total},"${p.producto_nombre}",${p.cantidad},${p.pvp},${p.total_linea}\n`;
           });
         } else {
