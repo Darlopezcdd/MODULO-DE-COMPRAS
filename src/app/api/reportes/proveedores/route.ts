@@ -57,13 +57,13 @@ export async function GET(request: Request) {
       orderBy: [{ estado: 'asc' }, { nombre: 'asc' }],
     });
 
-    const proveedoresIds = proveedores.map(p => p.id);
+    const proveedoresIds = proveedores.map((p: any) => p.id);
     const saldos = await prisma.saldos_credito_proveedor.findMany({
       where: { proveedor_id: { in: proveedoresIds } }
     });
 
-    const filas = proveedores.map(p => {
-      const saldoObj = saldos.find(s => s.proveedor_id === p.id);
+    const filas = proveedores.map((p: any) => {
+      const saldoObj = saldos.find((s: any) => s.proveedor_id === p.id);
       return {
         id:        p.id,
         cedulaRuc: p.cedulaRuc,
