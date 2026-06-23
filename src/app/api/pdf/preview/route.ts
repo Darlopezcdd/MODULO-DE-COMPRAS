@@ -1,6 +1,35 @@
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 
+/**
+ * @swagger
+ * /api/pdf/preview:
+ *   post:
+ *     summary: Previsualizar factura como PDF
+ *     description: Recibe los datos de una factura (cabecera, ítems y totales) y genera un PDF renderizado con Puppeteer para previsualización o impresión.
+ *     tags:
+ *       - PDF
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PdfPreviewInput'
+ *     responses:
+ *       200:
+ *         description: Documento PDF generado
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       500:
+ *         description: Error al generar el PDF
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function POST(req: Request) {
   try {
     const data = await req.json();
