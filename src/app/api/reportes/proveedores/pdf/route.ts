@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 import prisma from '@/lib/prisma';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const proveedores = await prisma.proveedor.findMany({
       orderBy: { nombre: 'asc' },

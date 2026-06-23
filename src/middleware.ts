@@ -7,6 +7,7 @@ import type { NextRequest } from 'next/server';
  * La API de seguridad aún no está completa.
  * Cuando esté lista, descomentar la lógica original y eliminar el bypass.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function middleware(_request: NextRequest) {
   // TODO: Restaurar cuando la API de seguridad esté lista
   // ─────────────────────────────────────────────────────
