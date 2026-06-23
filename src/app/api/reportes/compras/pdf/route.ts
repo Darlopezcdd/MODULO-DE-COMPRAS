@@ -37,23 +37,23 @@ export async function GET(req: Request) {
       orderBy: { fecha: 'desc' },
     });
 
-    const proveedorIds = facturas.map(f => f.proveedor_id);
+    const proveedorIds = facturas.map((f: any) => f.proveedor_id);
     const proveedores = await prisma.proveedor.findMany({
       where: { id: { in: proveedorIds } },
       select: { id: true, nombre: true, cedulaRuc: true }
     });
 
-    const facturasConProveedor = facturas.map(f => {
-      const prov = proveedores.find(p => p.id === f.proveedor_id);
+    const facturasConProveedor = facturas.map((f: any) => {
+      const prov = proveedores.find((p: any) => p.id === f.proveedor_id);
       return {
         ...f,
         proveedor: prov
       };
     });
 
-    const totalGastado = facturas.reduce((sum, f) => sum + Number(f.total), 0);
-    const totalEmitidas = facturas.filter(f => f.estado === 'EMITIDA').length;
-    const totalBorrador = facturas.filter(f => f.estado === 'BORRADOR').length;
+    const totalGastado = facturas.reduce((sum: number, f: any) => sum + Number(f.total), 0);
+    const totalEmitidas = facturas.filter((f: any) => f.estado === 'EMITIDA').length;
+    const totalBorrador = facturas.filter((f: any) => f.estado === 'BORRADOR').length;
 
     const htmlContent = `
     <!DOCTYPE html>
