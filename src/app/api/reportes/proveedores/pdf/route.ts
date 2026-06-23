@@ -8,7 +8,7 @@ export async function GET() {
       orderBy: { nombre: 'asc' },
     });
 
-    const totalActivos = proveedores.filter(p => p.estado === 'ACTIVO').length;
+    const totalActivos = proveedores.filter((p: any) => p.estado === 'ACTIVO').length;
     const totalInactivos = proveedores.length - totalActivos;
 
     const htmlContent = `
@@ -75,7 +75,7 @@ export async function GET() {
           </tr>
         </thead>
         <tbody>
-          ${proveedores.map(p => `
+          ${proveedores.map((p: any) => `
             <tr>
               <td><strong>${p.cedulaRuc}</strong></td>
               <td>${p.nombre}</td>
