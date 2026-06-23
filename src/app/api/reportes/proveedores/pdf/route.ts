@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
 import prisma from '@/lib/prisma';
+// @ts-expect-error Ignorando tipado de pdfkit
+import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
+
+const COLORS = {
+  primary: '#1E3A5F',
+  secondary: '#2E86AB',
+  light: '#F8FAFC',
+  border: '#E2E8F0',
+  textDark: '#1E293B',
+  textLight: '#64748B',
+  emerald: '#059669',
+  red: '#DC2626',
+};
 
 export async function GET() {
   try {
@@ -11,108 +23,136 @@ export async function GET() {
     const totalActivos = proveedores.filter((p: any) => p.estado === 'ACTIVO').length;
     const totalInactivos = proveedores.length - totalActivos;
 
-    const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-      <meta charset="UTF-8">
-      <title>Reporte de Proveedores</title>
-      <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 20px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { color: #2563eb; margin: 0 0 10px 0; font-size: 28px; }
-        .header p { color: #666; margin: 0; font-size: 14px; }
-        
-        .summary-box { display: flex; justify-content: space-around; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
-        .summary-item { text-align: center; }
-        .summary-value { font-size: 24px; font-weight: bold; color: #0f172a; }
-        .summary-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const doc = new PDFDocument({ size: 'A4', margin: 40 });
+      const chunks: Buffer[] = [];
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
 
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-        th { background-color: #f1f5f9; color: #334155; text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e1; }
-        td { padding: 10px; border-bottom: 1px solid #e2e8f0; color: #475569; }
-        tr:nth-child(even) td { background-color: #f8fafc; }
-        
-        .badge { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; }
-        .badge-activo { background: #dcfce7; color: #166534; }
-        .badge-inactivo { background: #fee2e2; color: #991b1b; }
-        .badge-credito { background: #dbeafe; color: #1e40af; }
-        .badge-contado { background: #fef3c7; color: #92400e; }
-        
-        .footer { text-align: center; margin-top: 50px; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>Directorio de Proveedores</h1>
-        <p>Generado el: ${new Date().toLocaleString('es-ES')}</p>
-      </div>
+      const pageW = doc.page.width;
+      const margin = 40;
+      const contentW = pageW - margin * 2;
 
-      <div class="summary-box">
-        <div class="summary-item">
-          <div class="summary-value">${proveedores.length}</div>
-          <div class="summary-label">Total Registrados</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-value text-emerald-600">${totalActivos}</div>
-          <div class="summary-label">Activos</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-value text-rose-600">${totalInactivos}</div>
-          <div class="summary-label">Inactivos</div>
-        </div>
-      </div>
+      // ── ENCABEZADO ──
+      doc.font('Helvetica-Bold').fontSize(22).fillColor(COLORS.primary)
+         .text('DIRECTORIO DE PROVEEDORES', margin, margin);
+      doc.font('Helvetica').fontSize(10).fillColor(COLORS.textLight)
+         .text('MÓDULO DE COMPRAS - SISTEMA ADMINISTRATIVO', margin, margin + 26);
+      doc.font('Helvetica').fontSize(9).fillColor(COLORS.textLight)
+         .text(`Generado el: ${new Date().toLocaleString('es-EC')}`, margin, margin + 40);
 
-      <table>
-        <thead>
-          <tr>
-            <th>Cédula/RUC</th>
-            <th>Razón Social</th>
-            <th>Ciudad</th>
-            <th>Teléfono</th>
-            <th>Tipo</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${proveedores.map((p: any) => `
-            <tr>
-              <td><strong>${p.cedulaRuc}</strong></td>
-              <td>${p.nombre}</td>
-              <td>${p.ciudad || '-'}</td>
-              <td>${p.telefono || '-'}</td>
-              <td><span class="badge ${p.tipo === 'CREDITO' ? 'badge-credito' : 'badge-contado'}">${p.tipo}</span></td>
-              <td><span class="badge ${p.estado === 'ACTIVO' ? 'badge-activo' : 'badge-inactivo'}">${p.estado}</span></td>
-            </tr>
-          `).join('')}
-          ${proveedores.length === 0 ? '<tr><td colspan="6" style="text-align: center;">No hay proveedores registrados</td></tr>' : ''}
-        </tbody>
-      </table>
+      doc.moveTo(margin, 95).lineTo(pageW - margin, 95).lineWidth(2).strokeColor(COLORS.secondary).stroke();
 
-      <div class="footer">
-        Sistema Inteligente de Compras - Documento Generado Automáticamente
-      </div>
-    </body>
-    </html>
-    `;
+      // ── RESUMEN ──
+      let curY = 110;
+      doc.roundedRect(margin, curY, contentW, 50, 4).fillAndStroke(COLORS.light, COLORS.border);
 
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      const summaryItems = [
+        { label: 'TOTAL REGISTRADOS', value: `${proveedores.length}`, color: COLORS.textDark },
+        { label: 'ACTIVOS', value: `${totalActivos}`, color: COLORS.emerald },
+        { label: 'INACTIVOS', value: `${totalInactivos}`, color: COLORS.red },
+      ];
+      const sectionW = contentW / summaryItems.length;
+      summaryItems.forEach((item, i) => {
+        const sx = margin + sectionW * i;
+        doc.font('Helvetica-Bold').fontSize(18).fillColor(item.color)
+           .text(item.value, sx, curY + 8, { width: sectionW, align: 'center' });
+        doc.font('Helvetica').fontSize(7).fillColor(COLORS.textLight)
+           .text(item.label, sx, curY + 32, { width: sectionW, align: 'center' });
+      });
+
+      curY += 65;
+
+      // ── TABLA ──
+      const cols = [
+        { h: 'CÉDULA/RUC', w: 90 },
+        { h: 'RAZÓN SOCIAL', w: 140 },
+        { h: 'CIUDAD', w: 80 },
+        { h: 'TELÉFONO', w: 80 },
+        { h: 'TIPO', w: 60 },
+        { h: 'ESTADO', w: 65 },
+      ];
+
+      // Cabecera
+      doc.rect(margin, curY, contentW, 22).fill(COLORS.primary);
+      let cx = margin;
+      cols.forEach(c => {
+        doc.font('Helvetica-Bold').fontSize(8).fillColor('#FFFFFF')
+           .text(c.h, cx + 4, curY + 7, { width: c.w - 8 });
+        cx += c.w;
+      });
+      curY += 22;
+
+      // Filas
+      proveedores.forEach((p: any, i: number) => {
+        const rowH = 20;
+
+        if (curY + rowH > doc.page.height - 60) {
+          doc.addPage();
+          curY = 40;
+          // Re-dibujar cabecera
+          doc.rect(margin, curY, contentW, 22).fill(COLORS.primary);
+          let hx = margin;
+          cols.forEach(c => {
+            doc.font('Helvetica-Bold').fontSize(8).fillColor('#FFFFFF')
+               .text(c.h, hx + 4, curY + 7, { width: c.w - 8 });
+            hx += c.w;
+          });
+          curY += 22;
+        }
+
+        const isEven = i % 2 === 0;
+        doc.rect(margin, curY, contentW, rowH).fill(isEven ? '#FFFFFF' : COLORS.light);
+
+        cx = margin;
+        doc.font('Helvetica-Bold').fontSize(8).fillColor(COLORS.textDark)
+           .text(p.cedulaRuc || '-', cx + 4, curY + 6, { width: cols[0].w - 8 });
+        cx += cols[0].w;
+
+        doc.font('Helvetica').fontSize(8).fillColor(COLORS.textDark)
+           .text(p.nombre || '-', cx + 4, curY + 6, { width: cols[1].w - 8 });
+        cx += cols[1].w;
+
+        doc.font('Helvetica').fontSize(8).fillColor(COLORS.textDark)
+           .text(p.ciudad || '-', cx + 4, curY + 6, { width: cols[2].w - 8 });
+        cx += cols[2].w;
+
+        doc.font('Helvetica').fontSize(8).fillColor(COLORS.textDark)
+           .text(p.telefono || '-', cx + 4, curY + 6, { width: cols[3].w - 8 });
+        cx += cols[3].w;
+
+        const tipoColor = p.tipo === 'CREDITO' ? '#1e40af' : '#92400e';
+        doc.font('Helvetica-Bold').fontSize(7).fillColor(tipoColor)
+           .text(p.tipo || '-', cx + 4, curY + 6, { width: cols[4].w - 8 });
+        cx += cols[4].w;
+
+        const estadoColor = p.estado === 'ACTIVO' ? COLORS.emerald : COLORS.red;
+        doc.font('Helvetica-Bold').fontSize(7).fillColor(estadoColor)
+           .text(p.estado || '-', cx + 4, curY + 6, { width: cols[5].w - 8 });
+
+        curY += rowH;
+      });
+
+      // Línea final
+      doc.moveTo(margin, curY).lineTo(pageW - margin, curY).lineWidth(1).strokeColor(COLORS.border).stroke();
+
+      if (proveedores.length === 0) {
+        curY += 30;
+        doc.font('Helvetica').fontSize(12).fillColor(COLORS.textLight)
+           .text('No hay proveedores registrados.', margin, curY, { width: contentW, align: 'center' });
+      }
+
+      // ── PIE DE PÁGINA ──
+      const pieY = doc.page.height - 50;
+      doc.font('Helvetica-Oblique').fontSize(8).fillColor(COLORS.textLight)
+         .text('Documento generado automáticamente por el Sistema Módulo de Compras.', margin, pieY, { align: 'center', width: contentW })
+         .text('No válido como comprobante tributario SRI. Uso exclusivamente interno.', margin, pieY + 12, { align: 'center', width: contentW });
+
+      doc.end();
     });
 
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'load' });
-
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '30px', right: '30px', bottom: '30px', left: '30px' }
-    });
-
-    await browser.close();
-
-    return new NextResponse(Buffer.from(pdfBuffer), {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
@@ -120,8 +160,7 @@ export async function GET() {
       }
     });
 
-  } catch (error) {
-    console.error('Error al generar PDF de proveedores:', error);
+  } catch {
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
