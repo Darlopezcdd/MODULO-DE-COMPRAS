@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, ApolloProvider } from "@apollo/client/react";
+import { useQuery, useMutation, ApolloProvider, useApolloClient } from "@apollo/client/react";
 import { gql } from "@apollo/client";
 import { apolloClient } from "@/lib/apolloClient";
 import AutocompleteProveedor from "./AutocompleteProveedor";
 import { FacturaPdfPreview } from './FacturaPdfPreview';
 import AutocompleteProducto from "./AutocompleteProducto";
 import NuevoProductoModal from "./NuevoProductoModal";
+import { useSearchParams } from "next/navigation";
 
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
@@ -27,6 +28,22 @@ const AGREGAR_CATALOGO = gql`
     }
   }
 `;
+
+const MEJOR_PROVEEDOR = gql`
+  query MejorProveedor($productoCodigo: String!) {
+    mejorProveedor(productoCodigo: $productoCodigo) {
+      proveedor {
+        id
+        cedulaRuc
+        nombre
+        direccion
+        telefono
+      }
+      precioCompra
+    }
+  }
+`;
+
 export default function FacturaForm() {
   return (
     <ApolloProvider client={apolloClient}>
@@ -44,6 +61,10 @@ interface ProveedorSeleccionado {
 }
 
 function FacturaFormContent() {
+  const searchParams = useSearchParams();
+  const productoQuery = searchParams.get("producto");
+  const apollo = useApolloClient();
+
   const [selectedProveedor, setSelectedProveedor] = useState<ProveedorSeleccionado | null>(null);
   const [showNewProductModal, setShowNewProductModal] = useState(false);
 
@@ -95,6 +116,53 @@ function FacturaFormContent() {
   const [productos, setProductos] = useState([
     { codigo: "", descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }
   ]);
+
+  // Auto-selección desde el dashboard
+  useEffect(() => {
+    if (productoQuery && !selectedProveedor) {
+      const autoSelect = async () => {
+        try {
+          // 1. Obtener detalles del producto de la API de inventarios
+          const res = await fetch(`/api/inventarios?limite=1&termino=${productoQuery}`);
+          const result = await res.json();
+          const productoGlobal = result.data?.find((p: any) => p.codigo === productoQuery);
+          
+          if (!productoGlobal) return;
+
+          // 2. Buscar el mejor proveedor en GraphQL
+          const { data } = await apollo.query({
+            query: MEJOR_PROVEEDOR,
+            variables: { productoCodigo: productoQuery },
+          });
+
+          if (data?.mejorProveedor) {
+            setSelectedProveedor(data.mejorProveedor.proveedor);
+            setProductos([{
+              codigo: productoGlobal.codigo,
+              descripcion: productoGlobal.nombre,
+              cantidad: 1,
+              pvp: data.mejorProveedor.precioCompra,
+              grabaIva: productoGlobal.grabaIva,
+              porcentajeIva: productoGlobal.porcentajeIva,
+            }]);
+          } else {
+            // Si no hay proveedor en catálogo, solo pre-llenar el producto
+            setProductos([{
+              codigo: productoGlobal.codigo,
+              descripcion: productoGlobal.nombre,
+              cantidad: 1,
+              pvp: productoGlobal.precioUnitario,
+              grabaIva: productoGlobal.grabaIva,
+              porcentajeIva: productoGlobal.porcentajeIva,
+            }]);
+          }
+        } catch (e) {
+          console.error("Error auto-seleccionando", e);
+        }
+      };
+      autoSelect();
+    }
+  }, [productoQuery, apollo]);
 
   const handleAddProduct = () => {
     setProductos([...productos, { codigo: "", descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }]);
