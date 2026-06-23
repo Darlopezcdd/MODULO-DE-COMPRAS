@@ -96,4 +96,32 @@ export const typeDefs = `
     eliminarProveedor(id: Int!): Proveedor!
     crearFacturaCabecera(input: FacturaCabeceraInput!): FacturaCompra!
   }
+  # ── Catálogo de Proveedores ───────────────────────────────
+  type CatalogoProveedor {
+    id: Int!
+    proveedorId: Int!
+    productoCodigo: String!
+    precioCompra: Float!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  input ProductoGlobalInput {
+    codigo: String!
+    nombre: String!
+    descripcion: String!
+    graba_iva: Boolean!
+    costo: Float!
+    pvp: Float!
+    estado: String!
+  }
+
+  extend type Query {
+    listarCatalogoProveedor(proveedorId: Int!): [CatalogoProveedor!]!
+  }
+
+  extend type Mutation {
+    agregarAlCatalogo(proveedorId: Int!, productoCodigo: String!, precioCompra: Float!): CatalogoProveedor!
+    crearProductoGlobalYCatalogo(proveedorId: Int!, precioCompra: Float!, input: ProductoGlobalInput!): CatalogoProveedor!
+  }
 `;

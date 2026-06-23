@@ -2,6 +2,7 @@ import prisma from '../lib/prisma';
 import { GraphQLError } from 'graphql';
 import { getUserFromRequest } from '../lib/authUtils';
 import { registrarAuditoria } from '../lib/auditoriaService';
+import { crearProductoGlobal } from '../lib/inventariosClient';
 
 // ── Validaciones Proveedores (HU1) ────────────────────────────────────────────
 const validateCedulaRuc = (val: string) => {
@@ -75,6 +76,14 @@ export const resolvers = {
     },
     obtenerProveedor: async (_: any, { id }: any) => {
       return await prisma.proveedor.findUnique({ where: { id, deletedAt: null } });
+    },
+
+    // ── Catálogo Proveedor ──────────────────────────────────
+    listarCatalogoProveedor: async (_: any, { proveedorId }: any) => {
+      return await prisma.catalogo_proveedor.findMany({
+        where: { proveedor_id: proveedorId },
+        orderBy: { created_at: 'desc' },
+      });
     },
 
     // ── Facturas (HU2) ──────────────────────────────────────
@@ -281,6 +290,64 @@ export const resolvers = {
         estado: nueva.estado,
         observaciones: nueva.observaciones,
       };
+    },
+
+    // ── Catálogo Proveedor ──────────────────────────────────
+    agregarAlCatalogo: async (_: any, { proveedorId, productoCodigo, precioCompra }: any) => {
+      try {
+        const item = await prisma.catalogo_proveedor.upsert({
+          where: {
+            uq_catalogo_proveedor_producto: {
+              proveedor_id: proveedorId,
+              producto_codigo: productoCodigo,
+            },
+          },
+          update: {
+            precio_compra: precioCompra,
+          },
+          create: {
+            proveedor_id: proveedorId,
+            producto_codigo: productoCodigo,
+            precio_compra: precioCompra,
+          },
+        });
+        return {
+          id: item.id,
+          proveedorId: item.proveedor_id,
+          productoCodigo: item.producto_codigo,
+          precioCompra: Number(item.precio_compra),
+          createdAt: item.created_at.toISOString(),
+          updatedAt: item.updated_at.toISOString(),
+        };
+      } catch (e: any) {
+        throw new GraphQLError('Error al agregar al catálogo: ' + e.message);
+      }
+    },
+    crearProductoGlobalYCatalogo: async (_: any, { proveedorId, precioCompra, input }: any) => {
+      try {
+        // 1. Crear en API externa
+        await crearProductoGlobal(input);
+
+        // 2. Agregar al catálogo local
+        const item = await prisma.catalogo_proveedor.create({
+          data: {
+            proveedor_id: proveedorId,
+            producto_codigo: input.codigo,
+            precio_compra: precioCompra,
+          },
+        });
+
+        return {
+          id: item.id,
+          proveedorId: item.proveedor_id,
+          productoCodigo: item.producto_codigo,
+          precioCompra: Number(item.precio_compra),
+          createdAt: item.created_at.toISOString(),
+          updatedAt: item.updated_at.toISOString(),
+        };
+      } catch (e: any) {
+        throw new GraphQLError(e.message);
+      }
     },
   },
 };

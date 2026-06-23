@@ -173,3 +173,37 @@ export async function buscarProductos(
     totalPaginas,
   };
 }
+
+// ── Función para crear producto en la API externa ──────────────────
+
+export async function crearProductoGlobal(input: {
+  codigo: string;
+  nombre: string;
+  descripcion: string;
+  graba_iva: boolean;
+  costo: number;
+  pvp: number;
+  estado: string;
+}) {
+  const res = await fetch(`${BASE_URL}/api/productos`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    let errorMessage = `Error API Inventarios: ${res.statusText}`;
+    if (res.status === 409) errorMessage = 'El código de producto ya existe en el inventario global.';
+    if (res.status === 400) errorMessage = `Error de validación en el producto: ${errorBody}`;
+    throw new Error(errorMessage);
+  }
+
+  // Invalidar caché
+  cacheCatalogo = null;
+
+  return true;
+}
