@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '../../../../lib/prisma';
-import * as bcrypt from 'bcryptjs';
 import { signToken } from '../../../../lib/authUtils';
-import { registrarAuditoria } from '../../../../lib/auditoriaService';
 
 /**
  * @swagger
@@ -52,43 +49,46 @@ import { registrarAuditoria } from '../../../../lib/auditoriaService';
  */
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const { rol } = await request.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Credenciales incompletas' }, { status: 400 });
+    if (!rol || (rol !== 'ADMIN' && rol !== 'COMPRADOR')) {
+      return NextResponse.json({ error: 'Rol inválido o no proporcionado' }, { status: 400 });
     }
 
-    const usuario = await prisma.usuarios.findUnique({ where: { email } });
+    // Definir permisos dinámicos basados en el rol (Simulando lo que haría el Módulo de Seguridad)
+    let permisos = {
+      ver_proveedores: false,
+      ver_facturas: false,
+      ver_reportes: false,
+      puede_anular: false,
+    };
 
-    if (!usuario || usuario.estado !== 'ACTIVO') {
-      return NextResponse.json({ error: 'Usuario no encontrado o inactivo' }, { status: 401 });
+    if (rol === 'ADMIN') {
+      permisos = {
+        ver_proveedores: true,
+        ver_facturas: true,
+        ver_reportes: true,
+        puede_anular: true,
+      };
+    } else if (rol === 'COMPRADOR') {
+      permisos = {
+        ver_proveedores: true,
+        ver_facturas: true,
+        ver_reportes: false,
+        puede_anular: false,
+      };
     }
 
-    const passwordMatch = await bcrypt.compare(password, usuario.password);
-
-    if (!passwordMatch) {
-      return NextResponse.json({ error: 'Contraseña incorrecta' }, { status: 401 });
-    }
-
+    // Crear un payload mock con ID fijo y datos de prueba
     const tokenPayload = {
-      id: usuario.id,
-      nombre: usuario.nombre,
-      email: usuario.email,
-      rol: usuario.rol
+      id: rol === 'ADMIN' ? 1 : 2,
+      nombre: rol === 'ADMIN' ? 'Administrador Sistema' : 'Comprador Usuario',
+      email: rol === 'ADMIN' ? 'admin@compras.com' : 'comprador@compras.com',
+      rol: rol,
+      permisos: permisos
     };
 
     const token = await signToken(tokenPayload);
-
-    await registrarAuditoria(
-      usuario.id as number,
-      usuario.nombre as string,
-      'LOGIN',
-      'usuarios',
-      usuario.id as number,
-      null,
-      null,
-      'Inicio de sesión exitoso'
-    );
 
     const response = NextResponse.json({ success: true, usuario: tokenPayload });
     
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (_error: any) {
-    console.error('Error en login:', _error);
+    console.error('Error en mock login:', _error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

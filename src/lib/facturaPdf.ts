@@ -99,7 +99,7 @@ export async function generarFacturaPDF(datos: DatosFacturaPDF): Promise<Buffer>
     // 2. DATOS DEL PROVEEDOR
     // ==========================================
     let curY = 135;
-    doc.roundedRect(margin, curY, contentW, 75, 4).fillAndStroke(COLORS.light, COLORS.border);
+    doc.roundedRect(margin, curY, contentW, 85, 4).fillAndStroke(COLORS.light, COLORS.border);
     
     doc.font('Helvetica-Bold').fontSize(11).fillColor(COLORS.primary)
        .text('DATOS DEL PROVEEDOR', margin + 15, curY + 12);
@@ -117,14 +117,20 @@ export async function generarFacturaPDF(datos: DatosFacturaPDF): Promise<Buffer>
     // Segunda columna proveedor
     const col2X = margin + 250;
     doc.font('Helvetica-Bold').fillColor(COLORS.textDark)
-       .text('Dirección:', col2X, curY + 30)
-       .text('Teléfono:', col2X, curY + 45);
+       .text('Dirección:', col2X, curY + 30);
        
     doc.font('Helvetica').fillColor(COLORS.textDark)
-       .text(datos.proveedor.direccion, col2X + 60, curY + 30, { width: 200 })
-       .text(datos.proveedor.telefono || 'N/A', col2X + 60, curY + 45);
+       .text(datos.proveedor.direccion, col2X + 60, curY + 30, { width: 200 });
 
-    curY += 95;
+    const nextY = Math.max(curY + 45, doc.y + 5);
+
+    doc.font('Helvetica-Bold').fillColor(COLORS.textDark)
+       .text('Teléfono:', col2X, nextY);
+       
+    doc.font('Helvetica').fillColor(COLORS.textDark)
+       .text(datos.proveedor.telefono || 'N/A', col2X + 60, nextY);
+
+    curY += 105;
 
     // ==========================================
     // 3. TABLA DE PRODUCTOS
