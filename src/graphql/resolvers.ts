@@ -85,7 +85,7 @@ export const resolvers = {
           where: { proveedor_id: proveedorId },
           orderBy: { created_at: 'desc' },
         });
-        return res.map(row => ({
+        return res.map((row: any) => ({
           id: row.id,
           proveedorId: row.proveedor_id,
           productoCodigo: row.producto_codigo,
@@ -131,7 +131,7 @@ export const resolvers = {
       const rows = await prisma.facturas_compra.findMany({ where, orderBy: { created_at: 'desc' } });
       const proveIds = Array.from(new Set(rows.map((r: any) => r.proveedor_id)));
       const proveedores = await prisma.proveedor.findMany({ where: { id: { in: proveIds } } });
-      const provMap = new Map(proveedores.map(p => [p.id, p.nombre]));
+      const provMap = new Map(proveedores.map((p: any) => [p.id, p.nombre]));
 
       return rows.map((r: any) => ({
         id: r.id,
