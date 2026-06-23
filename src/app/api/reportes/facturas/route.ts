@@ -4,6 +4,78 @@ import { generarReporteFacturasPDF } from '../../../../lib/facturasReportePdf';
 import { getUserFromRequest } from '../../../../lib/authUtils';
 import { registrarAuditoria } from '../../../../lib/auditoriaService';
 
+/**
+ * @swagger
+ * /api/reportes/facturas:
+ *   get:
+ *     summary: Reporte de facturas de compra
+ *     description: |
+ *       Genera un reporte de facturas filtrable por estado y rango de fechas.
+ *       Soporta 3 formatos de salida:
+ *       - **JSON** (por defecto): Devuelve las facturas con su detalle de productos.
+ *       - **PDF** (`format=pdf`): Descarga un archivo PDF del reporte.
+ *       - **CSV** (`format=csv`): Descarga un archivo CSV del reporte.
+ *     tags:
+ *       - Reportes
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: estado
+ *         schema:
+ *           type: string
+ *           enum: [BORRADOR, EMITIDA, ANULADA]
+ *         description: Filtrar por estado de la factura
+ *       - in: query
+ *         name: fechaInicio
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Fecha inicio del rango (YYYY-MM-DD)
+ *         example: '2026-01-01'
+ *       - in: query
+ *         name: fechaFin
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Fecha fin del rango (YYYY-MM-DD)
+ *         example: '2026-12-31'
+ *       - in: query
+ *         name: format
+ *         schema:
+ *           type: string
+ *           enum: [pdf, csv]
+ *         description: Formato de exportación. Si no se envía, responde en JSON.
+ *     responses:
+ *       200:
+ *         description: Reporte generado exitosamente (JSON, PDF o CSV según parámetro `format`)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/FacturaCompra'
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *           text/csv:
+ *             schema:
+ *               type: string
+ *       500:
+ *         description: Error interno
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
