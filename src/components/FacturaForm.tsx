@@ -1,11 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
-import { ApolloProvider } from "@apollo/client/react";
+import React, { useState, useEffect } from "react";
+import { ApolloProvider, useQuery, useMutation, gql } from "@apollo/client/react";
 import { apolloClient } from "@/lib/apolloClient";
 import AutocompleteProveedor from "./AutocompleteProveedor";
 import { FacturaPdfPreview } from './FacturaPdfPreview';
 import AutocompleteProducto from "./AutocompleteProducto";
+import NuevoProductoModal from "./NuevoProductoModal";
+
+const LISTAR_CATALOGO = gql`
+  query ListarCatalogo($proveedorId: Int!) {
+    listarCatalogoProveedor(proveedorId: $proveedorId) {
+      productoCodigo
+      precioCompra
+    }
+  }
+`;
+
+const AGREGAR_CATALOGO = gql`
+  mutation AgregarAlCatalogo($proveedorId: Int!, $productoCodigo: String!, $precioCompra: Float!) {
+    agregarAlCatalogo(proveedorId: $proveedorId, productoCodigo: $productoCodigo, precioCompra: $precioCompra) {
+      id
+      precioCompra
+      productoCodigo
+    }
+  }
+`;
 export default function FacturaForm() {
   return (
     <ApolloProvider client={apolloClient}>
@@ -24,6 +44,18 @@ interface ProveedorSeleccionado {
 
 function FacturaFormContent() {
   const [selectedProveedor, setSelectedProveedor] = useState<ProveedorSeleccionado | null>(null);
+  const [showNewProductModal, setShowNewProductModal] = useState(false);
+
+  const { data: catalogData, refetch: refetchCatalog } = useQuery(LISTAR_CATALOGO, {
+    variables: { proveedorId: selectedProveedor?.id },
+    skip: !selectedProveedor?.id,
+  });
+
+  const [agregarAlCatalogo] = useMutation(AGREGAR_CATALOGO);
+
+  const catalogoMap = new Map(
+    catalogData?.listarCatalogoProveedor?.map((c: any) => [c.productoCodigo, c.precioCompra]) || []
+  );
 
   const [productos, setProductos] = useState([
     { codigo: "", descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }
@@ -102,14 +134,25 @@ function FacturaFormContent() {
       <div className="mt-8 border-t border-slate-200 pt-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-slate-900">Detalle de Productos</h3>
-          <button
-            type="button"
-            data-testid="add-product-btn"
-            onClick={handleAddProduct}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm font-medium shadow-sm"
-          >
-            + Agregar Producto
-          </button>
+          <div className="flex gap-2">
+            {selectedProveedor?.id && (
+              <button
+                type="button"
+                onClick={() => setShowNewProductModal(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors text-sm font-medium shadow-sm"
+              >
+                ✨ Crear Producto Nuevo
+              </button>
+            )}
+            <button
+              type="button"
+              data-testid="add-product-btn"
+              onClick={handleAddProduct}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm font-medium shadow-sm"
+            >
+              + Agregar Fila
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -127,18 +170,52 @@ function FacturaFormContent() {
             <tbody className="divide-y divide-slate-200">
               {productos.map((prod, index) => {
                 const subtotal = roundToTwo(prod.cantidad * prod.pvp);
+                const isNew = prod.codigo && !catalogoMap.has(prod.codigo) && selectedProveedor?.id;
+                
                 return (
-                  <tr key={index} data-testid={`product-row-${index}`} className="border-b border-slate-200 text-sm hover:bg-slate-50">
+                  <tr key={index} data-testid={`product-row-${index}`} className={`border-b text-sm transition-colors ${isNew ? 'bg-amber-50 border-amber-200' : 'border-slate-200 hover:bg-slate-50'}`}>
                     <td className="p-3">
                       <AutocompleteProducto
                         onSelect={(p) => {
                           updateProduct(index, "codigo", p.codigo);
                           updateProduct(index, "descripcion", p.nombre);
-                          updateProduct(index, "pvp", p.precioUnitario);
                           updateProduct(index, "grabaIva", p.grabaIva);
                           updateProduct(index, "porcentajeIva", p.porcentajeIva);
+                          
+                          // Autocompletar precio si está en catálogo
+                          if (catalogoMap.has(p.codigo)) {
+                            updateProduct(index, "pvp", catalogoMap.get(p.codigo));
+                          } else {
+                            updateProduct(index, "pvp", p.precioUnitario || 0);
+                          }
                         }}
                       />
+                      {prod.codigo && !catalogoMap.has(prod.codigo) && selectedProveedor?.id && (
+                        <div className="mt-1 text-xs text-amber-600 flex items-center gap-2">
+                          <span>⚠️ Nuevo para proveedor</span>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await agregarAlCatalogo({
+                                  variables: {
+                                    proveedorId: selectedProveedor.id,
+                                    productoCodigo: prod.codigo,
+                                    precioCompra: prod.pvp
+                                  }
+                                });
+                                await refetchCatalog();
+                                alert("Agregado al catálogo del proveedor con éxito");
+                              } catch (e: any) {
+                                alert("Error al agregar: " + e.message);
+                              }
+                            }}
+                            className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded hover:bg-amber-200 transition"
+                          >
+                            Añadir al catálogo (con precio actual)
+                          </button>
+                        </div>
+                      )}
                     </td>
                     <td className="p-3">
                       <input
@@ -216,6 +293,36 @@ function FacturaFormContent() {
           </div>
         </div>
       </div>
+      
+      {showNewProductModal && selectedProveedor?.id && (
+        <NuevoProductoModal
+          proveedorId={selectedProveedor.id}
+          onClose={() => setShowNewProductModal(false)}
+          onSuccess={async (codigo, nombre, precioCompra) => {
+            setShowNewProductModal(false);
+            await refetchCatalog();
+            
+            // Auto agregar el producto a una nueva fila o a la última vacía
+            const lastRowIndex = productos.length - 1;
+            const lastRow = productos[lastRowIndex];
+            
+            if (lastRow && !lastRow.codigo) {
+              updateProduct(lastRowIndex, "codigo", codigo);
+              updateProduct(lastRowIndex, "descripcion", nombre);
+              updateProduct(lastRowIndex, "pvp", precioCompra);
+            } else {
+              setProductos([...productos, { 
+                codigo, 
+                descripcion: nombre, 
+                cantidad: 1, 
+                pvp: precioCompra, 
+                grabaIva: true, 
+                porcentajeIva: 15 
+              }]);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
