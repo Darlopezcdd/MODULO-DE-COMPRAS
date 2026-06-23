@@ -1,6 +1,83 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+/**
+ * @swagger
+ * /api/detalle-factura:
+ *   get:
+ *     summary: Obtener detalle de una factura de compra
+ *     description: Devuelve la cabecera de la factura, datos del proveedor y las líneas de detalle con paginación.
+ *     tags:
+ *       - Facturas
+ *     parameters:
+ *       - in: query
+ *         name: facturaId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la factura de compra
+ *         example: 1
+ *       - in: query
+ *         name: pagina
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limite
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           maximum: 100
+ *     responses:
+ *       200:
+ *         description: Detalle de la factura con líneas paginadas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 factura:
+ *                   $ref: '#/components/schemas/FacturaCompra'
+ *                 lineas:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/DetalleFactura'
+ *                 paginacion:
+ *                   type: object
+ *                   properties:
+ *                     pagina:
+ *                       type: integer
+ *                     limite:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPaginas:
+ *                       type: integer
+ *                     tieneAnterior:
+ *                       type: boolean
+ *                     tieneSiguiente:
+ *                       type: boolean
+ *       400:
+ *         description: facturaId es requerido y debe ser un número
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Factura no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

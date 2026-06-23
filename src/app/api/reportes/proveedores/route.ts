@@ -4,6 +4,44 @@ import { generarReporteProveedoresPDF } from '../../../../lib/proveedoresPdf';
 import { getUserFromRequest } from '../../../../lib/authUtils';
 import { registrarAuditoria } from '../../../../lib/auditoriaService';
 
+/**
+ * @swagger
+ * /api/reportes/proveedores:
+ *   get:
+ *     summary: Reporte PDF de proveedores
+ *     description: Genera y descarga un reporte PDF con la lista de proveedores, sus datos de contacto y saldos pendientes. Filtrable por estado y tipo.
+ *     tags:
+ *       - Reportes
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: estado
+ *         schema:
+ *           type: string
+ *           enum: [ACTIVO, INACTIVO]
+ *         description: Filtrar proveedores por estado
+ *       - in: query
+ *         name: tipo
+ *         schema:
+ *           type: string
+ *           enum: [CONTADO, CREDITO]
+ *         description: Filtrar proveedores por tipo de pago
+ *     responses:
+ *       200:
+ *         description: Archivo PDF del reporte de proveedores
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       500:
+ *         description: Error interno al generar el reporte
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
