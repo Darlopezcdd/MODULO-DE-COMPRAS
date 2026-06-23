@@ -58,6 +58,40 @@ function FacturaFormContent() {
     catalogData?.listarCatalogoProveedor?.map((c: any) => [c.productoCodigo, c.precioCompra]) || []
   );
 
+  const [catalogoRapido, setCatalogoRapido] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchDetalles = async () => {
+      const items = catalogData?.listarCatalogoProveedor || [];
+      if (items.length === 0) {
+        setCatalogoRapido([]);
+        return;
+      }
+      const codigos = items.map((i: any) => i.productoCodigo).join(",");
+      try {
+        const res = await fetch(`/api/inventarios?limite=200&codigos=${codigos}`);
+        const result = await res.json();
+        if (result.success) {
+          const combinados = items.map((cat: any) => {
+            const globalInfo = result.data.find((p: any) => p.codigo === cat.productoCodigo);
+            return {
+              ...cat,
+              nombre: globalInfo?.nombre || "Producto desconocido",
+              grabaIva: globalInfo?.grabaIva || true,
+              porcentajeIva: globalInfo?.porcentajeIva || 15,
+            };
+          });
+          setCatalogoRapido(combinados);
+        }
+      } catch (e) {
+        console.error("Error al obtener catálogo rápido", e);
+      }
+    };
+    if (catalogData) {
+      fetchDetalles();
+    }
+  }, [catalogData]);
+
   const [productos, setProductos] = useState([
     { codigo: "", descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }
   ]);
@@ -131,6 +165,48 @@ function FacturaFormContent() {
           />
         </div>
       </div>
+
+      {catalogoRapido.length > 0 && (
+        <div className="mt-6 border border-blue-100 bg-blue-50/30 p-4 rounded-xl">
+          <h4 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <span className="text-lg">⚡</span> Acceso Rápido: Catálogo del Proveedor
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {catalogoRapido.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  const lastRowIndex = productos.length - 1;
+                  const lastRow = productos[lastRowIndex];
+                  
+                  if (lastRow && !lastRow.codigo) {
+                    updateProduct(lastRowIndex, "codigo", item.productoCodigo);
+                    updateProduct(lastRowIndex, "descripcion", item.nombre);
+                    updateProduct(lastRowIndex, "pvp", item.precioCompra);
+                    updateProduct(lastRowIndex, "grabaIva", item.grabaIva);
+                    updateProduct(lastRowIndex, "porcentajeIva", item.porcentajeIva);
+                  } else {
+                    setProductos([...productos, { 
+                      codigo: item.productoCodigo, 
+                      descripcion: item.nombre, 
+                      cantidad: 1, 
+                      pvp: item.precioCompra, 
+                      grabaIva: item.grabaIva, 
+                      porcentajeIva: item.porcentajeIva 
+                    }]);
+                  }
+                }}
+                className="flex flex-col items-start bg-white border border-blue-200 hover:border-blue-400 hover:shadow-md px-3 py-2 rounded-lg transition-all text-left min-w-[140px] max-w-[200px]"
+              >
+                <span className="text-xs font-mono text-slate-500 mb-0.5">{item.productoCodigo}</span>
+                <span className="text-sm font-medium text-slate-900 truncate w-full">{item.nombre}</span>
+                <span className="text-sm font-bold text-blue-600 mt-1">${Number(item.precioCompra).toFixed(2)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 border-t border-slate-200 pt-6">
         <div className="flex justify-between items-center mb-4">

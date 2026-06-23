@@ -148,17 +148,22 @@ async function fetchProductos(): Promise<ProductoInventarioNormalizado[]> {
 export async function buscarProductos(
   termino: string,
   pagina: number = 1,
-  limite: number = 10
+  limite: number = 10,
+  codigos?: string[]
 ): Promise<InventariosResponse> {
   const todos = await fetchProductos();
 
-  const filtrados = termino
-    ? todos.filter((p) =>
-        p.nombre.toLowerCase().includes(termino.toLowerCase()) ||
-        p.codigo.toLowerCase().includes(termino.toLowerCase()) ||
-        p.descripcion.toLowerCase().includes(termino.toLowerCase())
-      )
-    : todos;
+  let filtrados = todos;
+  
+  if (codigos && codigos.length > 0) {
+    filtrados = filtrados.filter((p) => codigos.includes(p.codigo));
+  } else if (termino) {
+    filtrados = filtrados.filter((p) =>
+      p.nombre.toLowerCase().includes(termino.toLowerCase()) ||
+      p.codigo.toLowerCase().includes(termino.toLowerCase()) ||
+      p.descripcion.toLowerCase().includes(termino.toLowerCase())
+    );
+  }
 
   const total = filtrados.length;
   const totalPaginas = Math.ceil(total / limite);
