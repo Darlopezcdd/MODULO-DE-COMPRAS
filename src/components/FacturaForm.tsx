@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, ApolloProvider, useApolloClient } from "@apollo/client/react";
 import { gql } from "@apollo/client";
 import { apolloClient } from "@/lib/apolloClient";
+import { useRouter } from "next/navigation";
 import AutocompleteProveedor from "./AutocompleteProveedor";
 import { FacturaPdfPreview } from './FacturaPdfPreview';
 import AutocompleteProducto from "./AutocompleteProducto";
@@ -67,6 +68,13 @@ function FacturaFormContent() {
 
   const [selectedProveedor, setSelectedProveedor] = useState<ProveedorSeleccionado | null>(null);
   const [showNewProductModal, setShowNewProductModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
+  const [tipoPago, setTipoPago] = useState<'CONTADO' | 'CREDITO'>('CONTADO');
+  const [fechaVencimiento, setFechaVencimiento] = useState('');
+  
+  const router = useRouter();
 
   const { data: catalogData, refetch: refetchCatalog } = useQuery(LISTAR_CATALOGO, {
     variables: { proveedorId: selectedProveedor?.id },
@@ -200,6 +208,92 @@ function FacturaFormContent() {
   
   totales.total = totales.subtotalSinIva + totales.subtotalConIva + totales.totalIva;
 
+  const handleSaveFactura = async () => {
+    if (!selectedProveedor?.id) {
+      alert("Por favor seleccione un proveedor primero.");
+      return;
+    }
+    
+    const validProductos = productos.filter(p => p.codigo && p.cantidad > 0 && p.pvp >= 0);
+    if (validProductos.length === 0) {
+      alert("Agregue al menos un producto válido a la factura.");
+      return;
+    }
+
+    if (tipoPago === 'CREDITO' && !fechaVencimiento) {
+      alert("La fecha de vencimiento es obligatoria para compras a crédito.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/facturas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          proveedorId: selectedProveedor.id,
+          tipoPago,
+          fechaVencimiento,
+          productos: validProductos
+        })
+      });
+
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Error al guardar factura');
+
+      setFacturaGenerada(body.factura);
+      setSaveSuccess(true);
+      
+      // Redirigir a la lista de facturas después de 3 segundos
+      setTimeout(() => {
+        router.push('/facturas');
+      }, 3000);
+      
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (saveSuccess) {
+    return (
+      <div className="p-12 bg-white rounded-xl shadow-lg border border-emerald-200 mt-6 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-500">
+        <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h2 className="text-3xl font-bold text-slate-800 mb-2">¡Factura Generada Exitosamente!</h2>
+        <p className="text-slate-500 mb-8 max-w-md">
+          La factura <strong className="text-emerald-600">FC-{facturaGenerada?.id?.toString().padStart(8, '0')}</strong> ha sido guardada y procesada correctamente en el sistema.
+        </p>
+        <div className="flex gap-4">
+          <button
+            onClick={() => router.push('/facturas')}
+            className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors"
+          >
+            Ver lista de facturas
+          </button>
+          <button
+            onClick={() => {
+              setSaveSuccess(false);
+              setFacturaGenerada(null);
+              setSelectedProveedor(null);
+              setProductos([{ codigo: "", descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }]);
+              setTipoPago('CONTADO');
+              setFechaVencimiento('');
+            }}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+          >
+            Crear otra factura
+          </button>
+        </div>
+        <p className="text-sm text-slate-400 mt-8 animate-pulse">Redirigiendo automáticamente en 3 segundos...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-sm border border-slate-200 mb-8 mt-6">
@@ -223,15 +317,41 @@ function FacturaFormContent() {
           />
         </div>
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-slate-700 mb-1">Dirección</label>
-          <input
-            type="text"
-            className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 outline-none"
-            readOnly
-            value={selectedProveedor?.direccion || ""}
-          />
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Dirección</label>
+            <input
+              type="text"
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 outline-none"
+              readOnly
+              value={selectedProveedor?.direccion || ""}
+            />
+          </div>
+          <div className="col-span-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Pago</label>
+            <select
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+              value={tipoPago}
+              onChange={(e) => setTipoPago(e.target.value as 'CONTADO' | 'CREDITO')}
+            >
+              <option value="CONTADO">Contado</option>
+              <option value="CREDITO">Crédito</option>
+            </select>
+          </div>
         </div>
+        
+        {tipoPago === 'CREDITO' && (
+          <div className="md:col-span-2 mt-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de Vencimiento <span className="text-red-500">*</span></label>
+            <input
+              type="date"
+              className="w-1/2 px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+              value={fechaVencimiento}
+              onChange={(e) => setFechaVencimiento(e.target.value)}
+              required
+            />
+          </div>
+        )}
       </div>
 
       {catalogoRapido.length > 0 && (
@@ -245,24 +365,31 @@ function FacturaFormContent() {
                 key={item.id}
                 type="button"
                 onClick={() => {
-                  const lastRowIndex = productos.length - 1;
-                  const lastRow = productos[lastRowIndex];
+                  const existingIndex = productos.findIndex(p => p.codigo === item.productoCodigo);
                   
-                  if (lastRow && !lastRow.codigo) {
-                    updateProduct(lastRowIndex, "codigo", item.productoCodigo);
-                    updateProduct(lastRowIndex, "descripcion", item.nombre);
-                    updateProduct(lastRowIndex, "pvp", item.precioCompra);
-                    updateProduct(lastRowIndex, "grabaIva", item.grabaIva);
-                    updateProduct(lastRowIndex, "porcentajeIva", item.porcentajeIva);
+                  if (existingIndex >= 0) {
+                    // Si ya existe, incrementar cantidad
+                    updateProduct(existingIndex, "cantidad", productos[existingIndex].cantidad + 1);
                   } else {
-                    setProductos([...productos, { 
-                      codigo: item.productoCodigo, 
-                      descripcion: item.nombre, 
-                      cantidad: 1, 
-                      pvp: item.precioCompra, 
-                      grabaIva: item.grabaIva, 
-                      porcentajeIva: item.porcentajeIva 
-                    }]);
+                    const lastRowIndex = productos.length - 1;
+                    const lastRow = productos[lastRowIndex];
+                    
+                    if (lastRow && !lastRow.codigo) {
+                      updateProduct(lastRowIndex, "codigo", item.productoCodigo);
+                      updateProduct(lastRowIndex, "descripcion", item.nombre);
+                      updateProduct(lastRowIndex, "pvp", item.precioCompra);
+                      updateProduct(lastRowIndex, "grabaIva", item.grabaIva);
+                      updateProduct(lastRowIndex, "porcentajeIva", item.porcentajeIva);
+                    } else {
+                      setProductos([...productos, { 
+                        codigo: item.productoCodigo, 
+                        descripcion: item.nombre, 
+                        cantidad: 1, 
+                        pvp: item.precioCompra, 
+                        grabaIva: item.grabaIva, 
+                        porcentajeIva: item.porcentajeIva 
+                      }]);
+                    }
                   }
                 }}
                 className="flex flex-col items-start bg-white border border-blue-200 hover:border-blue-400 hover:shadow-md px-3 py-2 rounded-lg transition-all text-left min-w-[140px] max-w-[200px]"
@@ -321,6 +448,7 @@ function FacturaFormContent() {
                   <tr key={index} data-testid={`product-row-${index}`} className={`border-b text-sm transition-colors ${isNew ? 'bg-amber-50 border-amber-200' : 'border-slate-200 hover:bg-slate-50'}`}>
                     <td className="p-3">
                       <AutocompleteProducto
+                        value={prod.codigo ? `${prod.codigo} - ${prod.descripcion}` : ""}
                         onSelect={(p) => {
                           updateProduct(index, "codigo", p.codigo);
                           updateProduct(index, "descripcion", p.nombre);
@@ -431,9 +559,35 @@ function FacturaFormContent() {
               <span data-testid="total-general" className="text-blue-600">${totales.total.toFixed(2)}</span>
             </div>
             
-            {/* Componente de Previsualización de PDF */}
-            <div className="mt-5">
-              <FacturaPdfPreview data={{ proveedor: selectedProveedor, productos, totales }} />
+            <div className="mt-5 flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={handleSaveFactura}
+                disabled={isSaving}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-300 shadow-sm flex items-center justify-center gap-2"
+              >
+                {isSaving ? "Guardando..." : "✅ Guardar Factura"}
+              </button>
+              
+              <FacturaPdfPreview 
+                data={{ 
+                  numeroFactura: "Borrador",
+                  proveedorNombre: selectedProveedor?.nombre || "Desconocido",
+                  proveedorRuc: selectedProveedor?.cedulaRuc || "N/A",
+                  tipoPago: tipoPago,
+                  fechaVencimiento: fechaVencimiento || "N/A",
+                  items: productos.filter(p => p.codigo).map(p => ({
+                    descripcion: p.descripcion,
+                    aplicaIva: p.grabaIva,
+                    precioUnitario: p.pvp,
+                    cantidad: p.cantidad
+                  })),
+                  subtotalSinIva: totales.subtotalSinIva,
+                  subtotalConIva: totales.subtotalConIva,
+                  montoIva: totales.totalIva,
+                  total: totales.total
+                }} 
+              />
             </div>
           </div>
         </div>
