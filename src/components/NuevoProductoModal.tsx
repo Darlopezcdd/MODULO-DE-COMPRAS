@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { useMutation, gql } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
+import { gql } from "@apollo/client";
 
 const CREAR_PRODUCTO_GLOBAL_Y_CATALOGO = gql`
   mutation CrearProductoGlobalYCatalogo($proveedorId: Int!, $precioCompra: Float!, $input: ProductoGlobalInput!) {

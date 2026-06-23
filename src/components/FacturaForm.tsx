@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, gql, ApolloProvider } from "@apollo/client";
+import { useQuery, useMutation, ApolloProvider } from "@apollo/client/react";
+import { gql } from "@apollo/client";
 import { apolloClient } from "@/lib/apolloClient";
 import AutocompleteProveedor from "./AutocompleteProveedor";
 import { FacturaPdfPreview } from './FacturaPdfPreview';
