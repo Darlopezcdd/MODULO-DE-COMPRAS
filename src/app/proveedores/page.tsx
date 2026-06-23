@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import CatalogoProveedorModalWrapper from '@/components/CatalogoProveedorModal';
 
 interface Proveedor {
   id: number;
@@ -18,6 +19,7 @@ export default function ProveedoresPage() {
   const [filtroTipo, setFiltroTipo] = useState('');
   const [aviso, setAviso] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
+  const [catalogoModal, setCatalogoModal] = useState<{ isOpen: boolean; id: number; nombre: string }>({ isOpen: false, id: 0, nombre: '' });
   const ITEMS_POR_PAGINA = 10;
 
   const fetchProveedores = async () => {
@@ -155,6 +157,12 @@ export default function ProveedoresPage() {
                     </span>
                   </td>
                   <td className="p-4 flex gap-2">
+                    <button 
+                      onClick={() => setCatalogoModal({ isOpen: true, id: p.id, nombre: p.nombre })}
+                      className="text-sm bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 px-3 py-1 rounded transition-colors shadow-sm font-medium"
+                    >
+                      Catálogo
+                    </button>
                     <Link href={`/proveedores/editar/${p.id}`} className="text-sm bg-white border border-slate-200 hover:bg-slate-50 px-3 py-1 rounded transition-colors text-slate-700 shadow-sm">
                       Editar
                     </Link>
@@ -212,6 +220,14 @@ export default function ProveedoresPage() {
           </div>
         )}
       </div>
+
+      {catalogoModal.isOpen && (
+        <CatalogoProveedorModalWrapper
+          proveedorId={catalogoModal.id}
+          proveedorNombre={catalogoModal.nombre}
+          onClose={() => setCatalogoModal({ isOpen: false, id: 0, nombre: '' })}
+        />
+      )}
     </div>
   );
 }
