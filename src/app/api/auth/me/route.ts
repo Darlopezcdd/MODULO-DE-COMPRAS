@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ usuario });
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: 'Error al obtener sesión' }, { status: 500 });
   }
 }
