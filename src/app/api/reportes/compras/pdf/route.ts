@@ -125,7 +125,7 @@ export async function GET(req: Request) {
           </tr>
         </thead>
         <tbody>
-          ${facturasConProveedor.map(f => {
+          ${facturasConProveedor.map((f: any) => {
             let badgeClass = 'badge-anulada';
             if (f.estado === 'EMITIDA') badgeClass = 'badge-emitida';
             if (f.estado === 'BORRADOR') badgeClass = 'badge-borrador';
