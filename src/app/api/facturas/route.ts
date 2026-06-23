@@ -65,7 +65,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
     }
 
-    const factura = await prisma.$transaction(async (tx) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const factura = await prisma.$transaction(async (tx: any) => {
       // 1. Crear cabecera como BORRADOR (obligatorio para permitir insertar detalles por los triggers)
       const nuevaFactura = await tx.facturas_compra.create({
         data: {
@@ -209,32 +210,42 @@ export async function GET(req: Request) {
     const estado = searchParams.get('estado') || 'EMITIDA';
 
     const facturas = await prisma.facturas_compra.findMany({
-      where: { estado: estado as any },
+      where: { estado: estado as import("@prisma/client").$Enums.estado_factura_enum },
       orderBy: { created_at: 'desc' },
       take: limit,
-      include: {
-        proveedor: {
-          select: { nombre: true, cedula_ruc: true }
-        },
-        detalle_factura_compra: true
-      }
+    });
+
+    const proveedorIds = facturas.map(f => f.proveedor_id);
+    const proveedores = await prisma.proveedor.findMany({
+      where: { id: { in: proveedorIds } },
+      select: { id: true, nombre: true, cedulaRuc: true }
+    });
+    
+    const facturaIds = facturas.map(f => f.id);
+    const detalles = await prisma.detalle_factura_compra.findMany({
+      where: { factura_id: { in: facturaIds } }
     });
 
     // Formatear para que sea fácil de consumir por el módulo de inventarios
-    const facturasFormateadas = facturas.map(f => ({
-      facturaId: f.id,
-      numeroFactura: f.numero_factura,
-      fechaEmision: f.fecha,
-      proveedor: f.proveedor?.nombre,
-      estado: f.estado,
-      productos: f.detalle_factura_compra.map(d => ({
-        codigoProducto: d.producto_codigo,
-        nombreProducto: d.producto_nombre,
-        cantidadComprada: d.cantidad,
-        costoUnitario: d.pvp,
-        totalLinea: d.total_linea
-      }))
-    }));
+    const facturasFormateadas = facturas.map(f => {
+      const prov = proveedores.find(p => p.id === f.proveedor_id);
+      const det = detalles.filter(d => d.factura_id === f.id);
+      
+      return {
+        facturaId: f.id,
+        numeroFactura: f.numero_factura,
+        fechaEmision: f.fecha,
+        proveedor: prov?.nombre,
+        estado: f.estado,
+        productos: det.map(d => ({
+          codigoProducto: d.producto_codigo,
+          nombreProducto: d.producto_nombre,
+          cantidadComprada: Number(d.cantidad),
+          costoUnitario: Number(d.pvp),
+          totalLinea: Number(d.total_linea)
+        }))
+      };
+    });
 
     return NextResponse.json({
       success: true,
