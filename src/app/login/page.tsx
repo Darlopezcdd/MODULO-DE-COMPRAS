@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, UserCircle2, Mail, Lock, ArrowLeft, LogIn } from 'lucide-react';
+import { ShieldCheck, UserCircle2, Mail, Lock, ArrowLeft, LogIn, Eye, EyeOff } from 'lucide-react';
 
 type Role = 'ADMIN' | 'COMPRADOR' | 'GESTOR_PROVEEDORES' | 'TESORERO' | 'AUDITOR';
 
@@ -17,11 +17,13 @@ export default function LoginPage() {
   // Estados del formulario
   const [identificador, setIdentificador] = useState(''); // Puede ser email o usuario
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // ── 1. Al seleccionar un rol, preparamos el formulario ──────────────────────
   const handleSelectRole = (rol: Role) => {
     setSelectedRole(rol);
     setError('');
+    setShowPassword(false); // Resetear visibilidad al cambiar rol
     
     // Autocompletamos con un email genérico basado en el rol para facilitar el desarrollo
     setIdentificador(`${rol.toLowerCase().replace('_', '.')}@utn.edu.ec`);
@@ -175,14 +177,24 @@ export default function LoginPage() {
               <Lock size={18} />
             </div>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               required
               disabled={isLoading}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/50 focus:border-[#003366] transition-all disabled:bg-slate-50 disabled:text-slate-500"
+              className="w-full pl-10 pr-12 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/50 focus:border-[#003366] transition-all disabled:bg-slate-50 disabled:text-slate-500"
               placeholder="••••••••"
             />
+            {/* Botón Mostrar/Ocultar Contraseña */}
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              disabled={isLoading}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-[#003366] transition-colors focus:outline-none disabled:opacity-50"
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
         </div>
       </div>
