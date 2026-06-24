@@ -1,6 +1,52 @@
 import { NextResponse } from 'next/server';
 import { signToken } from '../../../../lib/authUtils';
 
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Iniciar sesión
+ *     description: Autentica al usuario con email y contraseña. Devuelve un token JWT como cookie httpOnly.
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UsuarioLogin'
+ *     responses:
+ *       200:
+ *         description: Login exitoso. Se establece la cookie `auth-token`.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginResponse'
+ *         headers:
+ *           Set-Cookie:
+ *             description: Cookie httpOnly con el token JWT
+ *             schema:
+ *               type: string
+ *               example: auth-token=eyJhbGciOiJIUzI1NiJ9...; Path=/; HttpOnly
+ *       400:
+ *         description: Credenciales incompletas (falta email o password)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Usuario no encontrado, inactivo o contraseña incorrecta
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 export async function POST(request: Request) {
   try {
     const { rol } = await request.json();

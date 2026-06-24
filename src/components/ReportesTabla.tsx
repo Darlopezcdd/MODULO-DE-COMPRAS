@@ -3,6 +3,7 @@
 // HU6 — Componente de tabla, renderizando estados vacíos y mapeo JSON (Tarea: Aldahir Requene)
 
 import React from 'react';
+import { Calendar, FileText, ClipboardList } from 'lucide-react';
 
 // Estructura esperada del JSON (Endpoint que hará Dario López)
 export interface FacturaReporteData {
@@ -45,8 +46,8 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
   if (data === null) {
     return (
       <div className="bg-white border border-slate-200 border-dashed rounded-2xl flex flex-col items-center justify-center py-20 mt-6 transition-all shadow-sm">
-        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-          <span className="text-4xl">📅</span>
+        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-400">
+          <Calendar className="w-10 h-10" />
         </div>
         <h3 className="text-xl font-bold text-slate-900 mb-2">Seleccione un rango de fechas</h3>
         <p className="text-slate-500 text-sm max-w-sm text-center">
@@ -60,8 +61,8 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
   if (data.length === 0) {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center py-20 mt-6 shadow-sm">
-        <div className="w-20 h-20 bg-red-50 border border-red-200 rounded-full flex items-center justify-center mb-4">
-          <span className="text-4xl opacity-80">📄</span>
+        <div className="w-20 h-20 bg-red-50 border border-red-200 rounded-full flex items-center justify-center mb-4 text-red-400">
+          <FileText className="w-10 h-10 opacity-80" />
         </div>
         <h3 className="text-xl font-bold text-slate-900 mb-2">No se encontraron facturas</h3>
         <p className="text-slate-500 text-sm max-w-sm text-center">
@@ -86,7 +87,7 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
     <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <span className="text-blue-600">📋</span> Resultados del Reporte
+          <ClipboardList className="w-5 h-5 text-blue-600" /> Resultados del Reporte
         </h3>
         <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-200">
           {data.length} Registro(s)
