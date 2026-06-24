@@ -1,5 +1,26 @@
 
 export const typeDefs = `
+  # ── Auditoría (HU8) ──────────────────────────────────────
+  type PistaAuditoria {
+    id: String!
+    fechaHora: String!
+    usuarioId: Int!
+    usuarioNombre: String!
+    accion: String!
+    tablaAfectada: String!
+    registroId: String
+    descripcion: String
+    resultado: String!
+  }
+
+  type AuditoriaPage {
+    data: [PistaAuditoria!]!
+    total: Int!
+    pagina: Int!
+    totalPaginas: Int!
+  }
+
+
   # ── Proveedores ──────────────────────────────────────────
   enum TipoProveedor {
     CONTADO
@@ -94,6 +115,17 @@ export const typeDefs = `
     obtenerFactura(id: Int!): FacturaCompra
     listarCatalogoProveedor(proveedorId: Int!): [CatalogoProveedor!]!
     mejorProveedor(productoCodigo: String!): MejorProveedor
+
+    # HU8 — Historial de pistas de auditoría (solo ADMIN y AUDITOR)
+    listarAuditoria(
+      usuarioId: Int
+      accion: String
+      tablaAfectada: String
+      fechaInicio: String
+      fechaFin: String
+      limite: Int
+      pagina: Int
+    ): AuditoriaPage!
   }
 
   # ── Mutations ─────────────────────────────────────────────
