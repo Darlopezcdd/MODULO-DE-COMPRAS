@@ -75,6 +75,12 @@ function FacturaFormContent() {
   const [tipoPago, setTipoPago] = useState<'CONTADO' | 'CREDITO'>('CONTADO');
   const [fechaVencimiento, setFechaVencimiento] = useState('');
   
+  // Nuevos estados para pagos
+  const [cuentasEmpresa, setCuentasEmpresa] = useState<any[]>([]);
+  const [cuentaBancariaId, setCuentaBancariaId] = useState('');
+  const [numeroCuotas, setNumeroCuotas] = useState(1);
+  const [diasPorCuota, setDiasPorCuota] = useState(30);
+  
   const router = useRouter();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,6 +129,25 @@ function FacturaFormContent() {
       fetchDetalles();
     }
   }, [catalogData]);
+
+  // Cargar cuentas bancarias
+  useEffect(() => {
+    const fetchCuentas = async () => {
+      try {
+        const res = await fetch('/api/cuentas');
+        const data = await res.json();
+        if (data.success && data.data) {
+          setCuentasEmpresa(data.data);
+          if (data.data.length > 0) {
+            setCuentaBancariaId(data.data[0].id);
+          }
+        }
+      } catch (e) {
+        console.error("Error al obtener cuentas bancarias", e);
+      }
+    };
+    fetchCuentas();
+  }, []);
 
   const [productos, setProductos] = useState([
     { codigo: "", descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }
@@ -226,7 +251,12 @@ function FacturaFormContent() {
     }
 
     if (tipoPago === 'CREDITO' && !fechaVencimiento) {
-      alert("La fecha de vencimiento es obligatoria para compras a crédito.");
+      alert("La fecha de vencimiento inicial es obligatoria para compras a crédito.");
+      return;
+    }
+    
+    if (tipoPago === 'CONTADO' && !cuentaBancariaId) {
+      alert("Seleccione una cuenta bancaria origen para el débito al contado.");
       return;
     }
 
@@ -239,7 +269,10 @@ function FacturaFormContent() {
           proveedorId: selectedProveedor.id,
           tipoPago,
           fechaVencimiento,
-          productos: validProductos
+          productos: validProductos,
+          cuentaBancariaId: tipoPago === 'CONTADO' ? cuentaBancariaId : undefined,
+          numeroCuotas: tipoPago === 'CREDITO' ? numeroCuotas : 1,
+          diasPorCuota: tipoPago === 'CREDITO' ? diasPorCuota : 30
         })
       });
 
@@ -345,16 +378,68 @@ function FacturaFormContent() {
           </div>
         </div>
         
+        {tipoPago === 'CONTADO' && (
+          <div className="md:col-span-2 mt-2 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
+            <label className="block text-sm font-medium text-emerald-800 mb-2">
+              <Zap className="w-4 h-4 inline mr-1" />
+              Cuenta Origen (Para Débito Inmediato)
+            </label>
+            <select
+              className="w-full md:w-1/2 px-4 py-2 border border-emerald-200 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+              value={cuentaBancariaId}
+              onChange={(e) => setCuentaBancariaId(e.target.value)}
+            >
+              {cuentasEmpresa.map(c => (
+                <option key={c.id} value={c.id}>{c.banco} - {c.tipoCuenta} ({c.numeroCuenta}) - Saldo: ${c.saldo}</option>
+              ))}
+            </select>
+            <p className="text-xs text-emerald-600 mt-2">
+              Al guardar, el total de la factura se descontará automáticamente de esta cuenta.
+            </p>
+          </div>
+        )}
+
         {tipoPago === 'CREDITO' && (
-          <div className="md:col-span-2 mt-2">
-            <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de Vencimiento <span className="text-red-500">*</span></label>
-            <input
-              type="date"
-              className="w-1/2 px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-              value={fechaVencimiento}
-              onChange={(e) => setFechaVencimiento(e.target.value)}
-              required
-            />
+          <div className="md:col-span-2 mt-2 p-4 bg-blue-50 rounded-lg border border-blue-100 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="col-span-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Fecha 1er Vencimiento <span className="text-red-500">*</span></label>
+              <input
+                type="date"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                value={fechaVencimiento}
+                onChange={(e) => setFechaVencimiento(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-span-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Número de Cuotas</label>
+              <input
+                type="number"
+                min="1"
+                max="36"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                value={numeroCuotas}
+                onChange={(e) => setNumeroCuotas(parseInt(e.target.value) || 1)}
+              />
+            </div>
+            <div className="col-span-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Días por Cuota</label>
+              <select
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                value={diasPorCuota}
+                onChange={(e) => setDiasPorCuota(parseInt(e.target.value) || 30)}
+              >
+                <option value={15}>Quincenal (15 días)</option>
+                <option value={30}>Mensual (30 días)</option>
+                <option value={60}>Bimestral (60 días)</option>
+                <option value={90}>Trimestral (90 días)</option>
+              </select>
+            </div>
+            {numeroCuotas > 1 && (
+              <p className="col-span-full text-xs text-blue-600">
+                Se generarán {numeroCuotas} cuentas por pagar separadas, con vencimiento cada {diasPorCuota} días empezando desde el {fechaVencimiento || '...'}.
+              </p>
+            )}
           </div>
         )}
       </div>

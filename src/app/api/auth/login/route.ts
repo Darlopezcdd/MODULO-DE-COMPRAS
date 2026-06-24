@@ -51,39 +51,72 @@ export async function POST(request: Request) {
   try {
     const { rol } = await request.json();
 
-    if (!rol || (rol !== 'ADMIN' && rol !== 'COMPRADOR')) {
+    if (!rol || !['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO'].includes(rol)) {
       return NextResponse.json({ error: 'Rol inválido o no proporcionado' }, { status: 400 });
     }
 
     // Definir permisos dinámicos basados en el rol (Simulando lo que haría el Módulo de Seguridad)
     let permisos = {
       ver_proveedores: false,
+      crear_proveedores: false,
+      editar_proveedores: false,
+      gestionar_catalogo: false,
       ver_facturas: false,
-      ver_reportes: false,
+      crear_facturas: false,
       puede_anular: false,
+      ver_reportes: false,
+      gestionar_pagos: false,
     };
 
     if (rol === 'ADMIN') {
       permisos = {
         ver_proveedores: true,
+        crear_proveedores: true,
+        editar_proveedores: true,
+        gestionar_catalogo: true,
         ver_facturas: true,
-        ver_reportes: true,
+        crear_facturas: true,
         puede_anular: true,
+        ver_reportes: true,
+        gestionar_pagos: true,
       };
     } else if (rol === 'COMPRADOR') {
       permisos = {
+        ...permisos,
         ver_proveedores: true,
         ver_facturas: true,
-        ver_reportes: false,
-        puede_anular: false,
+        crear_facturas: true,
+      };
+    } else if (rol === 'GESTOR_PROVEEDORES') {
+      permisos = {
+        ...permisos,
+        ver_proveedores: true,
+        crear_proveedores: true,
+        editar_proveedores: true,
+        gestionar_catalogo: true,
+      };
+    } else if (rol === 'TESORERO') {
+      permisos = {
+        ...permisos,
+        ver_proveedores: true,
+        ver_facturas: true,
+        ver_reportes: true,
+        gestionar_pagos: true,
       };
     }
 
     // Crear un payload mock con ID fijo y datos de prueba
+    const userNames: Record<string, string> = {
+      'ADMIN': 'Administrador Sistema',
+      'COMPRADOR': 'Comprador Usuario',
+      'GESTOR_PROVEEDORES': 'Gestor de Proveedores',
+      'TESORERO': 'Tesorero Finanzas'
+    };
+
     const tokenPayload = {
-      id: rol === 'ADMIN' ? 1 : 2,
-      nombre: rol === 'ADMIN' ? 'Administrador Sistema' : 'Comprador Usuario',
-      email: rol === 'ADMIN' ? 'admin@compras.com' : 'comprador@compras.com',
+      id: ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO'].indexOf(rol) + 1,
+      nombre: userNames[rol as keyof typeof userNames],
+      email: `${rol.toLowerCase().replace('_', '.')}@compras.com`,
       rol: rol,
       permisos: permisos
     };

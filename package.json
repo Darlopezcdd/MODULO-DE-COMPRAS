@@ -32,8 +32,9 @@
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.78.0",
-    "swagger-ui-react": "^5.32.7",
+    "swagger-ui-react": "^5.32.8",
     "tailwind-merge": "^3.6.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {

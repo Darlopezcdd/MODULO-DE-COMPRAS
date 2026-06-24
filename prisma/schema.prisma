@@ -17,6 +17,9 @@ model Proveedor {
   telefono       String                @db.VarChar(20)
   email          String                @db.VarChar(150)
   estado         estado_proveedor_enum @default(ACTIVO)
+  banco          String?               @db.VarChar(100)
+  tipo_cuenta    String?               @db.VarChar(50)
+  numero_cuenta  String?               @db.VarChar(50)
   created_by     Int
   updated_by     Int?
   createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
