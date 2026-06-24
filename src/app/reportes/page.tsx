@@ -56,15 +56,15 @@ export default function ReportesPage() {
   const [tabActivo, setTabActivo] = useState<Tab>('proveedores');
 
   // ── Estado tab Proveedores ────────────────────────────────────────────────
-  const [filtroEstado, setFiltroEstado]   = useState('');
-  const [filtroTipo, setFiltroTipo]       = useState('');
-  const [proveedores, setProveedores]     = useState<ProveedorReporteData[] | null>(null);
-  const [stats, setStats]                 = useState({ total: 0, activos: 0, inactivos: 0 });
+  const [filtroEstado, setFiltroEstado] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState('');
+  const [proveedores, setProveedores] = useState<ProveedorReporteData[] | null>(null);
+  const [stats, setStats] = useState({ total: 0, activos: 0, inactivos: 0 });
   const [isLoadingProv, setIsLoadingProv] = useState(false);
-  const [generandoPdf, setGenerandoPdf]   = useState(false);
+  const [generandoPdf, setGenerandoPdf] = useState(false);
 
   // ── Estado tab Facturas ───────────────────────────────────────────────────
-  const [facturas, setFacturas]           = useState<FacturaReporteData[] | null>(null);
+  const [facturas, setFacturas] = useState<FacturaReporteData[] | null>(null);
   const [isLoadingFact, setIsLoadingFact] = useState(false);
   const [generandoCompras, setGenerandoCompras] = useState(false);
 
@@ -74,9 +74,9 @@ export default function ReportesPage() {
     try {
       const params = new URLSearchParams();
       if (filtroEstado) params.set('estado', filtroEstado);
-      if (filtroTipo)   params.set('tipo',   filtroTipo);
+      if (filtroTipo) params.set('tipo', filtroTipo);
 
-      const res  = await fetch(`/api/reportes/proveedores/json?${params.toString()}`);
+      const res = await fetch(`/api/reportes/proveedores/json?${params.toString()}`);
       const json = await res.json();
 
       if (json.success) {
@@ -101,16 +101,16 @@ export default function ReportesPage() {
     try {
       const params = new URLSearchParams();
       if (filtroEstado) params.set('estado', filtroEstado);
-      if (filtroTipo)   params.set('tipo',   filtroTipo);
+      if (filtroTipo) params.set('tipo', filtroTipo);
 
       const res = await fetch(`/api/reportes/proveedores?${params.toString()}`);
       if (!res.ok) throw new Error('Error al generar PDF');
 
-      const blob      = await res.blob();
+      const blob = await res.blob();
       const objectUrl = URL.createObjectURL(blob);
-      const a         = document.createElement('a');
-      a.href          = objectUrl;
-      a.download      = `Reporte_Proveedores_${new Date().toISOString().split('T')[0]}.pdf`;
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = `Reporte_Proveedores_${new Date().toISOString().split('T')[0]}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -127,22 +127,22 @@ export default function ReportesPage() {
     setIsLoadingFact(true);
     try {
       const params = new URLSearchParams({ fechaInicio, fechaFin });
-      const res    = await fetch(`/api/reportes/facturas?${params.toString()}`);
-      const json   = await res.json();
+      const res = await fetch(`/api/reportes/facturas?${params.toString()}`);
+      const json = await res.json();
 
       if (json.success && Array.isArray(json.data)) {
         // Mapear campos de la API al tipo FacturaReporteData
         const mapped: FacturaReporteData[] = json.data.map((f: any) => ({
-          id:           String(f.id),
-          numero:       f.numero_factura ?? f.numeroFactura ?? `FC-${f.id}`,
+          id: String(f.id),
+          numero: f.numero_factura ?? f.numeroFactura ?? `FC-${f.id}`,
           fechaEmision: f.fecha
             ? (typeof f.fecha === 'string' ? f.fecha.split('T')[0] : new Date(f.fecha).toISOString().split('T')[0])
             : '',
-          proveedor:    f.proveedor_nombre ?? f.proveedorNombre ?? 'Proveedor',
-          tipoPago:     (f.tipo_pago ?? f.tipoPago ?? 'CONTADO') as 'CONTADO' | 'CREDITO',
-          subtotal:     Number(f.subtotal_sin_iva ?? f.subtotalSinIva ?? 0) + Number(f.subtotal_con_iva ?? f.subtotalConIva ?? 0),
-          iva:          Number(f.total_iva ?? f.totalIva ?? 0),
-          total:        Number(f.total ?? 0),
+          proveedor: f.proveedor_nombre ?? f.proveedorNombre ?? 'Proveedor',
+          tipoPago: (f.tipo_pago ?? f.tipoPago ?? 'CONTADO') as 'CONTADO' | 'CREDITO',
+          subtotal: Number(f.subtotal_sin_iva ?? f.subtotalSinIva ?? 0) + Number(f.subtotal_con_iva ?? f.subtotalConIva ?? 0),
+          iva: Number(f.total_iva ?? f.totalIva ?? 0),
+          total: Number(f.total ?? 0),
         }));
         setFacturas(mapped);
       } else {
@@ -163,11 +163,11 @@ export default function ReportesPage() {
     try {
       const res = await fetch('/api/reportes/compras/pdf');
       if (!res.ok) throw new Error();
-      const blob      = await res.blob();
+      const blob = await res.blob();
       const objectUrl = URL.createObjectURL(blob);
-      const a         = document.createElement('a');
-      a.href          = objectUrl;
-      a.download      = `Reporte_Facturas_${new Date().toISOString().split('T')[0]}.pdf`;
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = `Reporte_Facturas_${new Date().toISOString().split('T')[0]}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -195,7 +195,7 @@ export default function ReportesPage() {
             </div>
             <div>
               <h1 className="text-3xl font-black tracking-tight" style={{ color: '#003366' }}>
-                Módulo de Reportes
+                Reportes
               </h1>
               <p className="text-sm text-slate-500 mt-0.5">
                 Universidad Técnica del Norte — Sistema de Compras
