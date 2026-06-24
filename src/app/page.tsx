@@ -2,15 +2,23 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Users, FileText, BarChart3, AlertTriangle, PackageSearch } from 'lucide-react';
+import { ArrowRight, Users, FileText, BarChart3, AlertTriangle, PackageSearch, Banknote } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const [productos, setProductos] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.usuario) setUser(data.usuario);
+      })
+      .catch(console.error);
+
     const fetchInventario = async () => {
       try {
         const res = await fetch('/api/inventarios?limite=200');
@@ -29,14 +37,18 @@ export default function Home() {
   }, []);
 
   const handleProductClick = (codigo: string) => {
-    router.push(`/facturas/nueva?producto=${encodeURIComponent(codigo)}`);
+    if (user?.permisos?.crear_facturas) {
+      router.push(`/facturas/nueva?producto=${encodeURIComponent(codigo)}`);
+    } else {
+      alert('No tienes permisos para crear facturas de compra.');
+    }
   };
 
   return (
     <div className="min-h-screen bg-background font-sans relative overflow-hidden">
       {/* Decorative background elements */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-emerald-100 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-[#d20a11]/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#706f6f]/10 rounded-full blur-[120px] pointer-events-none"></div>
       
       <div className="max-w-6xl mx-auto p-8 relative z-10 pt-16 md:pt-24">
         
@@ -50,7 +62,7 @@ export default function Home() {
             Panel de Control Activo
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
-            Dashboard de <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">Compras</span>
+            UTN <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d20a11] to-rose-600">Compras</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto font-light">
             Monitorea el nivel de stock global de la empresa y reabastece los productos críticos con un solo clic, al mejor precio posible.
@@ -62,38 +74,56 @@ export default function Home() {
           {/* Quick Access Menu - Left Column */}
           <div className="lg:col-span-1 space-y-4">
             <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <ArrowRight className="w-5 h-5 text-blue-500" /> Accesos Rápidos
+              <ArrowRight className="w-5 h-5 text-[#d20a11]" /> Accesos Rápidos
             </h2>
             
-            <Link href="/facturas/nueva" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all">
-              <div className="bg-blue-50 p-3 rounded-lg group-hover:bg-blue-100 transition-colors">
-                <FileText className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-900">Nueva Factura</h3>
-                <p className="text-sm text-slate-500">Registrar una compra</p>
-              </div>
-            </Link>
+            {user?.permisos?.crear_facturas && (
+              <Link href="/facturas/nueva" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-[#d20a11] hover:shadow-md transition-all">
+                <div className="bg-[#d20a11]/10 p-3 rounded-lg group-hover:bg-[#d20a11]/20 transition-colors">
+                  <FileText className="w-6 h-6 text-[#d20a11]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Nueva Factura</h3>
+                  <p className="text-sm text-slate-500">Registrar una compra</p>
+                </div>
+              </Link>
+            )}
 
-            <Link href="/proveedores" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all">
-              <div className="bg-emerald-50 p-3 rounded-lg group-hover:bg-emerald-100 transition-colors">
-                <Users className="w-6 h-6 text-emerald-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-900">Proveedores</h3>
-                <p className="text-sm text-slate-500">Gestionar directorio y catálogos</p>
-              </div>
-            </Link>
+            {user?.permisos?.ver_proveedores && (
+              <Link href="/proveedores" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-[#706f6f] hover:shadow-md transition-all">
+                <div className="bg-[#706f6f]/10 p-3 rounded-lg group-hover:bg-[#706f6f]/20 transition-colors">
+                  <Users className="w-6 h-6 text-[#706f6f]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Proveedores</h3>
+                  <p className="text-sm text-slate-500">Gestionar directorio y catálogos</p>
+                </div>
+              </Link>
+            )}
 
-            <Link href="/reportes" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-purple-300 hover:shadow-md transition-all">
-              <div className="bg-purple-50 p-3 rounded-lg group-hover:bg-purple-100 transition-colors">
-                <BarChart3 className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-900">Reportes PDF</h3>
-                <p className="text-sm text-slate-500">Generar informes gerenciales</p>
-              </div>
-            </Link>
+            {user?.permisos?.ver_reportes && (
+              <Link href="/reportes" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-[#d20a11] hover:shadow-md transition-all">
+                <div className="bg-[#d20a11]/10 p-3 rounded-lg group-hover:bg-[#d20a11]/20 transition-colors">
+                  <BarChart3 className="w-6 h-6 text-[#d20a11]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Reportes PDF</h3>
+                  <p className="text-sm text-slate-500">Generar informes gerenciales</p>
+                </div>
+              </Link>
+            )}
+
+            {user?.permisos?.gestionar_pagos && (
+              <Link href="/tesoreria" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-[#706f6f] hover:shadow-md transition-all">
+                <div className="bg-[#706f6f]/10 p-3 rounded-lg group-hover:bg-[#706f6f]/20 transition-colors">
+                  <Banknote className="w-6 h-6 text-[#706f6f]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Tesorería</h3>
+                  <p className="text-sm text-slate-500">Gestión de pagos y cuentas</p>
+                </div>
+              </Link>
+            )}
           </div>
 
           {/* Alerts & Inventory - Right Column */}
@@ -101,7 +131,7 @@ export default function Home() {
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[600px]">
               <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                  <PackageSearch className="w-5 h-5 text-indigo-500" /> Estado del Inventario Global
+                  <PackageSearch className="w-5 h-5 text-[#d20a11]" /> Estado del Inventario Global
                 </h2>
                 <span className="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200">
                   {productos.length} productos
@@ -111,7 +141,7 @@ export default function Home() {
               <div className="p-6 overflow-y-auto flex-1 bg-slate-50/30">
                 {cargando ? (
                   <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                    <div className="w-8 h-8 border-4 border-slate-200 border-t-[#d20a11] rounded-full animate-spin mb-4"></div>
                     <p>Sincronizando inventario...</p>
                   </div>
                 ) : (
@@ -129,7 +159,7 @@ export default function Home() {
                               ? 'bg-rose-50 border-rose-200 hover:border-rose-400' 
                               : isWarning
                                 ? 'bg-amber-50 border-amber-200 hover:border-amber-400'
-                                : 'bg-white border-slate-200 hover:border-blue-300'
+                                : 'bg-white border-slate-200 hover:border-[#d20a11]'
                           }`}
                         >
                           <div className="flex justify-between items-start w-full mb-2">

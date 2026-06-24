@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { registrarAuditoria } from '@/lib/auditoriaService';
+import { registrarDebito } from '@/lib/cuentasClient';
 
 /**
  * @swagger
@@ -59,10 +60,14 @@ import { registrarAuditoria } from '@/lib/auditoriaService';
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const { proveedorId, tipoPago, fechaVencimiento, productos, observaciones } = data;
+    const { proveedorId, tipoPago, fechaVencimiento, productos, observaciones, cuentaBancariaId, numeroCuotas = 1, diasPorCuota = 30 } = data;
 
     if (!proveedorId || !productos || productos.length === 0) {
       return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
+    }
+
+    if (tipoPago === 'CONTADO' && !cuentaBancariaId) {
+      return NextResponse.json({ error: 'Debe especificar la cuenta bancaria origen para pagos al contado' }, { status: 400 });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -104,26 +109,41 @@ export async function POST(req: Request) {
         });
       }
 
-      // 3. Crear saldo si es CREDITO
-      if (tipoPago === 'CREDITO') {
-        // Los totales se recalculan automáticamente por el trigger de la base de datos
-        let totalFactura = 0;
-        for (const prod of productos) {
-          const subtotal = prod.cantidad * prod.pvp;
-          const valor_iva = prod.grabaIva ? subtotal * (prod.porcentajeIva / 100) : 0;
-          totalFactura += subtotal + valor_iva;
-        }
+      // 3. Manejo de Pagos o Crédito
+      let totalFactura = 0;
+      for (const prod of productos) {
+        const subtotal = prod.cantidad * prod.pvp;
+        const valor_iva = prod.grabaIva ? subtotal * (prod.porcentajeIva / 100) : 0;
+        totalFactura += subtotal + valor_iva;
+      }
 
-        await tx.saldos_credito_proveedor.create({
-          data: {
-            proveedor_id: proveedorId,
-            factura_id: nuevaFactura.id,
-            monto_credito: totalFactura,
-            monto_pagado: 0,
-            fecha_vencimiento: fechaVencimiento ? new Date(fechaVencimiento) : null,
-            estado: 'PENDIENTE',
-          },
-        });
+      if (tipoPago === 'CONTADO') {
+        // Descontar inmediatamente de la cuenta de la empresa
+        const resDebito = await registrarDebito(cuentaBancariaId, totalFactura, `Pago Contado Factura Compra ${nuevaFactura.id}`);
+        if (!resDebito.success) {
+          throw new Error(resDebito.error || 'Error al procesar el pago al contado en CXC');
+        }
+      } else if (tipoPago === 'CREDITO') {
+        // Múltiples cuotas
+        const numCuotas = Math.max(1, Number(numeroCuotas));
+        const cuotaMonto = totalFactura / numCuotas;
+        const baseDate = fechaVencimiento ? new Date(fechaVencimiento) : new Date();
+
+        for (let i = 0; i < numCuotas; i++) {
+          const vencimientoCuota = new Date(baseDate);
+          vencimientoCuota.setDate(vencimientoCuota.getDate() + (i * diasPorCuota));
+
+          await tx.saldos_credito_proveedor.create({
+            data: {
+              proveedor_id: proveedorId,
+              factura_id: nuevaFactura.id,
+              monto_credito: cuotaMonto,
+              monto_pagado: 0,
+              fecha_vencimiento: vencimientoCuota,
+              estado: 'PENDIENTE',
+            },
+          });
+        }
       }
       
       // 4. Cambiar estado a EMITIDA ahora que ya están los detalles listos
