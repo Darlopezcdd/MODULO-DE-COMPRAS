@@ -1,5 +1,4 @@
 import FacturaForm from "@/components/FacturaForm";
-import ProductosDataGrid from "@/components/ProductosDataGrid";
 import { Suspense } from "react";
 
 export default function NuevaFacturaPage() {
@@ -14,13 +13,8 @@ export default function NuevaFacturaPage() {
         </div>
 
         <Suspense fallback={<div className="p-4 text-center">Cargando formulario...</div>}>
-          {/* Cabecera de Factura (HU2) */}
+          {/* Formulario Integrado (Cabecera y Detalle de Productos) */}
           <FacturaForm />
-
-          {/* Detalle de Productos — DataGrid (HU3 — Aldahir Requene) */}
-          <div className="mt-6">
-            <ProductosDataGrid />
-          </div>
         </Suspense>
       </div>
     </div>
