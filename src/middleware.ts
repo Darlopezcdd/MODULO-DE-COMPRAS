@@ -42,6 +42,10 @@ export async function middleware(request: NextRequest) {
     if (path.startsWith('/reportes') && !permisos.ver_reportes) {
       return NextResponse.redirect(new URL('/', request.nextUrl));
     }
+    // Verificar acceso a Tesoreria
+    if (path.startsWith('/tesoreria') && !permisos.gestionar_pagos) {
+      return NextResponse.redirect(new URL('/', request.nextUrl));
+    }
   }
   return NextResponse.next();
 }
@@ -52,6 +56,7 @@ export const config = {
     '/facturas/:path*',
     '/proveedores/:path*',
     '/reportes/:path*',
+    '/tesoreria/:path*',
     '/login'
   ]
 };

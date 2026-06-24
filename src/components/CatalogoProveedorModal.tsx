@@ -6,6 +6,7 @@ import { gql } from "@apollo/client";
 import { apolloClient } from "@/lib/apolloClient";
 import AutocompleteProducto from "./AutocompleteProducto";
 import NuevoProductoModal from "./NuevoProductoModal";
+import * as XLSX from 'xlsx';
 
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
@@ -60,6 +61,8 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
   const [productosFull, setProductosFull] = useState<any[]>([]);
   const [cargandoDetalles, setCargandoDetalles] = useState(false);
   const [showNuevoProducto, setShowNuevoProducto] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isUploadingExcel, setIsUploadingExcel] = useState(false);
   
   // Estado para la seleccion inline
   const [productoSeleccionado, setProductoSeleccionado] = useState<any>(null);
@@ -141,6 +144,59 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
     }
   };
 
+  const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingExcel(true);
+    
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows: any[] = XLSX.utils.sheet_to_json(firstSheet);
+      
+      let procesados = 0;
+      let errores = 0;
+      
+      for (const row of rows) {
+        // Buscar las columnas por nombres comunes
+        const codigo = row.codigo || row.Codigo || row.CodigoProducto || row.codigoProducto;
+        const precioVal = row.precioCompra || row.PrecioCompra || row.Precio || row.precio;
+        const precio = parseFloat(String(precioVal).replace(',', '.'));
+        
+        if (codigo && !isNaN(precio) && precio > 0) {
+          try {
+            await agregar({
+              variables: {
+                proveedorId,
+                productoCodigo: String(codigo),
+                precioCompra: precio
+              }
+            });
+            procesados++;
+          } catch (err) {
+            console.error("Error agregando fila:", row, err);
+            errores++;
+          }
+        } else {
+          errores++;
+        }
+      }
+      
+      alert(`Carga finalizada.\nInsertados/Actualizados: ${procesados}\nErrores/Ignorados: ${errores}`);
+      refetch();
+    } catch (error) {
+      console.error(error);
+      alert('Error procesando el archivo Excel.');
+    } finally {
+      setIsUploadingExcel(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -157,12 +213,34 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
           <div className="mb-6 p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h4 className="text-sm font-semibold text-slate-700">Añadir producto existente al catálogo</h4>
-              <button 
-                onClick={() => setShowNuevoProducto(true)}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg transition"
-              >
-                + Crear Producto Nuevo
-              </button>
+              <div className="flex gap-2">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  accept=".xlsx, .xls, .csv" 
+                  className="hidden" 
+                  onChange={handleExcelUpload} 
+                />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingExcel}
+                  className="text-sm font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+                >
+                  {isUploadingExcel ? 'Procesando Excel...' : '↑ Cargar Excel'}
+                </button>
+                <button 
+                  onClick={() => window.open(`/api/proveedores/${proveedorId}/catalogo/pdf`, '_blank')}
+                  className="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1 bg-purple-50 px-3 py-1.5 rounded-lg transition"
+                >
+                  Imprimir PDF
+                </button>
+                <button 
+                  onClick={() => setShowNuevoProducto(true)}
+                  className="text-sm font-medium text-[#d20a11] hover:text-red-700 flex items-center gap-1 bg-[#d20a11]/10 px-3 py-1.5 rounded-lg transition"
+                >
+                  + Crear Producto Nuevo
+                </button>
+              </div>
             </div>
             
             {!productoSeleccionado ? (
@@ -172,7 +250,7 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
                 />
               </div>
             ) : (
-              <div className="flex items-center gap-3 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+              <div className="flex items-center gap-3 bg-[#d20a11]/10 p-3 rounded-lg border border-[#d20a11]/20">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-slate-900">{productoSeleccionado.nombre}</p>
                   <p className="text-xs text-slate-500">Código: {productoSeleccionado.codigo}</p>
@@ -185,7 +263,7 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
                       type="number"
                       step="0.01"
                       min="0"
-                      className="w-28 pl-7 pr-3 py-1.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition"
+                      className="w-28 pl-7 pr-3 py-1.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#d20a11] outline-none transition"
                       value={precioInput}
                       onChange={(e) => setPrecioInput(e.target.value)}
                       placeholder="0.00"
@@ -194,7 +272,7 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
                   </div>
                   <button 
                     onClick={confirmarAgregar}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-md font-medium text-sm shadow-sm transition"
+                    className="bg-[#d20a11] hover:bg-red-700 text-white px-4 py-1.5 rounded-md font-medium text-sm shadow-sm transition"
                   >
                     Guardar
                   </button>
@@ -231,7 +309,7 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
                       <td className="p-3 font-mono text-slate-500">{item.productoCodigo}</td>
                       <td className="p-3 font-medium text-slate-900">{item.nombre}</td>
                       <td className="p-3 text-slate-600">{item.stockActual}</td>
-                      <td className="p-3 text-right font-bold text-blue-600">${item.precioCompra.toFixed(2)}</td>
+                      <td className="p-3 text-right font-bold text-[#d20a11]">${item.precioCompra.toFixed(2)}</td>
                       <td className="p-3 text-center">
                         <button 
                           onClick={() => handleEliminar(item.id)}
