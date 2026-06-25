@@ -102,7 +102,7 @@ export default function ProveedoresPage() {
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold tracking-tight text-slate-900">Proveedores</h1>
-          {user?.permisos?.crear_proveedores && (
+          {(user?.permisos?.crear_proveedores || user?.rol === 'ADMIN') && (
             <Link href="/proveedores/nuevo" className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
               + Nuevo Proveedor
             </Link>
@@ -169,7 +169,7 @@ export default function ProveedoresPage() {
                     </span>
                   </td>
                   <td className="p-4 flex gap-2">
-                    {user?.permisos?.gestionar_catalogo && (
+                    {(user?.permisos?.gestionar_catalogo || user?.rol === 'ADMIN') && (
                       <button 
                         onClick={() => setCatalogoModal({ isOpen: true, id: p.id, nombre: p.nombre })}
                         className="text-sm bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 px-3 py-1 rounded transition-colors shadow-sm font-medium"
@@ -177,12 +177,12 @@ export default function ProveedoresPage() {
                         Catálogo
                       </button>
                     )}
-                    {user?.permisos?.editar_proveedores && (
+                    {(user?.permisos?.editar_proveedores || user?.rol === 'ADMIN') && (
                       <Link href={`/proveedores/editar/${p.id}`} className="text-sm bg-white border border-slate-200 hover:bg-slate-50 px-3 py-1 rounded transition-colors text-slate-700 shadow-sm">
                         Editar
                       </Link>
                     )}
-                    {user?.permisos?.editar_proveedores && p.estado === 'ACTIVO' && (
+                    {(user?.permisos?.editar_proveedores || user?.rol === 'ADMIN') && p.estado === 'ACTIVO' && (
                       <button onClick={() => desactivarProveedor(p.id)} className="text-sm bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 px-3 py-1 rounded transition-colors shadow-sm">
                         Desactivar
                       </button>
