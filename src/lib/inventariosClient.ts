@@ -212,3 +212,38 @@ export async function crearProductoGlobal(input: {
 
   return true;
 }
+
+// ── Función para actualizar producto en la API externa (PUT) ───────
+
+export async function actualizarProductoGlobal(codigo: string, input: {
+  codigo: string;
+  nombre: string;
+  descripcion: string;
+  graba_iva: boolean;
+  costo: number;
+  pvp: number;
+  stock_actual: number;
+  estado: string;
+}) {
+  const res = await fetch(`${BASE_URL}/api/productos/${codigo}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    let errorMessage = `Error API Inventarios: ${res.statusText}`;
+    if (res.status === 400) errorMessage = `Error de validación al actualizar producto: ${errorBody}`;
+    if (res.status === 404) errorMessage = `Producto ${codigo} no encontrado en inventario global.`;
+    throw new Error(errorMessage);
+  }
+
+  // Invalidar caché
+  cacheCatalogo = null;
+
+  return true;
+}

@@ -2,7 +2,7 @@
 // src/components/molecules/TablaProveedores.tsx
 // Molécula — Tabla visual de proveedores con 4 estados de UI
 // Atomic Design: combina átomos ProveedorEstadoBadge + ProveedorTipoBadge
-// Paleta UTN: #003366 (azul), #4A90E2 (celeste), #E65100 (naranja/alerta)
+// Paleta UTN: #d20a11 (rojo), #706f6f (gris)
 
 import { Users, SearchX, RefreshCw } from 'lucide-react';
 import ProveedorEstadoBadge from '@/components/atoms/ProveedorEstadoBadge';
@@ -70,14 +70,11 @@ export default function TablaProveedores({ data, isLoading }: TablaProveedoresPr
   // ── ESTADO 2: Sin datos (null = estado inicial antes de cargar) ─────────────
   if (data === null) {
     return (
-      <div className="bg-white rounded-2xl border-2 border-dashed border-[#E5E5E5] flex flex-col items-center justify-center py-20 shadow-sm">
-        <div
-          className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
-          style={{ backgroundColor: 'rgba(0,51,102,0.06)' }}
-        >
-          <RefreshCw className="w-9 h-9" style={{ color: '#003366' }} />
+      <div className="py-20 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
+        <div className="bg-white p-6 rounded-full shadow-sm mb-4">
+          <RefreshCw className="w-9 h-9 animate-spin" style={{ color: '#d20a11' }} />
         </div>
-        <h3 className="text-xl font-bold mb-2" style={{ color: '#003366' }}>
+        <h3 className="text-xl font-bold mb-2" style={{ color: '#d20a11' }}>
           Cargando datos...
         </h3>
         <p className="text-sm text-slate-500 text-center max-w-xs">
@@ -116,20 +113,17 @@ export default function TablaProveedores({ data, isLoading }: TablaProveedoresPr
     <div className="bg-white rounded-2xl border border-[#E5E5E5] shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
 
       {/* Cabecera de la tabla */}
-      <div
-        className="px-6 py-4 border-b border-[#E5E5E5] flex justify-between items-center"
-        style={{ backgroundColor: '#f8fafc' }}
-      >
-        <h3 className="text-base font-bold flex items-center gap-2" style={{ color: '#003366' }}>
-          <Users className="w-5 h-5" style={{ color: '#4A90E2' }} />
+      <div className="px-6 py-4 border-b border-[#E5E5E5] flex items-center justify-between bg-slate-50">
+        <h3 className="text-base font-bold flex items-center gap-2" style={{ color: '#d20a11' }}>
+          <Users className="w-4 h-4" />
           Directorio de Proveedores
         </h3>
         <span
           className="text-xs font-bold px-3 py-1 rounded-full border"
           style={{
-            backgroundColor: 'rgba(74,144,226,0.10)',
-            color: '#2563EB',
-            borderColor: 'rgba(74,144,226,0.25)',
+            backgroundColor: 'rgba(112,111,111,0.10)',
+            color: '#706f6f',
+            borderColor: 'rgba(112,111,111,0.25)',
           }}
         >
           {data.length} registro{data.length !== 1 ? 's' : ''}
@@ -142,7 +136,7 @@ export default function TablaProveedores({ data, isLoading }: TablaProveedoresPr
           <thead>
             <tr
               className="text-xs uppercase tracking-wider border-b border-[#E5E5E5]"
-              style={{ backgroundColor: '#E5E5E5', color: '#003366' }}
+              style={{ backgroundColor: '#E5E5E5', color: '#706f6f' }}
             >
               <th className="px-5 py-3 font-semibold">Cédula / RUC</th>
               <th className="px-5 py-3 font-semibold">Nombre</th>
@@ -202,7 +196,7 @@ export default function TablaProveedores({ data, isLoading }: TablaProveedoresPr
           {data.some((p) => p.saldoPendiente > 0) && (
             <tfoot>
               <tr style={{ backgroundColor: '#E5E5E5' }} className="border-t border-[#E5E5E5]">
-                <td colSpan={5} className="px-5 py-3 text-right text-xs font-bold uppercase tracking-wider" style={{ color: '#003366' }}>
+                <td colSpan={5} className="px-5 py-3 text-right text-xs font-bold uppercase tracking-wider" style={{ color: '#d20a11' }}>
                   Total Saldos Pendientes
                 </td>
                 <td className="px-5 py-3 text-right font-bold font-mono text-base" style={{ color: '#E65100' }}>
