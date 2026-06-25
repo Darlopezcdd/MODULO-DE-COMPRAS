@@ -323,7 +323,7 @@ function FacturaFormContent() {
               setTipoPago('CONTADO');
               setFechaVencimiento('');
             }}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+            className="px-6 py-2 bg-[#d20a11] hover:bg-[#b0080e] text-white font-medium rounded-lg transition-colors shadow-sm"
           >
             Crear otra factura
           </button>
@@ -368,7 +368,7 @@ function FacturaFormContent() {
           <div className="col-span-1">
             <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Pago</label>
             <select
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-[#d20a11] outline-none"
               value={tipoPago}
               onChange={(e) => setTipoPago(e.target.value as 'CONTADO' | 'CREDITO')}
             >
@@ -405,7 +405,7 @@ function FacturaFormContent() {
               <label className="block text-sm font-medium text-slate-700 mb-1">Fecha 1er Vencimiento <span className="text-red-500">*</span></label>
               <input
                 type="date"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-[#d20a11] outline-none"
                 value={fechaVencimiento}
                 onChange={(e) => setFechaVencimiento(e.target.value)}
                 required
@@ -417,7 +417,7 @@ function FacturaFormContent() {
                 type="number"
                 min="1"
                 max="36"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-[#d20a11] outline-none"
                 value={numeroCuotas}
                 onChange={(e) => setNumeroCuotas(parseInt(e.target.value) || 1)}
               />
@@ -425,7 +425,7 @@ function FacturaFormContent() {
             <div className="col-span-1">
               <label className="block text-sm font-medium text-slate-700 mb-1">Días por Cuota</label>
               <select
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-[#d20a11] outline-none"
                 value={diasPorCuota}
                 onChange={(e) => setDiasPorCuota(parseInt(e.target.value) || 30)}
               >
@@ -445,9 +445,9 @@ function FacturaFormContent() {
       </div>
 
       {catalogoRapido.length > 0 && (
-        <div className="mt-6 border border-blue-100 bg-blue-50/30 p-4 rounded-xl">
-          <h4 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-blue-500" fill="currentColor" /> Acceso Rápido: Catálogo del Proveedor
+        <div className="mt-6 border border-[#d20a11]/20 bg-[#d20a11]/5 p-4 rounded-xl">
+          <h4 className="text-sm font-semibold text-[#d20a11] mb-3 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-[#d20a11]" fill="currentColor" /> Acceso Rápido: Catálogo del Proveedor
           </h4>
           <div className="flex flex-wrap gap-2">
             {catalogoRapido.map((item) => (
@@ -482,11 +482,11 @@ function FacturaFormContent() {
                     }
                   }
                 }}
-                className="flex flex-col items-start bg-white border border-blue-200 hover:border-blue-400 hover:shadow-md px-3 py-2 rounded-lg transition-all text-left min-w-[140px] max-w-[200px]"
+                className="flex flex-col items-start bg-white border border-[#d20a11]/30 hover:border-[#d20a11] hover:shadow-md px-3 py-2 rounded-lg transition-all text-left min-w-[140px] max-w-[200px]"
               >
                 <span className="text-xs font-mono text-slate-500 mb-0.5">{item.productoCodigo}</span>
                 <span className="text-sm font-medium text-slate-900 truncate w-full">{item.nombre}</span>
-                <span className="text-sm font-bold text-blue-600 mt-1">${Number(item.precioCompra).toFixed(2)}</span>
+                <span className="text-sm font-bold text-[#d20a11] mt-1">${Number(item.precioCompra).toFixed(2)}</span>
               </button>
             ))}
           </div>
@@ -510,7 +510,7 @@ function FacturaFormContent() {
               type="button"
               data-testid="add-product-btn"
               onClick={handleAddProduct}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
+              className="px-4 py-2 bg-[#d20a11] text-white rounded-lg hover:bg-[#b0080e] transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" /> Agregar Fila
             </button>
@@ -584,7 +584,7 @@ function FacturaFormContent() {
                       <input
                         type="number"
                         data-testid={`qty-${index}`}
-                        className="w-full px-2 py-1 bg-white border border-slate-300 text-slate-900 rounded outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                        className="w-full px-2 py-1 bg-white border border-slate-300 text-slate-900 rounded outline-none focus:border-[#d20a11] focus:ring-1 focus:ring-[#d20a11] transition-colors"
                         min="1"
                         value={prod.cantidad}
                         onChange={(e) => updateProduct(index, "cantidad", parseFloat(e.target.value) || 0)}
@@ -594,7 +594,7 @@ function FacturaFormContent() {
                       <input
                         type="number"
                         data-testid={`pvp-${index}`}
-                        className="w-full px-2 py-1 bg-white border border-slate-300 text-slate-900 rounded outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                        className="w-full px-2 py-1 bg-white border border-slate-300 text-slate-900 rounded outline-none focus:border-[#d20a11] focus:ring-1 focus:ring-[#d20a11] transition-colors"
                         min="0"
                         step="0.01"
                         value={prod.pvp}
@@ -607,7 +607,7 @@ function FacturaFormContent() {
                         data-testid={`iva-${index}`}
                         checked={prod.grabaIva}
                         onChange={(e) => updateProduct(index, "grabaIva", e.target.checked)}
-                        className="accent-blue-600"
+                        className="accent-[#d20a11]"
                       />
                     </td>
                     <td className="p-3 text-right font-medium text-slate-700">
@@ -647,7 +647,7 @@ function FacturaFormContent() {
             </div>
             <div className="flex justify-between mt-3 pt-3 border-t border-slate-300 text-lg font-bold text-slate-900">
               <span>Total:</span>
-              <span data-testid="total-general" className="text-blue-600">${totales.total.toFixed(2)}</span>
+              <span data-testid="total-general" className="text-[#d20a11]">${totales.total.toFixed(2)}</span>
             </div>
             
             <div className="mt-5 flex flex-col gap-3">

@@ -87,9 +87,9 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
     <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <ClipboardList className="w-5 h-5 text-blue-600" /> Resultados del Reporte
+          <ClipboardList className="w-5 h-5 text-[#d20a11]" /> Resultados del Reporte
         </h3>
-        <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-200">
+        <span className="bg-[#f0f0f0] text-[#706f6f] text-xs font-bold px-3 py-1 rounded-full border border-slate-200">
           {data.length} Registro(s)
         </span>
       </div>
@@ -110,7 +110,7 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
           <tbody className="divide-y divide-slate-200">
             {data.map((factura) => (
               <tr key={factura.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 font-mono text-blue-600 font-medium">
+                <td className="px-6 py-4 font-mono text-[#d20a11] font-medium">
                   {factura.numero}
                 </td>
                 <td className="px-6 py-4 text-slate-600">
