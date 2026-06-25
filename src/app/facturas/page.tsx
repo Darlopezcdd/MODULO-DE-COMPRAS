@@ -16,6 +16,16 @@ interface Factura {
 export default function FacturasPage() {
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [filtroEstado, setFiltroEstado] = useState('');
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.usuario) setUser(data.usuario);
+      })
+      .catch(console.error);
+  }, []);
 
   const fetchFacturas = async () => {
     try {
@@ -59,9 +69,11 @@ export default function FacturasPage() {
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold tracking-tight text-slate-900">Facturas de Compra</h1>
-          <Link href="/facturas/nueva" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
-            + Nueva Factura
-          </Link>
+          {user?.permisos?.crear_facturas && (
+            <Link href="/facturas/nueva" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
+              + Nueva Factura
+            </Link>
+          )}
         </div>
 
         <div className="bg-white p-4 rounded-xl flex gap-4 items-center border border-slate-200 shadow-sm">
