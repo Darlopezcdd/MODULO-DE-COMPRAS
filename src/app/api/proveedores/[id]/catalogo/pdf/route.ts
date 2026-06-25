@@ -37,7 +37,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       proveedor: {
         nombre: proveedor.nombre,
         cedulaRuc: proveedor.cedulaRuc,
-        ciudad: proveedor.ciudad
+        ciudad: proveedor.ciudad,
+        direccion: proveedor.direccion,
+        telefono: proveedor.telefono,
+        email: proveedor.email,
       },
       productos: productosCatalogo
     };

@@ -21,6 +21,8 @@ export default function TesoreriaPage() {
   const [saldos, setSaldos] = useState<Saldo[]>([]);
   const [cargando, setCargando] = useState(true);
   const [aviso, setAviso] = useState('');
+  const [paginaActual, setPaginaActual] = useState(1);
+  const ITEMS_POR_PAGINA = 10;
   
   // Estados para el Modal de Pago
   const [cuentasEmpresa, setCuentasEmpresa] = useState<any[]>([]);
@@ -139,7 +141,7 @@ export default function TesoreriaPage() {
                   </td>
                 </tr>
               ) : (
-                saldos.map(s => {
+                saldos.slice((paginaActual - 1) * ITEMS_POR_PAGINA, paginaActual * ITEMS_POR_PAGINA).map(s => {
                   const isVencido = s.estado === 'VENCIDO' || (s.fecha_vencimiento && new Date(s.fecha_vencimiento) < new Date());
                   
                   return (
@@ -175,6 +177,41 @@ export default function TesoreriaPage() {
             </tbody>
           </table>
         </div>
+
+        {saldos.length > 0 && (
+          <div className="flex items-center justify-between mt-4 p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+            <span className="text-sm text-slate-500">
+              Mostrando {(paginaActual - 1) * ITEMS_POR_PAGINA + 1} a {Math.min(paginaActual * ITEMS_POR_PAGINA, saldos.length)} de {saldos.length} registros
+            </span>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+                disabled={paginaActual === 1}
+                className="px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm text-slate-700 transition-colors shadow-sm"
+              >
+                Anterior
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.ceil(saldos.length / ITEMS_POR_PAGINA) }, (_, i) => i + 1).map(pag => (
+                  <button
+                    key={pag}
+                    onClick={() => setPaginaActual(pag)}
+                    className={`w-8 h-8 rounded text-sm transition-colors shadow-sm ${paginaActual === pag ? 'bg-purple-600 text-white font-bold border border-purple-600' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-700'}`}
+                  >
+                    {pag}
+                  </button>
+                ))}
+              </div>
+              <button 
+                onClick={() => setPaginaActual(p => Math.min(Math.ceil(saldos.length / ITEMS_POR_PAGINA), p + 1))}
+                disabled={paginaActual === Math.ceil(saldos.length / ITEMS_POR_PAGINA) || Math.ceil(saldos.length / ITEMS_POR_PAGINA) === 0}
+                className="px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm text-slate-700 transition-colors shadow-sm"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {saldoSeleccionado && (
