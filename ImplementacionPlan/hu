@@ -1,0 +1,238 @@
+# 📦 Módulo de Compras — Historias de Usuario
+
+---
+
+## Resumen de Funcionalidades
+
+| Menú | Funcionalidad |
+|------|--------------|
+| **Seguridad** | Login, JWT, Pistas de auditoría |
+| **Configuración** | Administración de Proveedores |
+| **Gestión** | Facturación de Compra (Cabecera, Detalle, Impresión PDF) |
+| **Reportes** | Reporte de proveedores, Reporte de facturas detallado por productos |
+| **APIs de Entrada** | Listado de productos con stock — MÓDULO INVENTARIOS |
+| **APIs de Salida** | Listado de proveedores, Listado de facturas detallado por productos, Pista de auditoría |
+
+---
+
+## HU1 — Administración de Proveedores
+
+**Resumen:**
+Se necesita administrar el listado de proveedores, los cuales deben tener los siguientes atributos: cédula/RUC, nombre, ciudad, tipo de proveedor (Crédito/Contado), dirección, teléfono, email, y un estado: activo o inactivo.
+
+| Campo | Valor |
+|-------|-------|
+| **Código** | HU1 |
+| **Título** | Administración de Proveedores |
+
+**Descripción:**
+Como usuario necesito administrar los proveedores que deben tener los siguientes datos: cédula de identidad/RUC, nombre, ciudad, tipo de proveedor: escoger de un listado (Contado, Crédito), dirección, teléfono, email, y un estado: activo o inactivo.
+
+**Criterios de Aceptación:**
+
+- **CA1:** Al ingresar datos erróneos: cédulas/RUCs inválidos, nombres con caracteres especiales o números, tipo de proveedor con valores nulo o diferente a (Contado o Crédito), dirección con valor nulo, teléfono con formato de números telefónicos inválidos, email sin formato de correo, y estado con valores nulo o diferente a (activo o inactivo). Al momento de guardar, debe mostrar el mensaje de error o errores, y luego dejar modificar los valores erróneos.
+
+- **CA2:** Al crear un proveedor con una cédula/RUC que ya existe. Al presionar el botón guardar, debe mostrar el mensaje de error, y luego dejar modificar los valores erróneos o cancelar la acción.
+
+- **CA3:** No eliminar el registro del proveedor, sino cambiar el estado al inactivo. Al presionar el botón de guardar, debe actualizar el registro y mostrar el mensaje de registro guardado con éxito.
+
+- **CA4:** Ingresar todos los datos correctos. Al presionar el botón de guardar, debe guardar el registro y mostrar el mensaje de registro guardado con éxito.
+
+---
+
+## HU2 — Administración de Listado de Facturas de Compras
+
+**Resumen:**
+Administrar un listado de facturas de compras. En la cabecera se pueda ingresar la fecha, buscar los proveedores disponibles; al momento de escoger uno, traer los datos de cédula/RUC, tipo de proveedor, nombre, dirección, teléfono y correo. Se debe escoger el tipo de pago (Crédito/Contado); se podrá escoger crédito solo si el tipo de proveedor es "Crédito". Además, si la factura es a crédito, se debe registrar una fecha de vencimiento del pago.
+
+| Campo | Valor |
+|-------|-------|
+| **Código** | HU2 |
+| **Título** | Administración de listado de facturas de compras |
+
+**Descripción:**
+Como administrador, necesito registrar las facturas de los proveedores a los que he comprado. Para ello, debo registrar la fecha, buscar los proveedores disponibles y, al momento de escoger uno, traer los datos de cédula/RUC, tipo de proveedor, nombre, dirección, teléfono y correo. También debo escoger el tipo de pago de la factura (crédito o contado). Solo se podrá escoger crédito si el tipo de proveedor es "Crédito". Si la factura es a crédito, también debo registrar una fecha de vencimiento del pago.
+
+**Criterios de Aceptación:**
+
+- **CA1:** Cuando el usuario administra un listado de facturas de compras, debe ser capaz de ingresar la fecha en la cabecera de cada factura, y el sistema debe aceptar y almacenar dicha fecha correctamente. El sistema debe manejar adecuadamente situaciones en las que el usuario ingrese una fecha en un formato incorrecto o incompatible. Se debe validar que el usuario no pueda ingresar una fecha futura. El sistema debe mostrar un mensaje de error si el usuario intenta ingresar una factura sin ingresar la fecha.
+
+- **CA2:** Al buscar proveedores disponibles, el sistema debe permitir al usuario encontrar proveedores y, al seleccionar uno, debe recuperar automáticamente los datos asociados, incluyendo cédula/RUC, tipo de proveedor, nombre, dirección, teléfono y correo. Si no se encuentra el proveedor buscado, mostrar un mensaje de error y sugerir ajustes en la búsqueda.
+
+- **CA3:** Al escoger el tipo de pago (Crédito/Contado), el sistema debe validar que solo los proveedores con el tipo "Crédito" permitan seleccionar la opción de pago a crédito. Si el proveedor no es de tipo "Crédito", el sistema debe generar un mensaje de error indicando que el proveedor no tiene habilitado el pago a crédito.
+
+- **CA4:** Si la factura es seleccionada como Crédito, el sistema debe requerir y registrar una fecha de vencimiento para el pago, garantizando que se establezca adecuadamente para las transacciones a crédito. Si se ingresa una fecha anterior a la actual debe dar un mensaje de error pidiendo que ingrese una fecha posterior a la actual.
+
+---
+
+## HU3 — Seleccionar un Producto en el Detalle de la Factura
+
+**Resumen:**
+En el detalle de la factura se debe escoger de manera fácil un producto de un listado. Al momento de escoger un producto debe retornar los atributos de PVP y si graba o no IVA. Asignar la cantidad del producto. Actualizar los totales de la factura cada vez que se ingrese o modifique un producto.
+
+| Campo | Valor |
+|-------|-------|
+| **Código** | HU3 |
+| **Título** | Seleccionar un producto en el detalle de la factura |
+
+**Descripción:**
+Como cajero, quiero poder seleccionar un producto de un listado en el detalle de la factura de manera fácil y rápida. Cuando seleccione un producto, quiero que el sistema me retorne los atributos completos del producto, incluyendo el precio de venta al público (PVP), si grava o no el impuesto al valor agregado (IVA) y cualquier otra información relevante. También quiero poder asignar una cantidad al producto.
+
+**Criterios de Aceptación:**
+
+- **CA1:** El cajero debe poder seleccionar un producto de un listado en el detalle de la factura de manera fácil y rápida. El cajero no podrá continuar si dicha opción está nula; se mostrará un mensaje "Seleccionar un producto antes de continuar". Si intenta continuar sin seleccionar un producto, mostrar un mensaje de error indicando que la selección es obligatoria.
+  - El listado de productos debe estar ordenado alfabéticamente.
+  - El cajero debe poder buscar un producto por su nombre o código.
+  - El cajero debe poder seleccionar un producto con un solo clic.
+
+- **CA2:** Cuando el cajero seleccione un producto, el sistema debe retornar los atributos de precio de venta al público (PVP) y si grava o no el IVA. Si no se pueden recuperar los atributos del producto, mostrar un mensaje de error indicando la imposibilidad de obtener la información.
+  - El precio de venta al público debe mostrarse con dos decimales.
+  - El IVA debe mostrarse como un porcentaje.
+
+- **CA3:** El cajero debe poder asignar una cantidad al producto. Si no se introduce una cantidad válida, mostrar un mensaje de error indicando que la cantidad debe ser un valor numérico válido.
+  - El campo de cantidad debe ser de tipo número.
+  - El campo de cantidad debe permitir valores enteros y decimales.
+
+- **CA4:** Los totales de la factura deben actualizarse cada vez que se ingrese o modifique un producto.
+
+---
+
+## HU4 — Impresión de Factura en PDF
+
+**Resumen:**
+Se debe imprimir el documento de la factura en un archivo PDF. Una vez impresa la factura, ya no debe dejar modificar el documento.
+
+| Campo | Valor |
+|-------|-------|
+| **Código** | HU4 |
+| **Título** | Impresión de factura en PDF |
+
+**Descripción:**
+El sistema debe permitir imprimir el documento de la factura en un archivo PDF. La impresión debe realizarse de forma correcta y completa, incluyendo todos los datos necesarios. Una vez impresa la factura, el sistema ya no debe dejar modificar el documento.
+
+**Criterios de Aceptación:**
+
+- **CA1:** Cuando el usuario solicita imprimir la factura, el sistema debe generar un archivo PDF del documento, asegurando que todos los detalles relevantes estén correctamente formateados y presentados.
+
+- **CA2:** El archivo PDF debe contener todos los datos de la factura, como la fecha, el proveedor, el tipo de pago, los productos o servicios, los precios y las cantidades. Si no se encuentran todos los datos requeridos, el sistema debe dar un mensaje pidiendo que se llenen todos los datos.
+
+- **CA3:** Después de imprimir la factura en PDF, el sistema no debe permitir ninguna modificación adicional en el documento, garantizando la integridad y la consistencia de la información registrada.
+
+---
+
+## HU5 — Reporte de Proveedores con Saldos de Crédito
+
+**Resumen:**
+Se debe sacar un reporte del listado de proveedores y los saldos de créditos si los tuviera.
+
+| Campo | Valor |
+|-------|-------|
+| **Código** | HU5 |
+| **Título** | Reporte de proveedores con saldos de crédito |
+
+**Descripción:**
+Como administrador, quiero poder generar un reporte que liste a todos los proveedores, junto con sus saldos de crédito, si los tuvieran.
+
+> ⚠️ **Integración:** Tomar en cuenta los pagos realizados de las facturas de los proveedores del **módulo de Cuentas por Pagar**.
+
+**Criterios de Aceptación:**
+
+- **CA1:** El reporte debe listar a todos los proveedores, junto con sus nombres, direcciones y números de teléfono. Si no hay proveedores registrados, mostrar un mensaje indicando que no hay datos disponibles para generar el reporte.
+
+- **CA2:** El reporte debe mostrar los saldos de crédito de los proveedores, si los tuvieran.
+  - Si un proveedor no tiene saldo de crédito, mostrar un mensaje indicando que el proveedor no tiene saldo de crédito.
+  - Si no se pueden obtener los saldos de crédito, mostrar un mensaje de error indicando la imposibilidad de obtener la información.
+
+---
+
+## HU6 — Reporte de Facturas de Compra Detallado por Productos
+
+**Resumen:**
+Se debe sacar un reporte de facturas de compra detallado por productos.
+
+| Campo | Valor |
+|-------|-------|
+| **Código** | HU6 |
+| **Título** | Reporte de facturas de compra detallada por productos |
+
+**Descripción:**
+Como administrador, quiero poder generar un reporte que liste todas las facturas de compra, junto con los productos comprados, cantidades, precios unitarios y precios totales.
+
+**Criterios de Aceptación:**
+
+- **CA1:** Al solicitar el reporte, el sistema debe permitir al usuario especificar un rango de fechas para el informe, asegurando la inclusión precisa de las transacciones deseadas. Si el usuario no especifica un rango de fechas válido, mostrar un mensaje de error indicando que se debe proporcionar un rango de fechas válido.
+
+- **CA2:** El reporte debe mostrar un desglose detallado de las facturas de compra, incluyendo información específica sobre los productos adquiridos, cantidades compradas y cualquier otra información relevante asociada a cada transacción. Si no hay facturas dentro del rango de fechas especificado, mostrar un mensaje indicando que no hay datos disponibles para generar el reporte.
+
+- **CA3:** El sistema debe proporcionar la opción de exportar el informe en un formato fácilmente accesible, como **PDF o CSV**, para facilitar su uso y distribución.
+
+---
+
+## HU7 — Inicio de Sesión
+
+**Resumen:**
+Como usuario necesito iniciar sesión en el sistema con las credenciales registradas en el módulo de seguridad, y que me muestre las funcionalidades del sistema de acuerdo con los permisos asignados en mi rol de usuario.
+
+| Campo | Valor |
+|-------|-------|
+| **Código** | HU7 |
+| **Título** | Inicio de sesión |
+
+**Descripción:**
+Como usuario, necesito poder iniciar sesión en el sistema de forma segura y eficiente de acuerdo al módulo de seguridad, para acceder a las funcionalidades del sistema de acuerdo con los permisos asignados en mi rol de usuario.
+
+> ⚠️ **Integración:** El login y la validación de credenciales se delegan al **módulo de Seguridad** externo. El JWT retornado define el menú dinámico.
+
+**Criterios de Aceptación:**
+
+- **CA1:** Al ingresar datos erróneos: si el usuario ingresa credenciales no válidas (usuario y contraseña), al momento de presionar Login debe mostrar un mensaje de error indicando usuario y contraseña incorrectos, y luego debe permitirle modificar las credenciales erróneas.
+
+- **CA2:** Si el usuario ingresa las credenciales correctas, al momento de presionar el botón Login debe mostrar un mensaje de credenciales válidas y el sistema debe permitirle iniciar sesión.
+
+- **CA3:** El sistema debe mostrar la pantalla principal del sistema con las funcionalidades disponibles de acuerdo con los permisos asignados en el rol del usuario.
+
+---
+
+## HU8 — Registrar Actividades de Usuarios en la Pista de Auditoría
+
+**Resumen:**
+Como usuario quiero que las actividades de los usuarios en el módulo se registren automáticamente y de manera transparente en una pista de auditoría.
+
+| Campo | Valor |
+|-------|-------|
+| **Código** | HU8 |
+| **Título** | Registrar actividades de usuarios en la pista de auditoría |
+
+**Descripción:**
+Como Administrador, quiero que las actividades de los usuarios en el módulo se registren de forma automática y transparente en una pista de auditoría, para garantizar la seguridad del sistema y cumplir con los requisitos de auditoría que se mencionan en el módulo de seguridad.
+
+> ⚠️ **Integración:** La pista de auditoría generada por este módulo es consumida por el **módulo de Seguridades** vía API de entrada.
+
+**Criterios de Aceptación:**
+
+- **CA1:** El sistema debe registrar automáticamente las siguientes actividades de los usuarios en la pista de auditoría:
+  - Inicio de sesión
+  - Cierre de sesión
+  - Creación de registros
+  - Actualización de registros
+  - Eliminación de registros (soft delete)
+
+- **CA2:** El sistema debe registrar la siguiente información para cada actividad:
+  - Fecha y hora
+  - Usuario
+  - Acción
+  - Datos afectados
+
+- **CA3:** El sistema debe almacenar la pista de auditoría de forma segura y accesible para los administradores del sistema.
+
+---
+
+## Mapa de Integraciones
+
+| HU | Módulo Externo | Tipo | Descripción |
+|----|---------------|------|-------------|
+| HU3 | Inventarios | API Entrada | Listado de productos con stock, PVP e IVA |
+| HU5 | Cuentas por Pagar | API Entrada | Saldos de crédito y pagos realizados por proveedor |
+| HU7 | Seguridad | API Salida | Servicio de login y validación JWT |
+| HU7 | Seguridad | API Salida | Listado de permisos/funciones por usuario y módulo |
+| HU8 | Seguridad | API Entrada | Envío de pistas de auditoría del módulo |

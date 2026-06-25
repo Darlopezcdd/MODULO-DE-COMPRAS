@@ -21,6 +21,10 @@ export const getApiDocs = async () => {
           url: 'http://localhost:3000',
           description: 'Servidor de desarrollo local',
         },
+        {
+          url: 'https://modulo-compras.vercel.app',
+          description: 'Producción — Vercel (Módulo de Compras)',
+        },
       ],
       tags: [
         { name: 'Auth', description: 'Autenticación y gestión de sesiones (JWT)' },
@@ -29,6 +33,7 @@ export const getApiDocs = async () => {
         { name: 'Reportes', description: 'Generación de reportes en PDF, CSV y JSON' },
         { name: 'PDF', description: 'Previsualización y generación de PDFs de factura' },
         { name: 'GraphQL', description: 'Endpoint GraphQL para CRUD de proveedores y facturas' },
+        { name: 'Auditoría', description: 'Historial de pistas de auditoría — solo ADMIN y AUDITOR (HU8)' },
       ],
       components: {
         securitySchemes: {
@@ -120,6 +125,22 @@ export const getApiDocs = async () => {
               cantidad: { type: 'number' },
               pvp: { type: 'number', format: 'float' },
               total_linea: { type: 'number', format: 'float' },
+            },
+          },
+          PistaAuditoria: {
+            type: 'object',
+            properties: {
+              id:             { type: 'string', example: '1' },
+              fechaHora:      { type: 'string', format: 'date-time', example: '2026-06-24T20:00:00.000Z' },
+              usuarioId:      { type: 'integer', example: 1 },
+              usuarioNombre:  { type: 'string', example: 'Admin' },
+              accion:         { type: 'string', enum: ['LOGIN','LOGOUT','CREAR','ACTUALIZAR','ELIMINAR','IMPRIMIR'], example: 'CREAR' },
+              modulo:         { type: 'string', example: 'COMPRAS' },
+              tablaAfectada:  { type: 'string', example: 'proveedor' },
+              registroId:     { type: 'string', nullable: true, example: '42' },
+              descripcion:    { type: 'string', nullable: true, example: 'Creación de proveedor' },
+              resultado:      { type: 'string', example: 'EXITO' },
+              ipAddress:      { type: 'string', nullable: true, example: '192.168.1.1' },
             },
           },
           PdfPreviewInput: {

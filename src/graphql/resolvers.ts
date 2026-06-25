@@ -169,6 +169,77 @@ export const resolvers = {
         observaciones: r.observaciones,
       };
     },
+
+    // ── HU8: Historial de Auditoría ─────────────────────────
+    listarAuditoria: async (
+      _: any,
+      {
+        usuarioId,
+        accion,
+        tablaAfectada,
+        fechaInicio,
+        fechaFin,
+        limite = 50,
+        pagina = 1,
+      }: any,
+      context: any
+    ) => {
+      // 1. Verificar autenticación y rol permitido
+      const payload = await getUserFromRequest(context.request) as any;
+      if (!payload) {
+        throw new GraphQLError('No autenticado. Inicia sesión para ver la auditoría.');
+      }
+      if (!['ADMIN', 'AUDITOR'].includes(payload.rol)) {
+        throw new GraphQLError('No autorizado. Solo ADMIN y AUDITOR pueden consultar el historial de auditoría.');
+      }
+
+      // 2. Construir filtros dinámicos (solo los que el usuario pasó)
+      const where: any = {};
+      if (usuarioId)      where.usuario_id = Number(usuarioId);
+      if (accion)         where.accion = accion;
+      if (tablaAfectada)  where.tabla_afectada = tablaAfectada;
+      if (fechaInicio || fechaFin) {
+        where.fecha_hora = {};
+        if (fechaInicio) where.fecha_hora.gte = new Date(fechaInicio + 'T00:00:00');
+        if (fechaFin)    where.fecha_hora.lte = new Date(fechaFin + 'T23:59:59');
+      }
+
+      // 3. Limitar a máximo 200 registros por página para no sobrecargar
+      const limiteFinal = Math.min(Number(limite) || 50, 200);
+      const paginaFinal = Math.max(Number(pagina) || 1, 1);
+      const skip = (paginaFinal - 1) * limiteFinal;
+
+      // 4. Consultar total y datos en paralelo
+      const [total, registros] = await Promise.all([
+        prisma.pista_auditoria.count({ where }),
+        prisma.pista_auditoria.findMany({
+          where,
+          orderBy: { fecha_hora: 'desc' },
+          take: limiteFinal,
+          skip,
+        }),
+      ]);
+
+      // 5. Mapear (BigInt → String para compatibilidad con JavaScript)
+      const data = registros.map((r: any) => ({
+        id:             r.id.toString(),
+        fechaHora:      r.fecha_hora.toISOString(),
+        usuarioId:      r.usuario_id,
+        usuarioNombre:  r.usuario_nombre,
+        accion:         r.accion,
+        tablaAfectada:  r.tabla_afectada,
+        registroId:     r.registro_id?.toString() ?? null,
+        descripcion:    r.descripcion ?? null,
+        resultado:      r.resultado,
+      }));
+
+      return {
+        data,
+        total,
+        pagina: paginaFinal,
+        totalPaginas: Math.ceil(total / limiteFinal),
+      };
+    },
   },
 
   Mutation: {
