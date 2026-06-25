@@ -96,7 +96,8 @@ export async function GET(request: Request) {
       },
     });
 
-  } catch {
+  } catch (error: any) {
+    console.error("Error PDF Proveedores:", error);
     return NextResponse.json({ error: 'Error interno al generar el reporte PDF.' }, { status: 500 });
   }
 }
