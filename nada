@@ -1,0 +1,203 @@
+[33m7933de3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/developesau[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mdevelopesau[m[33m)[m implementacionde modulos por roles, tesoreria, carga de datos, carga de excel , cuentas por pagar
+[33mbdcb5f2[m datos arreglando
+[33m3eaab06[m Merge branch 'develop' of https://github.com/Darlopezcdd/MODULO-DE-COMPRAS into developesau
+[33ma82b7d6[m datos
+[33m5c55225[m Merge branch 'develop' of https://github.com/Darlopezcdd/MODULO-DE-COMPRAS into develop
+[33mbeccf7c[m fix: reemplazar Puppeteer por PDFKit en todos los reportes PDF para compatibilidad con Koyeb
+[33mcc3fe6d[m fix: remover variable del catch para satisfacer linter estricto
+[33m4259bb0[m fix: solucionar error de linter variable unused en auth
+[33m50e9b16[m datos cargado en el modulo
+[33mfb4008e[m datos cargado en el modulo
+[33m7e940d1[m style: reemplazar emojis genéricos por iconos lucide-react
+[33m050a3a1[m Merge branch 'developesau' into develop
+[33mac4a0a0[m Merge branch 'develop' of https://github.com/Darlopezcdd/MODULO-DE-COMPRAS into develop
+[33m6ee661a[m feat: previsualización de PDF real y correcciones UI en facturas
+[33m243ab53[m arreglo
+[33mb45b071[m arreglo
+[33m76a8b28[m arreglo y vistas para cada rol
+[33md4c81c7[m arreglo y vistas para cada rol
+[33md00d31d[m Completando la fusion pendiente
+[33m1fc5602[m Completando la fusion pendiente
+[33mf69c70a[m Usar output standalone para reducir memoria en Koyeb
+[33m40ef306[m[33m ([m[1;31morigin/farirama[m[33m)[m Usar output standalone para reducir memoria en Koyeb
+[33m754bee9[m Usar output standalone para reducir memoria en Koyeb
+[33m10b4908[m Usar output standalone para reducir memoria en Koyeb
+[33ma06532a[m Usar variable PORT de Koyeb en el start
+[33mf88b09c[m Usar variable PORT de Koyeb en el start
+[33mdb0e2fc[m Usar variable PORT de Koyeb en el start
+[33m9b9e5d5[m Usar variable PORT de Koyeb en el start
+[33m1211c40[m Mover @prisma/client a dependencies y agregar postinstall prisma generate
+[33mf23b107[m Mover @prisma/client a dependencies y agregar postinstall prisma generate
+[33mf009e85[m Mover @prisma/client a dependencies y agregar postinstall prisma generate
+[33m9d8042e[m Mover @prisma/client a dependencies y agregar postinstall prisma generate
+[33mcaa8782[m Corregir tipos implicitos en resolvers GraphQL
+[33m0eea510[m Corregir tipos implicitos en resolvers GraphQL
+[33m4baeea6[m Corregir tipos implicitos en resolvers GraphQL
+[33m3dda76d[m Corregir tipos implicitos en resolvers GraphQL
+[33m5463a2e[m Corregir todos los tipos implicitos any en rutas API
+[33md097581[m Corregir todos los tipos implicitos any en rutas API
+[33me33362d[m Corregir todos los tipos implicitos any en rutas API
+[33m6866220[m Corregir todos los tipos implicitos any en rutas API
+[33maf2d20e[m Fix implicit any on mapped f inside PDF HTML string
+[33m371a2f6[m Fix implicit any on mapped f inside PDF HTML string
+[33m7de1f06[m Fix implicit any on mapped f inside PDF HTML string
+[33mc239988[m Fix implicit any on mapped f inside PDF HTML string
+[33md03b203[m Fix implicit any on mapped f variables
+[33m48be865[m Fix implicit any on mapped f variables
+[33mcafd176[m Fix implicit any on mapped f variables
+[33m79da43f[m Fix implicit any on mapped f variables
+[33m9ee309a[m Fix Prisma Enums error on Koyeb
+[33m9b1baec[m Fix Prisma Enums error on Koyeb
+[33mb875b40[m Fix Prisma Enums error on Koyeb
+[33m979a73b[m Fix Prisma Enums error on Koyeb
+[33me1f645d[m Fix missing Suspense boundary for useSearchParams
+[33m6ce27c4[m Fix missing Suspense boundary for useSearchParams
+[33m9177555[m Fix missing Suspense boundary for useSearchParams
+[33m9f80435[m Fix missing Suspense boundary for useSearchParams
+[33m08a76f0[m Fix build errors for Koyeb deployment
+[33m047ebb8[m Fix build errors for Koyeb deployment
+[33m0134f9b[m Fix build errors for Koyeb deployment
+[33m717e47c[m Fix build errors for Koyeb deployment
+[33m3116be8[m Add API endpoints and UI fix for invoice generation
+[33m334e4fb[m Add API endpoints and UI fix for invoice generation
+[33m84d912d[m Add API endpoints and UI fix for invoice generation
+[33mb626ecc[m Add API endpoints and UI fix for invoice generation
+[33m248e514[m feat: dashboard inteligente con alertas y generación de reportes gerenciales en PDF
+[33mc165a1b[m feat: dashboard inteligente con alertas y generación de reportes gerenciales en PDF
+[33mc015024[m feat: dashboard inteligente con alertas y generación de reportes gerenciales en PDF
+[33m04092e5[m feat: dashboard inteligente con alertas y generación de reportes gerenciales en PDF
+[33m77b4609[m feat: gestión avanzada de catálogos y accesos rápidos en facturas
+[33mc23ab01[m feat: gestión avanzada de catálogos y accesos rápidos en facturas
+[33m18e1ee4[m feat: gestión avanzada de catálogos y accesos rápidos en facturas
+[33mb25376a[m feat: gestión avanzada de catálogos y accesos rápidos en facturas
+[33me4a488e[m fix: separar imports de apollo client para gql y hooks
+[33mb7e4d94[m fix: separar imports de apollo client para gql y hooks
+[33m88ab452[m fix: separar imports de apollo client para gql y hooks
+[33m8e9c0df[m fix: separar imports de apollo client para gql y hooks
+[33me1fe450[m fix: corregir importación de gql desde @apollo/client
+[33m165d74a[m fix: corregir importación de gql desde @apollo/client
+[33m369f841[m fix: corregir importación de gql desde @apollo/client
+[33m70d2922[m fix: corregir importación de gql desde @apollo/client
+[33m4be3e77[m feat: validación de catálogo de proveedor en factura y creación de productos globales
+[33ma0caa51[m feat: validación de catálogo de proveedor en factura y creación de productos globales
+[33m19c98e0[m feat: validación de catálogo de proveedor en factura y creación de productos globales
+[33m3d16728[m feat: validación de catálogo de proveedor en factura y creación de productos globales
+[33m3507b78[m fix: prevenir AbortError de Apollo Client quitando signal en fetch
+[33mb81cf88[m fix: prevenir AbortError de Apollo Client quitando signal en fetch
+[33m0880dab[m fix: prevenir AbortError de Apollo Client quitando signal en fetch
+[33mc9b321d[m fix: prevenir AbortError de Apollo Client quitando signal en fetch
+[33m0a2d3ff[m fix: corregir mapeo de propiedades (precioUnitario y stockActual) en el buscador de ProductosDataGrid
+[33m93abcce[m fix: corregir mapeo de propiedades (precioUnitario y stockActual) en el buscador de ProductosDataGrid
+[33ma5f7e7c[m fix: corregir mapeo de propiedades (precioUnitario y stockActual) en el buscador de ProductosDataGrid
+[33m6f2b779[m fix: corregir mapeo de propiedades (precioUnitario y stockActual) en el buscador de ProductosDataGrid
+[33mf04cb5a[m fix: mostrar mensaje de error de validación real (ej. cédula duplicada) al crear proveedor
+[33m78413dd[m fix: mostrar mensaje de error de validación real (ej. cédula duplicada) al crear proveedor
+[33m0644b5b[m fix: mostrar mensaje de error de validación real (ej. cédula duplicada) al crear proveedor
+[33m8c1ae6f[m fix: mostrar mensaje de error de validación real (ej. cédula duplicada) al crear proveedor
+[33mc307389[m fix: corregir consumo API de inventarios con fallback, tipos correctos y cliente unificado
+[33maa46bbc[m fix: corregir consumo API de inventarios con fallback, tipos correctos y cliente unificado
+[33mcc962c5[m fix: corregir consumo API de inventarios con fallback, tipos correctos y cliente unificado
+[33mb516961[m fix: corregir consumo API de inventarios con fallback, tipos correctos y cliente unificado
+[33mde4dcbe[m temp: bypass autenticación hasta que API de seguridad esté lista
+[33mb92cac2[m temp: bypass autenticación hasta que API de seguridad esté lista
+[33m5f5c116[m temp: bypass autenticación hasta que API de seguridad esté lista
+[33mdd66d3b[m temp: bypass autenticación hasta que API de seguridad esté lista
+[33m93c64d6[m fix: resolver todos los conflictos de merge residuales en layout, page y facturas
+[33m3949e36[m fix: resolver todos los conflictos de merge residuales en layout, page y facturas
+[33m22f162b[m fix: resolver todos los conflictos de merge residuales en layout, page y facturas
+[33m42112fd[m fix: resolver todos los conflictos de merge residuales en layout, page y facturas
+[33m1bff77e[m feat: implementar Swagger API docs con OpenAPI 3.0 para todos los endpoints REST
+[33mc3607d2[m feat: implementar Swagger API docs con OpenAPI 3.0 para todos los endpoints REST
+[33m4d76625[m feat: implementar Swagger API docs con OpenAPI 3.0 para todos los endpoints REST
+[33m3c29fad[m feat: implementar Swagger API docs con OpenAPI 3.0 para todos los endpoints REST
+[33m547eba5[m Merge comp-from keeping ours to resolve unified conflicts
+[33mce454dc[m Merge comp-from keeping ours to resolve unified conflicts
+[33m3fe98cc[m Merge comp-from keeping ours to resolve unified conflicts
+[33ma1812a8[m Merge comp-from keeping ours to resolve unified conflicts
+[33mfae05e0[m Merge farirama and resolve conflicts manually
+[33m94893f4[m Merge farirama and resolve conflicts manually
+[33m44b41d1[m carga de datos
+[33m5c2e1f5[m[33m ([m[1;31morigin/Esauh_desarrollo[m[33m, [m[1;32mEsauh_desarrollo[m[33m)[m carga de datos
+[33mfc84d9a[m carga de datos
+[33m7c1cbf9[m carga de datos
+[33mdd1a2e3[m chore: actualiza cambios pendientes y unifica ramas
+[33mfe528d8[m fix: consumos de BD y API actualizados
+[33m6d27c94[m fix: integracion api, light mode, pdf preview y test fixes
+[33m96074bb[m cambios especificos de  la facctura y vizualizacion
+[33m84d20ae[m cambios especificos de  la facctura y vizualizacion
+[33m96293c0[m actualizacion Requene
+[33m9985996[m login pruebas
+[33m80097ff[m login pruebas
+[33mf6fc0e0[m datos arreglados
+[33m2d95d66[m datos arreglados
+[33m8698f11[m wip: actualización de formularios de factura y proveedor
+[33meb92335[m wip: actualización de formularios de factura y proveedor
+[33mdca75c4[m fix(ProveedorForm): Excluir cedulaRuc al actualizar proveedor e incluir script de tests
+[33m05bfb91[m Avance inventario: integración de inventarios y novedades en FacturaForm
+[33me3f9d4a[m Avance inventario: integración de inventarios y novedades en FacturaForm
+[33m7804767[m Merge branch 'develop'
+[33m9a9aa1b[m Merge branch 'comp-from' into develop
+[33m6e29b67[m Merge branch 'develop'
+[33m691ebf3[m Merge branch 'develop'
+[33me1fe8ba[m feat: implementar requerimientos de Dario Lopez (modulo compras)
+[33ma9468f1[m feat: implementar requerimientos de Dario Lopez (modulo compras)
+[33m4c89d92[m feat: implementar requerimientos de Dario Lopez (modulo compras)
+[33m7db33c4[m cambios desarrollo
+[33mdad18bd[m Update
+[33mb515dcc[m style(FacturaForm): Actualizar colores a Dark Mode para mejorar contraste y usabilidad
+[33m5192a3b[m style(FacturaForm): Actualizar colores a Dark Mode para mejorar contraste y usabilidad
+[33m8ca944f[m style(FacturaForm): Actualizar colores a Dark Mode para mejorar contraste y usabilidad
+[33m70103d6[m style(FacturaForm): Actualizar colores a Dark Mode para mejorar contraste y usabilidad
+[33m7cdde32[m style(FacturaForm): Actualizar colores a Dark Mode para mejorar contraste y usabilidad
+[33m112e74a[m docs(HU6-Aldahir): Agregar plan de implementacion y resumen de HU6
+[33mc2f0019[m docs(HU6-Aldahir): Agregar plan de implementacion y resumen de HU6
+[33m45a98f3[m docs(HU6-Aldahir): Agregar plan de implementacion y resumen de HU6
+[33mb980fcd[m docs(HU6-Aldahir): Agregar plan de implementacion y resumen de HU6
+[33md766427[m docs(HU6-Aldahir): Agregar plan de implementacion y resumen de HU6
+[33m9af4dfc[m feat(HU6-Aldahir): Componentes de reporte facturas (Filtros y Tabla con Empty States)
+[33m0dac7c1[m feat(HU6-Aldahir): Componentes de reporte facturas (Filtros y Tabla con Empty States)
+[33m6589087[m feat(HU6-Aldahir): Componentes de reporte facturas (Filtros y Tabla con Empty States)
+[33m7f21f21[m feat(HU6-Aldahir): Componentes de reporte facturas (Filtros y Tabla con Empty States)
+[33mb7e312c[m feat(HU6-Aldahir): Componentes de reporte facturas (Filtros y Tabla con Empty States)
+[33m7e12e4b[m feat(HU4-Aldahir): Script de generacion de PDF para factura base y endpoint de prueba
+[33m96ce65c[m feat(HU4-Aldahir): Script de generacion de PDF para factura base y endpoint de prueba
+[33md8d2eaa[m feat(HU4-Aldahir): Script de generacion de PDF para factura base y endpoint de prueba
+[33m5d4d083[m feat(HU4-Aldahir): Script de generacion de PDF para factura base y endpoint de prueba
+[33mdeb63b4[m feat(HU4-Aldahir): Script de generacion de PDF para factura base y endpoint de prueba
+[33mcac9e1f[m fix(HU3): actualizacion de imports de apollo client v4 y tipado en useQuery
+[33mb7308bb[m fix(HU3): actualizacion de imports de apollo client v4 y tipado en useQuery
+[33md89d726[m fix(HU3): actualizacion de imports de apollo client v4 y tipado en useQuery
+[33ma34dd14[m fix(HU3): actualizacion de imports de apollo client v4 y tipado en useQuery
+[33m388de4a[m fix(HU3): actualizacion de imports de apollo client v4 y tipado en useQuery
+[33m84954e3[m feat(HU3-Aldahir): DataGrid detalle productos + mock API inventario con busqueda y totales dinamicos
+[33mce6c5ef[m feat(HU3-Aldahir): DataGrid detalle productos + mock API inventario con busqueda y totales dinamicos
+[33ma463947[m feat(HU3-Aldahir): DataGrid detalle productos + mock API inventario con busqueda y totales dinamicos
+[33mb6b3c9b[m feat(HU3-Aldahir): DataGrid detalle productos + mock API inventario con busqueda y totales dinamicos
+[33md636aba[m feat(HU3-Aldahir): DataGrid detalle productos + mock API inventario con busqueda y totales dinamicos
+[33m8596326[m Merge branch 'Esauh_desarrollo' into comp-from - resolve conflict in ProveedorForm.tsx (validaciones estrictas Zod)
+[33mead41b6[m Merge branch 'Esauh_desarrollo' into comp-from - resolve conflict in ProveedorForm.tsx (validaciones estrictas Zod)
+[33m0c8eeb2[m Merge branch 'Esauh_desarrollo' into comp-from - resolve conflict in ProveedorForm.tsx (validaciones estrictas Zod)
+[33m5570614[m Merge branch 'Esauh_desarrollo' into comp-from - resolve conflict in ProveedorForm.tsx (validaciones estrictas Zod)
+[33m1a1daab[m Merge branch 'Esauh_desarrollo' into comp-from - resolve conflict in ProveedorForm.tsx (validaciones estrictas Zod)
+[33m3a84052[m feat(HU5): script generacion PDF reporte proveedores con PDFKit - template profesional
+[33m0be4253[m feat(HU5): script generacion PDF reporte proveedores con PDFKit - template profesional
+[33m4212744[m feat(HU5): script generacion PDF reporte proveedores con PDFKit - template profesional
+[33m42edcca[m feat(HU5): script generacion PDF reporte proveedores con PDFKit - template profesional
+[33m05c0267[m feat(HU5): script generacion PDF reporte proveedores con PDFKit - template profesional
+[33ma1ba203[m feat(HU2): resolvers GraphQL cabecera facturas - validaciones credito y fechas
+[33mec214ef[m feat(HU2): resolvers GraphQL cabecera facturas - validaciones credito y fechas
+[33m8395bf9[m feat(HU2): resolvers GraphQL cabecera facturas - validaciones credito y fechas
+[33me29effc[m feat(HU2): resolvers GraphQL cabecera facturas - validaciones credito y fechas
+[33m268d769[m feat(HU2): resolvers GraphQL cabecera facturas - validaciones credito y fechas
+[33mf44b1ee[m Merge branch 'develop' into comp-from - resolve conflicts in prisma.ts and tailwind.config.ts
+[33m7b55afc[m Merge branch 'develop' into comp-from - resolve conflicts in prisma.ts and tailwind.config.ts
+[33mc55005a[m Merge branch 'develop' into comp-from - resolve conflicts in prisma.ts and tailwind.config.ts
+[33m2696345[m Merge branch 'develop' into comp-from - resolve conflicts in prisma.ts and tailwind.config.ts
+[33mfea3e55[m Merge branch 'develop' into comp-from - resolve conflicts in prisma.ts and tailwind.config.ts
+[33mbf13e86[m feat: completa frontend de proveedores (HU1) y arregla conexión Prisma
+[33md8b3be3[m feat: completa frontend de proveedores (HU1) y arregla conexión Prisma
+[33m06fb8ad[m feat: completa frontend de proveedores (HU1) y arregla conexión Prisma
+[33m12904f2[m feat: completa frontend de proveedores (HU1) y arregla conexión Prisma
+[33m0852188[m feat: completa frontend de proveedores (HU1) y arregla conexión Prisma
+[33m9f9242e[m Merge pull request #1 from Darlopezcdd/Esauh_desarrollo
+[33m8e3b9d7[m feat: implementar requerimientos de Dario Lopez (modulo compras)
