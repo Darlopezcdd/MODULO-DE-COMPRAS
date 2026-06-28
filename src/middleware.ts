@@ -46,6 +46,11 @@ export async function middleware(request: NextRequest) {
     if (path.startsWith('/tesoreria') && !permisos.gestionar_pagos) {
       return NextResponse.redirect(new URL('/', request.nextUrl));
     }
+
+    // Verificar acceso a Auditoría (solo ADMIN y AUDITOR)
+    if (path.startsWith('/auditoria') && !permisos.ver_auditoria) {
+      return NextResponse.redirect(new URL('/', request.nextUrl));
+    }
   }
   return NextResponse.next();
 }
@@ -57,6 +62,7 @@ export const config = {
     '/proveedores/:path*',
     '/reportes/:path*',
     '/tesoreria/:path*',
+    '/auditoria/:path*',
     '/login'
   ]
 };

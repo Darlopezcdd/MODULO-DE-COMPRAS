@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   try {
     const { rol } = await request.json();
 
-    if (!rol || !['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO'].includes(rol)) {
+    if (!rol || !['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO', 'AUDITOR'].includes(rol)) {
       return NextResponse.json({ error: 'Rol inválido o no proporcionado' }, { status: 400 });
     }
 
@@ -66,6 +66,7 @@ export async function POST(request: Request) {
       puede_anular: false,
       ver_reportes: false,
       gestionar_pagos: false,
+      ver_auditoria: false,
     };
 
     if (rol === 'ADMIN') {
@@ -79,6 +80,15 @@ export async function POST(request: Request) {
         puede_anular: true,
         ver_reportes: true,
         gestionar_pagos: true,
+        ver_auditoria: true,
+      };
+    } else if (rol === 'AUDITOR') {
+      permisos = {
+        ...permisos,
+        ver_proveedores: true,
+        ver_facturas: true,
+        ver_reportes: true,
+        ver_auditoria: true,
       };
     } else if (rol === 'COMPRADOR') {
       permisos = {
@@ -108,13 +118,14 @@ export async function POST(request: Request) {
     // Crear un payload mock con ID fijo y datos de prueba
     const userNames: Record<string, string> = {
       'ADMIN': 'Administrador Sistema',
+      'AUDITOR': 'Auditor Sistema',
       'COMPRADOR': 'Comprador Usuario',
       'GESTOR_PROVEEDORES': 'Gestor de Proveedores',
       'TESORERO': 'Tesorero Finanzas'
     };
 
     const tokenPayload = {
-      id: ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO'].indexOf(rol) + 1,
+      id: ['ADMIN', 'AUDITOR', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO'].indexOf(rol) + 1,
       nombre: userNames[rol as keyof typeof userNames],
       email: `${rol.toLowerCase().replace('_', '.')}@compras.com`,
       rol: rol,
