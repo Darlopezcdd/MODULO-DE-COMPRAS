@@ -2,7 +2,7 @@
 // src/app/reportes/page.tsx
 // Página — Reportes del Módulo de Compras UTN
 // Atomic Design: Page = Template + Organisms + Molecules + Atoms
-// Paleta UTN: #003366 | #4A90E2 | #E5E5E5 | #E65100 | #FFFFFF
+// Paleta UTN: #d20a11 | #706f6f | #E5E5E5 | #E65100 | #FFFFFF
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { FileText, Users, TrendingUp, TrendingDown, Building2, Calendar, Download } from 'lucide-react';
@@ -189,12 +189,12 @@ export default function ReportesPage() {
           <div className="flex items-center gap-3 mb-2">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
-              style={{ backgroundColor: '#003366' }}
+              style={{ backgroundColor: '#d20a11' }}
             >
               <TrendingUp className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight" style={{ color: '#003366' }}>
+              <h1 className="text-3xl font-black tracking-tight" style={{ color: '#d20a11' }}>
                 Reportes
               </h1>
               <p className="text-sm text-slate-500 mt-0.5">
@@ -214,8 +214,8 @@ export default function ReportesPage() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
             style={
               tabActivo === 'proveedores'
-                ? { backgroundColor: '#003366', color: '#ffffff', boxShadow: '0 2px 8px rgba(0,51,102,0.25)' }
-                : { color: '#003366', backgroundColor: 'transparent' }
+                ? { backgroundColor: '#d20a11', color: '#ffffff', boxShadow: '0 2px 8px rgba(209,10,17,0.25)' }
+                : { color: '#d20a11', backgroundColor: 'transparent' }
             }
           >
             <Users className="w-4 h-4" />
@@ -226,8 +226,8 @@ export default function ReportesPage() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
             style={
               tabActivo === 'facturas'
-                ? { backgroundColor: '#003366', color: '#ffffff', boxShadow: '0 2px 8px rgba(0,51,102,0.25)' }
-                : { color: '#003366', backgroundColor: 'transparent' }
+                ? { backgroundColor: '#d20a11', color: '#ffffff', boxShadow: '0 2px 8px rgba(209,10,17,0.25)' }
+                : { color: '#d20a11', backgroundColor: 'transparent' }
             }
           >
             <FileText className="w-4 h-4" />
@@ -247,8 +247,8 @@ export default function ReportesPage() {
                 icon={Building2}
                 label="Total Proveedores"
                 value={stats.total}
-                color="#003366"
-                bgColor="rgba(0,51,102,0.08)"
+                color="#d20a11"
+                bgColor="rgba(209,10,17,0.08)"
               />
               <StatCard
                 icon={TrendingUp}
@@ -301,12 +301,12 @@ export default function ReportesPage() {
                 <div className="flex items-center gap-3">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: 'rgba(74,144,226,0.10)' }}
+                    style={{ backgroundColor: 'rgba(112,111,111,0.10)' }}
                   >
-                    <Calendar className="w-5 h-5" style={{ color: '#4A90E2' }} />
+                    <Calendar className="w-5 h-5" style={{ color: '#706f6f' }} />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold" style={{ color: '#003366' }}>
+                    <h2 className="text-base font-bold" style={{ color: '#d20a11' }}>
                       Reporte de Facturas de Compra
                     </h2>
                     <p className="text-xs text-slate-500 mt-0.5">
@@ -322,7 +322,7 @@ export default function ReportesPage() {
                     disabled={generandoCompras}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white
                                transition-all shadow-sm hover:shadow-md disabled:opacity-50"
-                    style={{ backgroundColor: '#4A90E2' }}
+                    style={{ backgroundColor: '#706f6f' }}
                   >
                     <Download className="w-4 h-4" />
                     {generandoCompras ? 'Generando...' : 'Descargar PDF'}

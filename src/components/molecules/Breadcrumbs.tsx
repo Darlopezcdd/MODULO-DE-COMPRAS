@@ -30,7 +30,7 @@ export default function Breadcrumbs() {
         <li>
           <Link
             href="/"
-            className="flex items-center text-slate-500 hover:text-[#003366] transition-colors"
+            className="flex items-center text-slate-500 hover:text-[#d20a11] transition-colors"
             title="Inicio"
           >
             <Home className="w-4 h-4" />
@@ -58,7 +58,7 @@ export default function Breadcrumbs() {
                   // Texto estático para la página actual
                   <span
                     className="font-semibold"
-                    style={{ color: '#003366' }}
+                    style={{ color: '#d20a11' }}
                     aria-current="page"
                   >
                     {capitalize(label)}
@@ -67,7 +67,7 @@ export default function Breadcrumbs() {
                   // Enlace para los segmentos anteriores
                   <Link
                     href={href}
-                    className="font-medium text-slate-500 hover:text-[#4A90E2] transition-colors"
+                    className="font-medium text-slate-500 hover:text-[#706f6f] transition-colors"
                   >
                     {capitalize(label)}
                   </Link>

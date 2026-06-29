@@ -37,7 +37,7 @@ export default function Home() {
   }, []);
 
   const handleProductClick = (codigo: string) => {
-    if (user?.permisos?.crear_facturas) {
+    if (user?.permisos?.crear_facturas || user?.rol === 'ADMIN') {
       router.push(`/facturas/nueva?producto=${encodeURIComponent(codigo)}`);
     } else {
       alert('No tienes permisos para crear facturas de compra.');
@@ -77,7 +77,7 @@ export default function Home() {
               <ArrowRight className="w-5 h-5 text-[#d20a11]" /> Accesos Rápidos
             </h2>
             
-            {user?.permisos?.crear_facturas && (
+            {(user?.permisos?.crear_facturas || user?.rol === 'ADMIN') && (
               <Link href="/facturas/nueva" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-[#d20a11] hover:shadow-md transition-all">
                 <div className="bg-[#d20a11]/10 p-3 rounded-lg group-hover:bg-[#d20a11]/20 transition-colors">
                   <FileText className="w-6 h-6 text-[#d20a11]" />

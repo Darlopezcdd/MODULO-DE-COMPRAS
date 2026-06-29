@@ -49,11 +49,11 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
   return (
     <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 relative overflow-hidden">
       {/* Fondo decorativo */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#f0f0f0] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
       <div className="relative z-10">
         <h2 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-          <span className="text-blue-600">📅</span> Rango del Reporte
+          <span className="text-[#d20a11]">📅</span> Rango del Reporte
         </h2>
         <p className="text-slate-500 text-sm mb-6">
           Selecciona el rango de fechas para generar el reporte de facturas.
@@ -71,7 +71,7 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
               value={fechaInicio}
               max={new Date().toISOString().split('T')[0]} // Bloquea futuro en UI
               onChange={(e) => setFechaInicio(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all custom-datepicker"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#d20a11]/50 focus:border-[#d20a11] transition-all custom-datepicker"
             />
           </div>
 
@@ -86,7 +86,7 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
               min={fechaInicio} // Bloquea menores a inicio en UI
               max={new Date().toISOString().split('T')[0]}
               onChange={(e) => setFechaFin(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all custom-datepicker"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#d20a11]/50 focus:border-[#d20a11] transition-all custom-datepicker"
             />
           </div>
 
@@ -98,7 +98,7 @@ export default function ReportesFiltros({ onGenerarReporte, isLoading }: Reporte
               className={`w-full md:w-auto px-8 py-3 rounded-xl font-medium transition-all shadow-sm flex items-center justify-center gap-2 ${
                 isLoading 
                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-md hover:-translate-y-0.5'
+                  : 'bg-[#d20a11] hover:bg-[#b0080e] text-white hover:shadow-md hover:-translate-y-0.5'
               }`}
             >
               {isLoading ? (

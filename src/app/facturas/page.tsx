@@ -69,8 +69,8 @@ export default function FacturasPage() {
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold tracking-tight text-slate-900">Facturas de Compra</h1>
-          {user?.permisos?.crear_facturas && (
-            <Link href="/facturas/nueva" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
+          {(user?.permisos?.crear_facturas || user?.rol === 'ADMIN') && (
+            <Link href="/facturas/nueva" className="bg-[#d20a11] hover:bg-[#b0080e] text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
               + Nueva Factura
             </Link>
           )}
@@ -79,7 +79,7 @@ export default function FacturasPage() {
         <div className="bg-white p-4 rounded-xl flex gap-4 items-center border border-slate-200 shadow-sm">
           <span className="text-sm font-semibold text-slate-600">Filtros:</span>
           <select 
-            className="bg-white border border-slate-200 text-slate-900 px-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="bg-white border border-slate-200 text-slate-900 px-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-[#d20a11] focus:border-transparent transition-all"
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
           >
@@ -105,7 +105,7 @@ export default function FacturasPage() {
             <tbody className="divide-y divide-slate-100">
               {facturas.map(f => (
                 <tr key={f.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="p-4 font-mono text-sm text-blue-600">{f.numeroFactura || 'S/N'}</td>
+                  <td className="p-4 font-mono text-sm text-[#d20a11]">{f.numeroFactura || 'S/N'}</td>
                   <td className="p-4 text-slate-500">{f.fecha}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${f.tipoPago === 'CREDITO' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
@@ -117,7 +117,7 @@ export default function FacturasPage() {
                   </td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      f.estado === 'EMITIDA' ? 'bg-blue-100 text-blue-700' : 
+                      f.estado === 'EMITIDA' ? 'bg-[#f0f0f0] text-[#706f6f]' : 
                       f.estado === 'ANULADA' ? 'bg-red-100 text-red-700' : 
                       'bg-slate-100 text-slate-700'
                     }`}>
@@ -127,7 +127,7 @@ export default function FacturasPage() {
                   <td className="p-4 text-center">
                     <button 
                       onClick={() => window.open(`/api/facturas/${f.id}/pdf`, '_blank')}
-                      className="text-slate-400 hover:text-blue-600 transition-colors p-2"
+                      className="text-slate-400 hover:text-[#d20a11] transition-colors p-2"
                       title="Previsualizar PDF"
                     >
                       <Eye size={18} />
