@@ -25,9 +25,9 @@ export default function LoginPage() {
     setError('');
     setShowPassword(false); // Resetear visibilidad al cambiar rol
     
-    // Autocompletamos con un email genérico basado en el rol para facilitar el desarrollo
-    setIdentificador(`${rol.toLowerCase().replace('_', '.')}@utn.edu.ec`);
-    setPassword('123456'); // Contraseña genérica de prueba
+    // Autocompletamos con un nombre de usuario genérico basado en el rol
+    setIdentificador(rol.toLowerCase());
+    setPassword(''); // No prellenar contraseña, el usuario debe escribirla
   };
 
   // ── 2. Al enviar el formulario, hacemos el login simulado ───────────────────
@@ -45,9 +45,11 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Seguimos enviando el "rol" porque el backend actual espera eso en el mock.
-        // Cuando llegue el backend real, aquí enviarás: { email: identificador, password }
-        body: JSON.stringify({ rol: selectedRole }) 
+        body: JSON.stringify({ 
+          username: identificador, 
+          password: password,
+          rol: selectedRole // Mantenido temporalmente como fallback
+        }) 
       });
 
       const data = await res.json();
