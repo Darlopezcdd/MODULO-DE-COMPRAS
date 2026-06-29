@@ -157,11 +157,27 @@ export async function POST(request: Request) {
       if (payloadBase64) {
         const decodedPayload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf8'));
         
-        if (decodedPayload.rol) userRole = decodedPayload.rol;
-        if (decodedPayload.id) userId = decodedPayload.id;
-        if (decodedPayload.username || decodedPayload.nombre) {
-          userNombre = decodedPayload.username || decodedPayload.nombre;
+        // El token externo devuelve 'roles' como array o 'rol' como string
+        const rolesPermitidos = ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO'];
+        
+        if (decodedPayload.roles && Array.isArray(decodedPayload.roles)) {
+          // Buscamos si el usuario tiene algún rol válido para nuestro módulo
+          const rolValido = decodedPayload.roles.find((r: string) => rolesPermitidos.includes(r));
+          if (rolValido) {
+            userRole = rolValido;
+          } else if (decodedPayload.roles.length > 0) {
+            userRole = decodedPayload.roles[0]; // Tomar el que tenga para que falle la validación
+          }
+        } else if (decodedPayload.rol) {
+          userRole = decodedPayload.rol;
         }
+
+        if (decodedPayload.user_id) userId = decodedPayload.user_id;
+        else if (decodedPayload.id) userId = decodedPayload.id;
+
+        if (decodedPayload.user_name) userNombre = decodedPayload.user_name;
+        else if (decodedPayload.username) userNombre = decodedPayload.username;
+        else if (decodedPayload.nombre) userNombre = decodedPayload.nombre;
       }
     } catch (e) {
       console.error("No se pudo decodificar el token externo", e);
