@@ -101,15 +101,15 @@ describe('Smoke — Auth utilities', () => {
 
   it('signToken retorna un string con formato JWT', async () => {
     (signToken as jest.Mock).mockResolvedValue('header.payload.signature');
-    const token = await signToken({ usuarioId: 1, rol: 'ADMIN' });
+    const token = await signToken({ id: 1, nombre: 'Test', email: 'test@test.com', rol: 'ADMIN', permisos: {} as any });
     expect(typeof token).toBe('string');
   });
 
   it('verifyToken decodifica un payload correcto', async () => {
-    const mockDecoded = { usuarioId: 1, rol: 'ADMIN' };
+    const mockDecoded = { id: 1, rol: 'ADMIN' };
     (verifyToken as jest.Mock).mockResolvedValue(mockDecoded);
     const decoded = await verifyToken('un-token-valido');
-    expect(decoded.usuarioId).toBe(1);
+    expect(decoded.id).toBe(1);
     expect(decoded.rol).toBe('ADMIN');
   });
 

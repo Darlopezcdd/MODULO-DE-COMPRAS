@@ -3,14 +3,27 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import FacturaForm from '../src/components/FacturaForm';
 
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn() }),
+  useSearchParams: () => ({ get: jest.fn() }),
+}));
+
 jest.mock('@apollo/client/react', () => {
   const actual = jest.requireActual('@apollo/client/react');
   return {
     ...actual,
     ApolloProvider: ({ children }: any) => children,
     useQuery: () => ({ data: null, loading: false, error: null }),
+    useMutation: () => [jest.fn()],
+    useApolloClient: () => ({ query: jest.fn().mockResolvedValue({ data: null }) }),
   };
 });
+
+global.fetch = jest.fn(() => 
+  Promise.resolve({ 
+    json: () => Promise.resolve({ success: true, data: [] }) 
+  })
+) as jest.Mock;
 
 describe('FacturaForm DOM Mutations', () => {
   it('agrega y elimina líneas de productos correctamente', () => {

@@ -6,6 +6,10 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
+jest.mock('@/lib/validadores', () => ({
+  validarIdentificacionEcuador: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('@apollo/client/react', () => {
   const actual = jest.requireActual('@apollo/client/react');
   return {

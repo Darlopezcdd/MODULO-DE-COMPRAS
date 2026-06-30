@@ -100,11 +100,6 @@ function ProveedorFormContent({ defaultValues, isEdit = false, id }: { defaultVa
         </div>
       )}
 
-      {successMsg && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-lg mb-6 shadow-sm">
-          ✓ {successMsg}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-2 gap-6">

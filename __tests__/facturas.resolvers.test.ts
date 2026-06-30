@@ -1,8 +1,15 @@
 import { resolvers } from '@/graphql/resolvers';
+import { TextEncoder, TextDecoder } from 'util';
+
+Object.assign(global, { TextDecoder, TextEncoder });
 import { GraphQLError } from 'graphql';
 
 jest.mock('@/lib/authUtils', () => ({
   getUserFromRequest: jest.fn().mockResolvedValue(null)
+}));
+
+jest.mock('@/lib/auditoriaCentralClient', () => ({
+  logAccionCentral: jest.fn(),
 }));
 
 // ── Mock de Prisma ────────────────────────────────────────────────────────────
