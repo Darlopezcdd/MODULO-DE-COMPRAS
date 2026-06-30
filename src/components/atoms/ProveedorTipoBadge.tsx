@@ -16,14 +16,14 @@ export default function ProveedorTipoBadge({ tipo }: Props) {
       style={
         esContado
           ? {
-              backgroundColor: 'rgba(0,51,102,0.08)',
-              color: '#003366',
-              borderColor: 'rgba(0,51,102,0.25)',
+              backgroundColor: 'rgba(112,111,111,0.08)',
+              color: '#706f6f',
+              borderColor: 'rgba(112,111,111,0.25)',
             }
           : {
-              backgroundColor: 'rgba(74,144,226,0.10)',
-              color: '#2563EB',
-              borderColor: 'rgba(74,144,226,0.30)',
+              backgroundColor: 'rgba(210,10,17,0.10)',
+              color: '#d20a11',
+              borderColor: 'rgba(210,10,17,0.30)',
             }
       }
     >

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Banknote, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Banknote, CheckCircle2 } from 'lucide-react';
 
 interface Saldo {
   id: number;
@@ -10,7 +10,6 @@ interface Saldo {
   monto_credito: number;
   monto_pagado: number;
   saldo_pendiente: number;
-  fecha_vencimiento: string | null;
   fecha_vencimiento: string | null;
   estado: string;
   proveedor_banco?: string;

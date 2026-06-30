@@ -18,8 +18,12 @@ export const getApiDocs = async () => {
       },
       servers: [
         {
-          url: 'http://localhost:3000',
-          description: 'Servidor de desarrollo local',
+          url: '/',
+          description: 'Servidor actual',
+        },
+        {
+          url: 'https://modulo-compras.vercel.app',
+          description: 'Producción — Vercel (Módulo de Compras)',
         },
         {
           url: 'https://modulo-compras.vercel.app',

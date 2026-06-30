@@ -8,7 +8,7 @@ export interface CuentaBancaria {
 }
 
 // Datos Mockeados de Cuentas (Simulando API Externa CXC)
-let cuentasEmpresa: CuentaBancaria[] = [
+const cuentasEmpresa: CuentaBancaria[] = [
   {
     id: "cta_001",
     banco: "Banco Pichincha",

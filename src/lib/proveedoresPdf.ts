@@ -2,8 +2,8 @@
 // Script de generación PDF — HU5: Reporte de Proveedores
 // Librería: PDFKit (buffer-based, server-side)
 
-import PDFDocument from 'pdfkit';
-
+// @ts-expect-error Ignorando tipado de pdfkit
+import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
 // ── Paleta de colores corporativa ─────────────────────────────────────────────
 const COLORS = {
   primary:    '#1E3A5F',   // azul marino
