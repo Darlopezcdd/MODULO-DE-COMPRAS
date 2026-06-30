@@ -63,6 +63,11 @@ export default function ReportesPage() {
   const [isLoadingProv, setIsLoadingProv] = useState(false);
   const [generandoPdf, setGenerandoPdf] = useState(false);
 
+  // ── Paginación ─────────────────────────────────────────────────────────
+  const ITEMS_POR_PAGINA = 10;
+  const [paginaActualProv, setPaginaActualProv] = useState(1);
+  const [paginaActualFact, setPaginaActualFact] = useState(1);
+
   // ── Estado tab Facturas ───────────────────────────────────────────────────
   const [facturas, setFacturas] = useState<FacturaReporteData[] | null>(null);
   const [isLoadingFact, setIsLoadingFact] = useState(false);
@@ -85,6 +90,7 @@ export default function ReportesPage() {
       }
     } catch (e) {
       console.error('Error al cargar proveedores:', e);
+      setPaginaActualProv(1);
     } finally {
       setIsLoadingProv(false);
     }
@@ -145,6 +151,7 @@ export default function ReportesPage() {
           total: Number(f.total ?? 0),
         }));
         setFacturas(mapped);
+        setPaginaActualFact(1);
       } else {
         setFacturas([]);
       }
@@ -280,9 +287,44 @@ export default function ReportesPage() {
 
             {/* Tabla de proveedores (Molécula) */}
             <TablaProveedores
-              data={proveedores}
+              data={proveedores ? proveedores.slice((paginaActualProv - 1) * ITEMS_POR_PAGINA, paginaActualProv * ITEMS_POR_PAGINA) : proveedores}
               isLoading={isLoadingProv}
             />
+
+            {proveedores && proveedores.length > 0 && (
+              <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                <span className="text-sm text-slate-500">
+                  Mostrando {(paginaActualProv - 1) * ITEMS_POR_PAGINA + 1} a {Math.min(paginaActualProv * ITEMS_POR_PAGINA, proveedores.length)} de {proveedores.length} registros
+                </span>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setPaginaActualProv(p => Math.max(1, p - 1))}
+                    disabled={paginaActualProv === 1}
+                    className="px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm text-slate-700 transition-colors shadow-sm"
+                  >
+                    Anterior
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.ceil(proveedores.length / ITEMS_POR_PAGINA) }, (_, i) => i + 1).map(pag => (
+                      <button
+                        key={pag}
+                        onClick={() => setPaginaActualProv(pag)}
+                        className={`w-8 h-8 rounded text-sm transition-colors shadow-sm ${paginaActualProv === pag ? 'bg-blue-600 text-white font-bold border border-blue-600' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-700'}`}
+                      >
+                        {pag}
+                      </button>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => setPaginaActualProv(p => Math.min(Math.ceil(proveedores.length / ITEMS_POR_PAGINA), p + 1))}
+                    disabled={paginaActualProv === Math.ceil(proveedores.length / ITEMS_POR_PAGINA) || Math.ceil(proveedores.length / ITEMS_POR_PAGINA) === 0}
+                    className="px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm text-slate-700 transition-colors shadow-sm"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -339,9 +381,44 @@ export default function ReportesPage() {
 
             {/* Tabla de facturas (componente existente de Aldahir) */}
             <ReportesTabla
-              data={facturas}
+              data={facturas ? facturas.slice((paginaActualFact - 1) * ITEMS_POR_PAGINA, paginaActualFact * ITEMS_POR_PAGINA) : facturas}
               isLoading={isLoadingFact}
             />
+
+            {facturas && facturas.length > 0 && (
+              <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                <span className="text-sm text-slate-500">
+                  Mostrando {(paginaActualFact - 1) * ITEMS_POR_PAGINA + 1} a {Math.min(paginaActualFact * ITEMS_POR_PAGINA, facturas.length)} de {facturas.length} registros
+                </span>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setPaginaActualFact(p => Math.max(1, p - 1))}
+                    disabled={paginaActualFact === 1}
+                    className="px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm text-slate-700 transition-colors shadow-sm"
+                  >
+                    Anterior
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.ceil(facturas.length / ITEMS_POR_PAGINA) }, (_, i) => i + 1).map(pag => (
+                      <button
+                        key={pag}
+                        onClick={() => setPaginaActualFact(pag)}
+                        className={`w-8 h-8 rounded text-sm transition-colors shadow-sm ${paginaActualFact === pag ? 'bg-blue-600 text-white font-bold border border-blue-600' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-700'}`}
+                      >
+                        {pag}
+                      </button>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => setPaginaActualFact(p => Math.min(Math.ceil(facturas.length / ITEMS_POR_PAGINA), p + 1))}
+                    disabled={paginaActualFact === Math.ceil(facturas.length / ITEMS_POR_PAGINA) || Math.ceil(facturas.length / ITEMS_POR_PAGINA) === 0}
+                    className="px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm text-slate-700 transition-colors shadow-sm"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

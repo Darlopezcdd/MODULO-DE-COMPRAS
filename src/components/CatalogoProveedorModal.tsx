@@ -7,6 +7,7 @@ import { apolloClient } from "@/lib/apolloClient";
 import AutocompleteProducto from "./AutocompleteProducto";
 import NuevoProductoModal from "./NuevoProductoModal";
 import * as XLSX from 'xlsx';
+import { AlertTriangle, X } from 'lucide-react';
 
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
@@ -64,6 +65,14 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploadingExcel, setIsUploadingExcel] = useState(false);
   
+  // Estado para el toast de aviso
+  const [aviso, setAviso] = useState<{ mensaje: string; tipo: 'warning' | 'success' } | null>(null);
+
+  const mostrarAviso = (mensaje: string, tipo: 'warning' | 'success') => {
+    setAviso({ mensaje, tipo });
+    setTimeout(() => setAviso(null), 3500);
+  };
+
   // Estado para la seleccion inline
   const [productoSeleccionado, setProductoSeleccionado] = useState<any>(null);
   const [precioInput, setPrecioInput] = useState<string>("");
@@ -208,7 +217,21 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">✕</button>
         </div>
         
-        <div className="p-6 flex-1 overflow-y-auto bg-slate-50/50">
+        <div className="p-6 flex-1 overflow-y-auto bg-slate-50/50 relative">
+
+          {aviso && (
+            <div className={`absolute top-4 left-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg border flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300 ${
+              aviso.tipo === 'warning'
+                ? 'bg-amber-50 border-amber-200 text-amber-800'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+            }`}>
+              <AlertTriangle className={`w-5 h-5 shrink-0 ${aviso.tipo === 'warning' ? 'text-amber-500' : 'text-emerald-500'}`} />
+              <p className="text-sm font-medium flex-1">{aviso.mensaje}</p>
+              <button onClick={() => setAviso(null)} className="shrink-0 opacity-60 hover:opacity-100 transition-opacity">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
           
           <div className="mb-6 p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
@@ -229,7 +252,13 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose }: Catal
                   {isUploadingExcel ? 'Procesando Excel...' : '↑ Cargar Excel'}
                 </button>
                 <button 
-                  onClick={() => window.open(`/api/proveedores/${proveedorId}/catalogo/pdf`, '_blank')}
+                  onClick={() => {
+                    if (productosFull.length === 0) {
+                      mostrarAviso('El catálogo de este proveedor está vacío. Agregue productos antes de imprimir.', 'warning');
+                      return;
+                    }
+                    window.open(`/api/proveedores/${proveedorId}/catalogo/pdf`, '_blank');
+                  }}
                   className="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1 bg-purple-50 px-3 py-1.5 rounded-lg transition"
                 >
                   Imprimir PDF

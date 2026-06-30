@@ -75,7 +75,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/authUtils';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
+  try {
   // ── 1. Verificar autenticación ──────────────────────────────
   const payload = await getUserFromRequest(request) as any;
 
@@ -153,4 +156,11 @@ export async function GET(request: NextRequest) {
     pagina,
     totalPaginas: Math.ceil(total / limite),
   });
+  } catch (err: any) {
+    console.error('Error en /api/auditoria:', err);
+    return NextResponse.json(
+      { success: false, error: err.message || 'Error interno del servidor' },
+      { status: 500 }
+    );
+  }
 }
