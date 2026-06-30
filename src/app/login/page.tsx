@@ -25,9 +25,9 @@ export default function LoginPage() {
     setError('');
     setShowPassword(false); // Resetear visibilidad al cambiar rol
     
-    // Autocompletamos con un email genérico basado en el rol para facilitar el desarrollo
-    setIdentificador(`${rol.toLowerCase().replace('_', '.')}@utn.edu.ec`);
-    setPassword('123456'); // Contraseña genérica de prueba
+    // Autocompletamos con un nombre de usuario genérico basado en el rol
+    setIdentificador(rol.toLowerCase());
+    setPassword(''); // No prellenar contraseña, el usuario debe escribirla
   };
 
   // ── 2. Al enviar el formulario, hacemos el login simulado ───────────────────
@@ -45,9 +45,11 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Seguimos enviando el "rol" porque el backend actual espera eso en el mock.
-        // Cuando llegue el backend real, aquí enviarás: { email: identificador, password }
-        body: JSON.stringify({ rol: selectedRole }) 
+        body: JSON.stringify({ 
+          username: identificador, 
+          password: password,
+          rol: selectedRole // Mantenido temporalmente como fallback
+        }) 
       });
 
       const data = await res.json();
@@ -70,10 +72,10 @@ export default function LoginPage() {
     <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
       <button
         onClick={() => handleSelectRole('ADMIN')}
-        className="w-full flex items-center justify-between bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#003366] p-4 rounded-xl transition-all group"
+        className="w-full flex items-center justify-between bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#d20a11] p-4 rounded-xl transition-all group"
       >
         <div className="flex items-center gap-4">
-          <div className="bg-[#003366]/10 text-[#003366] p-3 rounded-lg group-hover:scale-110 transition-transform">
+          <div className="bg-[#d20a11]/10 text-[#d20a11] p-3 rounded-lg group-hover:scale-110 transition-transform">
             <ShieldCheck size={24} />
           </div>
           <div className="text-left">
@@ -85,10 +87,10 @@ export default function LoginPage() {
 
       <button
         onClick={() => handleSelectRole('COMPRADOR')}
-        className="w-full flex items-center justify-between bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#003366] p-4 rounded-xl transition-all group"
+        className="w-full flex items-center justify-between bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#d20a11] p-4 rounded-xl transition-all group"
       >
         <div className="flex items-center gap-4">
-          <div className="bg-[#003366]/10 text-[#003366] p-3 rounded-lg group-hover:scale-110 transition-transform">
+          <div className="bg-[#d20a11]/10 text-[#d20a11] p-3 rounded-lg group-hover:scale-110 transition-transform">
             <UserCircle2 size={24} />
           </div>
           <div className="text-left">
@@ -100,10 +102,10 @@ export default function LoginPage() {
 
       <button
         onClick={() => handleSelectRole('GESTOR_PROVEEDORES')}
-        className="w-full flex items-center justify-between bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#003366] p-4 rounded-xl transition-all group"
+        className="w-full flex items-center justify-between bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#d20a11] p-4 rounded-xl transition-all group"
       >
         <div className="flex items-center gap-4">
-          <div className="bg-[#003366]/10 text-[#003366] p-3 rounded-lg group-hover:scale-110 transition-transform">
+          <div className="bg-[#d20a11]/10 text-[#d20a11] p-3 rounded-lg group-hover:scale-110 transition-transform">
             <ShieldCheck size={24} />
           </div>
           <div className="text-left">
@@ -115,10 +117,10 @@ export default function LoginPage() {
 
       <button
         onClick={() => handleSelectRole('TESORERO')}
-        className="w-full flex items-center justify-between bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#003366] p-4 rounded-xl transition-all group"
+        className="w-full flex items-center justify-between bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#d20a11] p-4 rounded-xl transition-all group"
       >
         <div className="flex items-center gap-4">
-          <div className="bg-[#003366]/10 text-[#003366] p-3 rounded-lg group-hover:scale-110 transition-transform">
+          <div className="bg-[#d20a11]/10 text-[#d20a11] p-3 rounded-lg group-hover:scale-110 transition-transform">
             <UserCircle2 size={24} />
           </div>
           <div className="text-left">
@@ -139,14 +141,14 @@ export default function LoginPage() {
         type="button"
         onClick={() => setSelectedRole(null)}
         disabled={isLoading}
-        className="flex items-center gap-2 text-sm text-slate-500 hover:text-[#003366] font-semibold transition-colors disabled:opacity-50"
+        className="flex items-center gap-2 text-sm text-slate-500 hover:text-[#d20a11] font-semibold transition-colors disabled:opacity-50"
       >
         <ArrowLeft size={16} /> Volver a los roles
       </button>
 
       <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-6">
         <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Rol Simulado</p>
-        <p className="text-lg font-bold text-[#003366]">{selectedRole?.replace('_', ' ')}</p>
+        <p className="text-lg font-bold text-[#d20a11]">{selectedRole?.replace('_', ' ')}</p>
       </div>
 
       <div className="space-y-4">
@@ -163,7 +165,7 @@ export default function LoginPage() {
               disabled={isLoading}
               value={identificador}
               onChange={(e) => setIdentificador(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/50 focus:border-[#003366] transition-all disabled:bg-slate-50 disabled:text-slate-500"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#d20a11]/50 focus:border-[#d20a11] transition-all disabled:bg-slate-50 disabled:text-slate-500"
               placeholder="Ej: admin@utn.edu.ec"
             />
           </div>
@@ -182,7 +184,7 @@ export default function LoginPage() {
               disabled={isLoading}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-12 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/50 focus:border-[#003366] transition-all disabled:bg-slate-50 disabled:text-slate-500"
+              className="w-full pl-10 pr-12 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#d20a11]/50 focus:border-[#d20a11] transition-all disabled:bg-slate-50 disabled:text-slate-500"
               placeholder="••••••••"
             />
             {/* Botón Mostrar/Ocultar Contraseña */}
@@ -190,7 +192,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               disabled={isLoading}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-[#003366] transition-colors focus:outline-none disabled:opacity-50"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-[#d20a11] transition-colors focus:outline-none disabled:opacity-50"
               aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -203,7 +205,7 @@ export default function LoginPage() {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full flex justify-center items-center gap-2 bg-[#003366] hover:bg-[#002244] text-white py-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+        className="w-full flex justify-center items-center gap-2 bg-[#d20a11] hover:bg-[#b0080d] text-white py-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
       >
         {isLoading ? (
           <span className="flex items-center gap-2">
@@ -222,9 +224,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden font-sans">
-      {/* Destellos de fondo (Híbrido: Rojo UTN y Azul UTN) */}
+      {/* Destellos de fondo (Híbrido: Rojo UTN y Gris) */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#d20a11]/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#003366]/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#706f6f]/10 rounded-full blur-3xl" />
       
       <div className="bg-white/90 backdrop-blur-xl border border-slate-200 shadow-xl p-10 w-full max-w-lg relative z-10 rounded-3xl">
         <h1 className="text-3xl font-black text-slate-800 mb-1.5 text-center tracking-tight">

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { registrarAuditoria } from '@/lib/auditoriaService';
 import { registrarDebito } from '@/lib/cuentasClient';
+import { buscarProductos, actualizarProductoGlobal } from '@/lib/inventariosClient';
 
 /**
  * @swagger
@@ -159,6 +160,30 @@ export async function POST(req: Request) {
     });
 
     await registrarAuditoria(1, 'Admin', 'CREAR', 'facturas_compra', factura.id, null, factura, 'Generación completa de Factura');
+
+    // 5. Actualizar el inventario global (Stock y Costo)
+    try {
+      for (const prod of productos) {
+        const resInv = await buscarProductos('', 1, 1, [prod.codigo]);
+        if (resInv.success && resInv.data.length > 0) {
+          const productoActual = resInv.data[0];
+          const nuevoStock = productoActual.stockActual + Number(prod.cantidad);
+          
+          await actualizarProductoGlobal(prod.codigo, {
+            codigo: prod.codigo,
+            nombre: productoActual.nombre,
+            descripcion: productoActual.descripcion,
+            graba_iva: productoActual.grabaIva,
+            costo: Number(prod.pvp), // El nuevo costo es el precio de compra
+            pvp: productoActual.precioUnitario,
+            stock_actual: nuevoStock,
+            estado: productoActual.estado,
+          });
+        }
+      }
+    } catch (errInv) {
+      console.error('Error al actualizar stock global:', errInv);
+    }
 
     return NextResponse.json({ success: true, factura });
   } catch (error: any) {

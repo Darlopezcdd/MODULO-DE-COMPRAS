@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { generarCatalogoPDF, DatosCatalogoPDF } from '@/lib/catalogoPdf';
-import { getInventarioClient } from '@/lib/inventariosClient';
+import { buscarProductos } from '@/lib/inventariosClient';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -20,7 +20,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 
     // Fetch inventario for names and stock
-    const invRes = await getInventarioClient({ limit: 500 });
+    const invRes = await buscarProductos('', 1, 500);
     const productosInventario = invRes.success ? invRes.data : [];
 
     const productosCatalogo = proveedor.catalogos.map(cat => {
