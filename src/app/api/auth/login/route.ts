@@ -211,7 +211,7 @@ export async function POST(request: Request) {
         console.log("=========================================");
 
         // El token externo devuelve 'roles' como array o 'rol' como string
-        const rolesPermitidos = ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO', 'AUDITOR', 'INV_BODEGUERO'];
+        const rolesPermitidos = ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO', 'AUDITOR', 'INV_BODEGUERO', 'COMP_COMPRADOR', 'COMP_GESTOR_DE_PROVEEDORES', 'COMP_TESORERO'];
         
         if (decodedPayload.roles && Array.isArray(decodedPayload.roles)) {
           // Buscamos si el usuario tiene algún rol válido para nuestro módulo (quitando espacios extra)
@@ -238,10 +238,15 @@ export async function POST(request: Request) {
     }
     
     // Lista blanca estricta de roles autorizados para el Módulo de Compras (Añadimos INV_BODEGUERO temporalmente)
-    const rolesPermitidos = ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO', 'AUDITOR', 'INV_BODEGUERO'];
+    const rolesPermitidos = ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO', 'AUDITOR', 'INV_BODEGUERO', 'COMP_COMPRADOR', 'COMP_GESTOR_DE_PROVEEDORES', 'COMP_TESORERO'];
 
     // Si el rol devuelto no está en nuestra lista de compras, se bloquea el acceso
     if (!userRole || !rolesPermitidos.includes(userRole)) {
+      console.log("=========================================");
+      console.log("ACCESO DENEGADO - ROL NO VÁLIDO");
+      console.log("Rol detectado:", userRole);
+      console.log("Roles esperados:", rolesPermitidos);
+      console.log("=========================================");
       return NextResponse.json(
         { error: 'Acceso denegado: El usuario no tiene un rol válido para acceder al Módulo de Compras.' }, 
         { status: 403 }
@@ -282,14 +287,14 @@ export async function POST(request: Request) {
         ver_reportes: true,
         ver_auditoria: true,
       };
-    } else if (userRole === 'COMPRADOR' || userRole === 'INV_BODEGUERO') {
+    } else if (userRole === 'COMPRADOR' || userRole === 'INV_BODEGUERO' || userRole === 'COMP_COMPRADOR') {
       permisos = {
         ...permisos,
         ver_proveedores: true,
         ver_facturas: true,
         crear_facturas: true,
       };
-    } else if (userRole === 'GESTOR_PROVEEDORES') {
+    } else if (userRole === 'GESTOR_PROVEEDORES' || userRole === 'COMP_GESTOR_DE_PROVEEDORES') {
       permisos = {
         ...permisos,
         ver_proveedores: true,
@@ -297,7 +302,7 @@ export async function POST(request: Request) {
         editar_proveedores: true,
         gestionar_catalogo: true,
       };
-    } else if (userRole === 'TESORERO') {
+    } else if (userRole === 'TESORERO' || userRole === 'COMP_TESORERO') {
       permisos = {
         ...permisos,
         ver_proveedores: true,
