@@ -8,9 +8,12 @@ import { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useMutation, ApolloProvider } from '@apollo/client/react';
 import { apolloClient } from '@/lib/apolloClient';
+import { validarIdentificacionEcuador } from '@/lib/validadores';
 
 const proveedorSchema = z.object({
-  cedulaRuc: z.string().regex(/^\d{10}(\d{3})?$/, 'Debe tener 10 o 13 dígitos numéricos'),
+  cedulaRuc: z.string()
+    .regex(/^\d{10}(\d{3})?$/, 'Debe tener 10 o 13 dígitos numéricos')
+    .refine((val) => validarIdentificacionEcuador(val), { message: 'Cédula o RUC inválido' }),
   nombre: z.string().regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]{3,100}$/, 'Debe tener entre 3 y 100 caracteres, sin números ni caracteres especiales'),
   ciudad: z.string().regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s\-\.,]{3,50}$/, 'Debe tener entre 3 y 50 caracteres (letras y signos básicos)'),
   tipo: z.enum(['CONTADO', 'CREDITO'], { message: 'Selecciona un tipo de proveedor' }),
@@ -38,13 +41,25 @@ function ProveedorFormContent({ defaultValues, isEdit = false, id }: { defaultVa
   const [serverError, setServerError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProveedorFormValues>({
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting, dirtyFields, touchedFields } } = useForm<ProveedorFormValues>({
     resolver: zodResolver(proveedorSchema),
     mode: 'onChange',
     defaultValues: defaultValues || {
       tipo: 'CONTADO'
     }
   });
+
+  const cedulaRucValue = watch('cedulaRuc');
+  const cedulaTouched = dirtyFields.cedulaRuc || touchedFields.cedulaRuc || !!defaultValues?.cedulaRuc;
+  const isCedulaValid = cedulaTouched && cedulaRucValue && !errors.cedulaRuc;
+  const isCedulaInvalid = !!errors.cedulaRuc;
+
+  const getCedulaClassName = () => {
+    const base = "w-full bg-white text-slate-900 px-4 py-2 rounded-lg border outline-none transition-colors ";
+    if (isCedulaInvalid) return base + "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200";
+    if (isCedulaValid) return base + "border-emerald-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200";
+    return base + "border-slate-300 focus:border-primary focus:ring-2 focus:ring-blue-500";
+  };
 
   const [crearProveedor] = useMutation(CREAR_PROVEEDOR);
   const [actualizarProveedor] = useMutation(ACTUALIZAR_PROVEEDOR);
@@ -98,10 +113,11 @@ function ProveedorFormContent({ defaultValues, isEdit = false, id }: { defaultVa
             <input 
               {...register('cedulaRuc')} 
               disabled={isEdit}
-              className="w-full bg-white text-slate-900 px-4 py-2 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-blue-500 outline-none transition-colors" 
+              className={getCedulaClassName()} 
               placeholder="1234567890" 
             />
             {errors.cedulaRuc && <p className="text-red-600 text-xs mt-1">{errors.cedulaRuc.message}</p>}
+            {isCedulaValid && <p className="text-emerald-600 text-xs mt-1">Identificación válida</p>}
           </div>
 
           <div>
