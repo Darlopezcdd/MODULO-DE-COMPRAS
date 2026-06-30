@@ -116,6 +116,21 @@ export default function LoginPage() {
       </button>
 
       <button
+        onClick={() => handleSelectRole('AUDITOR')}
+        className="w-full flex items-center justify-between bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#003366] p-4 rounded-xl transition-all group"
+      >
+        <div className="flex items-center gap-4">
+          <div className="bg-[#d10a11]/10 text-[#d10a11] p-3 rounded-lg group-hover:scale-110 transition-transform">
+            <ShieldCheck size={24} />
+          </div>
+          <div className="text-left">
+            <p className="font-bold text-slate-800 text-lg">Entrar como AUDITOR</p>
+            <p className="text-sm text-slate-500">Consultar pistas de auditoría del sistema.</p>
+          </div>
+        </div>
+      </button>
+
+      <button
         onClick={() => handleSelectRole('TESORERO')}
         className="w-full flex items-center justify-between bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-[#d20a11] p-4 rounded-xl transition-all group"
       >

@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Home, Users, FileText, BarChart2, LogOut, Banknote } from 'lucide-react';
+import { Home, Users, FileText, BarChart2, LogOut, Banknote, Shield } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -77,6 +77,13 @@ export default function Sidebar() {
           <Link href="/tesoreria" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium ${isActive('/tesoreria') || pathname.startsWith('/tesoreria/') ? 'bg-[#d20a11]/10 text-[#d20a11]' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
             <Banknote size={20} className={isActive('/tesoreria') || pathname.startsWith('/tesoreria/') ? 'text-[#d20a11]' : 'text-slate-400'} />
             Tesorería
+          </Link>
+        )}
+
+        {permisos.ver_auditoria && (
+          <Link href="/auditoria" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium ${isActive('/auditoria') ? 'bg-[#d20a11]/10 text-[#d20a11]' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+            <Shield size={20} className={isActive('/auditoria') ? 'text-[#d20a11]' : 'text-slate-400'} />
+            Auditoría
           </Link>
         )}
       </nav>

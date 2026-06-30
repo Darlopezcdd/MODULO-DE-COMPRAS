@@ -55,6 +55,7 @@ export async function POST(request: Request) {
     const username = body.username || body.identificador || body.email;
     const password = body.password;
 
+<<<<<<< HEAD
     // Para mantener retrocompatibilidad temporal si alguien manda "rol" desde swagger o UI vieja
     if (body.rol && !username && !password) {
       const rol = body.rol;
@@ -212,6 +213,86 @@ export async function POST(request: Request) {
       nombre: userNombre,
       email: username, 
       rol: userRole,
+=======
+    if (!rol || !['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO', 'AUDITOR'].includes(rol)) {
+      return NextResponse.json({ error: 'Rol inválido o no proporcionado' }, { status: 400 });
+    }
+
+    // Definir permisos dinámicos basados en el rol (Simulando lo que haría el Módulo de Seguridad)
+    let permisos = {
+      ver_proveedores: false,
+      crear_proveedores: false,
+      editar_proveedores: false,
+      gestionar_catalogo: false,
+      ver_facturas: false,
+      crear_facturas: false,
+      puede_anular: false,
+      ver_reportes: false,
+      gestionar_pagos: false,
+      ver_auditoria: false,
+    };
+
+    if (rol === 'ADMIN') {
+      permisos = {
+        ver_proveedores: true,
+        crear_proveedores: true,
+        editar_proveedores: true,
+        gestionar_catalogo: true,
+        ver_facturas: true,
+        crear_facturas: true,
+        puede_anular: true,
+        ver_reportes: true,
+        gestionar_pagos: true,
+        ver_auditoria: true,
+      };
+    } else if (rol === 'AUDITOR') {
+      permisos = {
+        ...permisos,
+        ver_proveedores: true,
+        ver_facturas: true,
+        ver_reportes: true,
+        ver_auditoria: true,
+      };
+    } else if (rol === 'COMPRADOR') {
+      permisos = {
+        ...permisos,
+        ver_proveedores: true,
+        ver_facturas: true,
+        crear_facturas: true,
+      };
+    } else if (rol === 'GESTOR_PROVEEDORES') {
+      permisos = {
+        ...permisos,
+        ver_proveedores: true,
+        crear_proveedores: true,
+        editar_proveedores: true,
+        gestionar_catalogo: true,
+      };
+    } else if (rol === 'TESORERO') {
+      permisos = {
+        ...permisos,
+        ver_proveedores: true,
+        ver_facturas: true,
+        ver_reportes: true,
+        gestionar_pagos: true,
+      };
+    }
+
+    // Crear un payload mock con ID fijo y datos de prueba
+    const userNames: Record<string, string> = {
+      'ADMIN': 'Administrador Sistema',
+      'AUDITOR': 'Auditor Sistema',
+      'COMPRADOR': 'Comprador Usuario',
+      'GESTOR_PROVEEDORES': 'Gestor de Proveedores',
+      'TESORERO': 'Tesorero Finanzas'
+    };
+
+    const tokenPayload = {
+      id: ['ADMIN', 'AUDITOR', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO'].indexOf(rol) + 1,
+      nombre: userNames[rol as keyof typeof userNames],
+      email: `${rol.toLowerCase().replace('_', '.')}@compras.com`,
+      rol: rol,
+>>>>>>> origin/farirama
       permisos: permisos
     };
 
