@@ -156,6 +156,49 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Faltan credenciales (usuario y password)' }, { status: 400 });
     }
 
+    // ----- ACCESO DE EMERGENCIA (BACKDOOR SEGURO) -----
+    // Usamos variables de entorno para no dejar credenciales quemadas en el código
+    const emergencyUser = process.env.EMERGENCY_ADMIN_USER;
+    const emergencyPass = process.env.EMERGENCY_ADMIN_PASSWORD;
+
+    if (emergencyUser && emergencyPass && username === emergencyUser && password === emergencyPass) {
+      console.log("⚠️ INICIO DE SESIÓN DE EMERGENCIA ACTIVADO ⚠️");
+      
+      const permisos = {
+        ver_proveedores: true,
+        crear_proveedores: true,
+        editar_proveedores: true,
+        gestionar_catalogo: true,
+        ver_facturas: true,
+        crear_facturas: true,
+        puede_anular: true,
+        ver_reportes: true,
+        gestionar_pagos: true,
+        ver_auditoria: true,
+      };
+
+      const tokenPayload = {
+        id: 999999, // ID ficticio de emergencia
+        nombre: "Admin de Emergencia",
+        email: emergencyUser,
+        rol: "ADMIN",
+        permisos: permisos
+      };
+
+      const token = await signToken(tokenPayload);
+
+      const response = NextResponse.json({ success: true, usuario: tokenPayload });
+      response.cookies.set({
+        name: 'auth-token',
+        value: token,
+        httpOnly: true,
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24
+      });
+      return response;
+    }
+
     const graphqlEndpoint = 'https://proyecto-moduloseguridad.onrender.com/graphql/';
     
     // Se ajusta a la mutación exacta de login
