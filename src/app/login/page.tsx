@@ -38,7 +38,20 @@ export default function LoginPage() {
       if (!res.ok) {
         setError(data.error || 'Error al iniciar sesión');
       } else {
-        router.push('/');
+        const rol = data.usuario?.rol;
+        
+        if (rol === 'GESTOR_PROVEEDORES' || rol === 'COMP_GESTOR_DE_PROVEEDORES') {
+          router.push('/proveedores');
+        } else if (rol === 'COMPRADOR' || rol === 'COMP_COMPRADOR') {
+          router.push('/facturas');
+        } else if (rol === 'TESORERO' || rol === 'COMP_TESORERO') {
+          router.push('/tesoreria');
+        } else if (rol === 'AUDITOR') {
+          router.push('/auditoria');
+        } else {
+          router.push('/');
+        }
+        
         router.refresh();
       }
     } catch {
