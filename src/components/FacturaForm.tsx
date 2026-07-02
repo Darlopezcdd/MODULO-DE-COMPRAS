@@ -211,9 +211,11 @@ function FacturaFormContent() {
   };
 
   const updateProduct = (index: number, field: string, value: string | number | boolean) => {
-    const newProductos = [...productos];
-    newProductos[index] = { ...newProductos[index], [field]: value };
-    setProductos(newProductos);
+    setProductos(prev => {
+      const newProductos = [...prev];
+      newProductos[index] = { ...newProductos[index], [field]: value };
+      return newProductos;
+    });
   };
 
   const roundToTwo = (num: number): number => Math.round((num + Number.EPSILON) * 100) / 100;

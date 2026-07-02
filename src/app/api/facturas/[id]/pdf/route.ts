@@ -25,7 +25,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     const datosPdf: DatosFacturaPDF = {
       numeroFactura: factura.numero_factura || `Borrador-${factura.id}`,
-      fechaEmision: factura.fecha ? new Date(factura.fecha).toLocaleDateString('es-EC') : new Date().toLocaleDateString('es-EC'),
+      fechaEmision: factura.fecha ? new Date(factura.fecha).toLocaleDateString('es-EC', { timeZone: 'UTC' }) : new Date().toLocaleDateString('es-EC', { timeZone: 'America/Guayaquil' }),
       tipoPago: factura.tipo_pago as 'CONTADO' | 'CREDITO',
       proveedor: {
         nombre: proveedor?.nombre || 'Desconocido',

@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     const datosPdf: DatosFacturaPDF = {
       numeroFactura: data.numeroFactura || 'Borrador',
-      fechaEmision: data.fechaEmision || new Date().toLocaleDateString('es-EC'),
+      fechaEmision: data.fechaEmision || new Date().toLocaleDateString('es-EC', { timeZone: 'America/Guayaquil' }),
       tipoPago: data.tipoPago || 'CONTADO',
       proveedor: {
         nombre: data.proveedorNombre || 'Desconocido',
