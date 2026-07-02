@@ -25,7 +25,8 @@ const mockAdminPayload = {
     editar_facturas: true,
     anular_facturas: true,
     ver_reportes: true,
-    gestionar_pagos: true
+    gestionar_pagos: true,
+    gestionar_catalogo: true
   }
 };
 
