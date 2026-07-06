@@ -15,6 +15,7 @@ import { Zap, Sparkles, Check, Plus, X } from "lucide-react";
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
     listarCatalogoProveedor(proveedorId: $proveedorId) {
+      id
       productoCodigo
       precioCompra
     }
@@ -115,8 +116,8 @@ function FacturaFormContent() {
             return {
               ...cat,
               nombre: globalInfo?.nombre || "Producto desconocido",
-              grabaIva: globalInfo?.grabaIva || true,
-              porcentajeIva: globalInfo?.porcentajeIva || 15,
+              grabaIva: globalInfo?.grabaIva ?? true,
+              porcentajeIva: globalInfo?.porcentajeIva ?? 15,
             };
           });
           setCatalogoRapido(combinados);
@@ -248,8 +249,21 @@ function FacturaFormContent() {
     
     const validProductos = productos.filter(p => p.codigo && p.cantidad > 0 && p.pvp >= 0);
     if (validProductos.length === 0) {
-      alert("Agregue al menos un producto válido a la factura.");
+      const escritosSinSeleccionar = productos.some(p => !p.codigo && p.descripcion.trim().length > 0);
+      alert(
+        escritosSinSeleccionar
+          ? "Hay filas con texto escrito pero sin producto seleccionado. Seleccione el producto desde la lista de sugerencias o desde el catálogo rápido."
+          : "Agregue al menos un producto válido a la factura."
+      );
       return;
+    }
+
+    const filasIncompletas = productos.filter(p => !p.codigo && p.descripcion.trim().length > 0);
+    if (filasIncompletas.length > 0) {
+      const seguir = confirm(
+        `Hay ${filasIncompletas.length} fila(s) con texto sin producto seleccionado que NO se incluirán en la factura. ¿Desea continuar solo con los productos válidos?`
+      );
+      if (!seguir) return;
     }
 
     if (tipoPago === 'CREDITO' && !fechaVencimiento) {
@@ -307,7 +321,7 @@ function FacturaFormContent() {
         </div>
         <h2 className="text-3xl font-bold text-slate-800 mb-2">¡Factura Generada Exitosamente!</h2>
         <p className="text-slate-500 mb-8 max-w-md">
-          La factura <strong className="text-emerald-600">FC-{facturaGenerada?.id?.toString().padStart(8, '0')}</strong> ha sido guardada y procesada correctamente en el sistema.
+          La factura <strong className="text-emerald-600">{facturaGenerada?.numero_factura || `FC-${facturaGenerada?.id?.toString().padStart(8, '0')}`}</strong> ha sido guardada y procesada correctamente en el sistema.
         </p>
         <div className="flex gap-4">
           <button
@@ -457,32 +471,32 @@ function FacturaFormContent() {
                 key={item.id}
                 type="button"
                 onClick={() => {
-                  const existingIndex = productos.findIndex(p => p.codigo === item.productoCodigo);
-                  
-                  if (existingIndex >= 0) {
-                    // Si ya existe, incrementar cantidad
-                    updateProduct(existingIndex, "cantidad", productos[existingIndex].cantidad + 1);
-                  } else {
-                    const lastRowIndex = productos.length - 1;
-                    const lastRow = productos[lastRowIndex];
-                    
-                    if (lastRow && !lastRow.codigo) {
-                      updateProduct(lastRowIndex, "codigo", item.productoCodigo);
-                      updateProduct(lastRowIndex, "descripcion", item.nombre);
-                      updateProduct(lastRowIndex, "pvp", item.precioCompra);
-                      updateProduct(lastRowIndex, "grabaIva", item.grabaIva);
-                      updateProduct(lastRowIndex, "porcentajeIva", item.porcentajeIva);
-                    } else {
-                      setProductos([...productos, { 
-                        codigo: item.productoCodigo, 
-                        descripcion: item.nombre, 
-                        cantidad: 1, 
-                        pvp: item.precioCompra, 
-                        grabaIva: item.grabaIva, 
-                        porcentajeIva: item.porcentajeIva 
-                      }]);
+                  setProductos(prev => {
+                    const existingIndex = prev.findIndex(p => p.codigo === item.productoCodigo);
+
+                    if (existingIndex >= 0) {
+                      const next = [...prev];
+                      next[existingIndex] = { ...next[existingIndex], cantidad: next[existingIndex].cantidad + 1 };
+                      return next;
                     }
-                  }
+
+                    const nuevaFila = {
+                      codigo: item.productoCodigo,
+                      descripcion: item.nombre,
+                      cantidad: 1,
+                      pvp: Number(item.precioCompra) || 0,
+                      grabaIva: item.grabaIva ?? true,
+                      porcentajeIva: item.porcentajeIva ?? 15,
+                    };
+
+                    const lastRowIndex = prev.length - 1;
+                    if (lastRowIndex >= 0 && !prev[lastRowIndex].codigo) {
+                      const next = [...prev];
+                      next[lastRowIndex] = { ...next[lastRowIndex], ...nuevaFila, cantidad: 1 };
+                      return next;
+                    }
+                    return [...prev, nuevaFila];
+                  });
                 }}
                 className="flex flex-col items-start bg-white border border-[#d20a11]/30 hover:border-[#d20a11] hover:shadow-md px-3 py-2 rounded-lg transition-all text-left min-w-[140px] max-w-[200px]"
               >
@@ -541,6 +555,15 @@ function FacturaFormContent() {
                     <td className="p-3">
                       <AutocompleteProducto
                         value={prod.codigo ? `${prod.codigo} - ${prod.descripcion}` : ""}
+                        onManualChange={(texto) => {
+                          // Si el usuario edita el texto a mano, la fila deja de estar vinculada
+                          // a un producto del inventario hasta que seleccione uno del listado.
+                          setProductos(prev => {
+                            const next = [...prev];
+                            next[index] = { ...next[index], codigo: "", descripcion: texto };
+                            return next;
+                          });
+                        }}
                         onSelect={(p) => {
                           updateProduct(index, "codigo", p.codigo);
                           updateProduct(index, "descripcion", p.nombre);
@@ -673,7 +696,7 @@ function FacturaFormContent() {
                   proveedorRuc: selectedProveedor?.cedulaRuc || "N/A",
                   tipoPago: tipoPago,
                   fechaVencimiento: fechaVencimiento || "N/A",
-                  items: productos.filter(p => p.codigo).map(p => ({
+                  items: productos.filter(p => p.codigo || p.descripcion.trim()).map(p => ({
                     descripcion: p.descripcion,
                     aplicaIva: p.grabaIva,
                     precioUnitario: p.pvp,
@@ -699,23 +722,16 @@ function FacturaFormContent() {
             await refetchCatalog();
             
             // Auto agregar el producto a una nueva fila o a la última vacía
-            const lastRowIndex = productos.length - 1;
-            const lastRow = productos[lastRowIndex];
-            
-            if (lastRow && !lastRow.codigo) {
-              updateProduct(lastRowIndex, "codigo", codigo);
-              updateProduct(lastRowIndex, "descripcion", nombre);
-              updateProduct(lastRowIndex, "pvp", precioCompra);
-            } else {
-              setProductos([...productos, { 
-                codigo, 
-                descripcion: nombre, 
-                cantidad: 1, 
-                pvp: precioCompra, 
-                grabaIva: true, 
-                porcentajeIva: 15 
-              }]);
-            }
+            setProductos(prev => {
+              const nuevaFila = { codigo, descripcion: nombre, cantidad: 1, pvp: precioCompra, grabaIva: true, porcentajeIva: 15 };
+              const lastRowIndex = prev.length - 1;
+              if (lastRowIndex >= 0 && !prev[lastRowIndex].codigo) {
+                const next = [...prev];
+                next[lastRowIndex] = { ...next[lastRowIndex], ...nuevaFila };
+                return next;
+              }
+              return [...prev, nuevaFila];
+            });
           }}
         />
       )}

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { buscarProductos } from '@/lib/inventariosClient';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * @swagger
  * /api/inventarios:

@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       where: { id: saldoId },
       data: {
         monto_pagado: Number(saldo.monto_credito),
-        saldo_pendiente: 0,
+        // saldo_pendiente es columna GENERATED ALWAYS en Postgres: se recalcula sola
         estado: 'PAGADO',
         updated_at: new Date()
       }

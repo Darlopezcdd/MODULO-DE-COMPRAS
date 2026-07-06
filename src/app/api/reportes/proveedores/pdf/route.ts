@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma';
 // @ts-expect-error Ignorando tipado de pdfkit
 import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
 
+export const dynamic = 'force-dynamic';
+
 const COLORS = {
   primary: '#1E3A5F',
   secondary: '#2E86AB',

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { obtenerCuentasEmpresa } from '@/lib/cuentasClient';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const response = await obtenerCuentasEmpresa();

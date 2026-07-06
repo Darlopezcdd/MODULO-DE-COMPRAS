@@ -109,8 +109,8 @@ describe('Smoke — Auth utilities', () => {
     const mockDecoded = { id: 1, rol: 'ADMIN' };
     (verifyToken as jest.Mock).mockResolvedValue(mockDecoded);
     const decoded = await verifyToken('un-token-valido');
-    expect(decoded.id).toBe(1);
-    expect(decoded.rol).toBe('ADMIN');
+    expect(decoded?.id).toBe(1);
+    expect(decoded?.rol).toBe('ADMIN');
   });
 
   it('verifyToken rechaza token invalido', async () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
 
@@ -33,6 +33,15 @@ export default function AutocompleteProveedor({ onSelect, value }: AutocompleteP
   const [searchTerm, setSearchTerm] = useState(value || '');
   const [selectedProveedor, setSelectedProveedor] = useState<Proveedor | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sincronizar con el valor externo (autoselección desde dashboard, reset del formulario)
+  useEffect(() => {
+    if (document.activeElement !== inputRef.current) {
+      setSearchTerm(value || '');
+      if (!value) setSelectedProveedor(null);
+    }
+  }, [value]);
 
   const { data, loading, error } = useQuery<{ listarProveedores: Proveedor[] }>(LISTAR_PROVEEDORES, {
     variables: { buscar: searchTerm },
@@ -60,6 +69,7 @@ export default function AutocompleteProveedor({ onSelect, value }: AutocompleteP
     <div className="relative">
       <label className="block text-sm font-medium text-gray-700 mb-1">Buscar Proveedor</label>
       <input
+        ref={inputRef}
         type="text"
         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm outline-none text-gray-900"
         placeholder="Cédula, RUC o Nombre..."

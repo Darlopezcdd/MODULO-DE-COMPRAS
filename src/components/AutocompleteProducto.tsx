@@ -14,10 +14,11 @@ interface ProductoResult {
 
 interface AutocompleteProductoProps {
   onSelect: (producto: ProductoResult) => void;
+  onManualChange?: (texto: string) => void;
   value?: string;
 }
 
-export default function AutocompleteProducto({ onSelect, value }: AutocompleteProductoProps) {
+export default function AutocompleteProducto({ onSelect, onManualChange, value }: AutocompleteProductoProps) {
   const [searchTerm, setSearchTerm] = useState(value || '');
   const [productos, setProductos] = useState<ProductoResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,12 +26,21 @@ export default function AutocompleteProducto({ onSelect, value }: AutocompletePr
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const skipNextSearchRef = useRef(false);
 
   useEffect(() => {
-    setSearchTerm(value || '');
+    // No pisar lo que el usuario está escribiendo en este momento
+    if (document.activeElement !== inputRef.current) {
+      skipNextSearchRef.current = true;
+      setSearchTerm(value || '');
+    }
   }, [value]);
 
   useEffect(() => {
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
+      return;
+    }
     if (searchTerm.length < 2) {
       setProductos([]);
       setOpen(false);
@@ -83,6 +93,7 @@ export default function AutocompleteProducto({ onSelect, value }: AutocompletePr
   }, []);
 
   const handleSelect = (producto: ProductoResult) => {
+    skipNextSearchRef.current = true;
     setSearchTerm(`${producto.codigo} - ${producto.nombre}`);
     setOpen(false);
     onSelect(producto);
@@ -98,6 +109,7 @@ export default function AutocompleteProducto({ onSelect, value }: AutocompletePr
         value={searchTerm}
         onChange={(e) => {
           setSearchTerm(e.target.value);
+          onManualChange?.(e.target.value);
         }}
       />
       {open && searchTerm.length >= 2 && productos.length > 0 && (
