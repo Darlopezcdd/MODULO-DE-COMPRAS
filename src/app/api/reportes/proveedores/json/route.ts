@@ -48,8 +48,13 @@ export async function GET(request: NextRequest) {
     const tipo   = searchParams.get('tipo')   ?? undefined;
 
     // ── Construir filtros ───────────────────────────────────
-    const where: any = { deletedAt: null };
-    if (estado) where.estado = estado;
+    const where: any = {};
+    if (estado === 'ACTIVO') {
+      where.estado = 'ACTIVO';
+      where.deletedAt = null;
+    } else if (estado === 'INACTIVO') {
+      where.estado = 'INACTIVO';
+    }
     if (tipo)   where.tipo   = tipo;
 
     // ── Consultar proveedores y sus saldos en paralelo ──────
@@ -59,7 +64,7 @@ export async function GET(request: NextRequest) {
         orderBy: [{ estado: 'asc' }, { nombre: 'asc' }],
       }),
       prisma.proveedor.count({ where: { deletedAt: null, estado: 'ACTIVO' } }),
-      prisma.proveedor.count({ where: { deletedAt: null, estado: 'INACTIVO' } }),
+      prisma.proveedor.count({ where: { estado: 'INACTIVO' } }),
     ]);
 
     // ── Obtener saldos pendientes de todos los proveedores ──

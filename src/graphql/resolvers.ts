@@ -58,8 +58,15 @@ export const resolvers = {
   Query: {
     listarProveedores: async (_: any, { estado, tipo, buscar }: any) => {
       try {
-        const where: any = { deletedAt: null };
-        if (estado) where.estado = estado;
+        const where: any = {};
+        
+        if (estado === 'ACTIVO') {
+          where.estado = 'ACTIVO';
+          where.deletedAt = null;
+        } else if (estado === 'INACTIVO') {
+          where.estado = 'INACTIVO';
+        }
+
         if (tipo) where.tipo = tipo;
         if (buscar) {
           where.OR = [
@@ -285,6 +292,13 @@ export const resolvers = {
       if (input.telefono) validateTelefono(input.telefono);
       if (input.email) validateEmail(input.email);
       if (input.direccion) validateDireccion(input.direccion);
+
+      // Sincronizar el campo deletedAt con el estado
+      if (input.estado === 'ACTIVO') {
+        input.deletedAt = null;
+      } else if (input.estado === 'INACTIVO') {
+        input.deletedAt = new Date();
+      }
 
       try {
         const anterior = await prisma.proveedor.findUnique({ where: { id } });

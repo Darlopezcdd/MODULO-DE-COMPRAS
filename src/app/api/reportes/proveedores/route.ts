@@ -50,8 +50,13 @@ export async function GET(request: Request) {
     const estado = searchParams.get('estado') ?? undefined;
     const tipo   = searchParams.get('tipo')   ?? undefined;
 
-    const where: any = { deletedAt: null };
-    if (estado) where.estado = estado;
+    const where: any = {};
+    if (estado === 'ACTIVO') {
+      where.estado = 'ACTIVO';
+      where.deletedAt = null;
+    } else if (estado === 'INACTIVO') {
+      where.estado = 'INACTIVO';
+    }
     if (tipo)   where.tipo   = tipo;
 
     const proveedores = await prisma.proveedor.findMany({
