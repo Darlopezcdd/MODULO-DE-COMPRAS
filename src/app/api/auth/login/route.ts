@@ -254,7 +254,7 @@ export async function POST(request: Request) {
         console.log("=========================================");
 
         // El token externo devuelve 'roles' como array o 'rol' como string
-        const rolesPermitidos = ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO', 'AUDITOR', 'INV_BODEGUERO', 'COMP_COMPRADOR', 'COMP_GESTOR_DE_PROVEEDORES', 'COMP_TESORERO'];
+        const rolesPermitidos = ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO', 'AUDITOR', 'INV_BODEGUERO', 'COMP_COMPRADOR', 'COMP_GESTOR_DE_PROVEEDORES', 'COMP_TESORERO', 'COMP_ADMIN'];
         
         if (decodedPayload.roles && Array.isArray(decodedPayload.roles)) {
           // Buscamos si el usuario tiene algún rol válido para nuestro módulo (quitando espacios extra)
@@ -281,7 +281,7 @@ export async function POST(request: Request) {
     }
     
     // Lista blanca estricta de roles autorizados para el Módulo de Compras (Añadimos INV_BODEGUERO temporalmente)
-    const rolesPermitidos = ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO', 'AUDITOR', 'INV_BODEGUERO', 'COMP_COMPRADOR', 'COMP_GESTOR_DE_PROVEEDORES', 'COMP_TESORERO'];
+    const rolesPermitidos = ['ADMIN', 'COMPRADOR', 'GESTOR_PROVEEDORES', 'TESORERO', 'AUDITOR', 'INV_BODEGUERO', 'COMP_COMPRADOR', 'COMP_GESTOR_DE_PROVEEDORES', 'COMP_TESORERO', 'COMP_ADMIN'];
 
     // Si el rol devuelto no está en nuestra lista de compras, se bloquea el acceso
     if (!userRole || !rolesPermitidos.includes(userRole)) {
@@ -309,7 +309,7 @@ export async function POST(request: Request) {
       ver_auditoria: false,
     };
 
-    if (userRole === 'ADMIN') {
+    if (userRole === 'ADMIN' || userRole === 'COMP_ADMIN') {
       permisos = {
         ver_proveedores: true,
         crear_proveedores: true,
