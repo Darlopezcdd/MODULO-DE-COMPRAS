@@ -300,7 +300,7 @@ function FacturaFormContent() {
       
       // Redirigir a la lista de facturas después de 3 segundos
       setTimeout(() => {
-        router.push('/facturas');
+        router.push(`/facturas?preview=${body.factura.id}`);
       }, 3000);
       
     } catch (e: any) {

@@ -2,7 +2,7 @@
 // src/components/ReportesTabla.tsx
 // HU6 — Componente de tabla, renderizando estados vacíos y mapeo JSON (Tarea: Aldahir Requene)
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Calendar, FileText, ClipboardList } from 'lucide-react';
 
 // Estructura esperada del JSON (Endpoint que hará Dario López)
@@ -25,6 +25,7 @@ interface ReportesTablaProps {
 const fmt = (n: number) => `$${n.toFixed(2)}`;
 
 export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
   // ── ESTADO 1: Cargando (Skeletons) ──────────────────────────────────────────
   if (isLoading) {
@@ -109,7 +110,11 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
           </thead>
           <tbody className="divide-y divide-slate-200">
             {data.map((factura) => (
-              <tr key={factura.id} className="hover:bg-slate-50 transition-colors">
+              <tr 
+                key={factura.id} 
+                className="hover:bg-slate-50 transition-colors cursor-pointer"
+                onClick={() => setPreviewUrl(`/api/facturas/${factura.id}/pdf`)}
+              >
                 <td className="px-6 py-4 font-mono text-[#d20a11] font-medium">
                   {factura.numero}
                 </td>
@@ -158,6 +163,49 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
           </tfoot>
         </table>
       </div>
+
+      {/* Modal de Previsualización PDF */}
+      {previewUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300">
+          <div className="bg-white rounded-2xl shadow-2xl w-11/12 max-w-5xl h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+            {/* Header del Modal */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white/80 backdrop-blur z-10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Vista Previa de Factura</h3>
+                  <p className="text-xs text-slate-500">Documento PDF</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setPreviewUrl(null)}
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            
+            {/* Contenido del Modal */}
+            <div className="flex-1 bg-slate-100/50 relative overflow-hidden">
+              <div className="w-full h-full p-2 sm:p-6 bg-slate-200/50">
+                <iframe
+                  src={previewUrl}
+                  className="w-full h-full border border-slate-200 shadow-lg rounded-xl bg-white"
+                  title="Previsualización PDF"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

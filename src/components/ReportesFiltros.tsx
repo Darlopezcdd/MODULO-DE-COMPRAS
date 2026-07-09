@@ -15,8 +15,9 @@ interface ReportesFiltrosProps {
 }
 
 export default function ReportesFiltros({ onGenerarReporte, isLoading }: ReportesFiltrosProps) {
-  const [fechaInicio, setFechaInicio] = useState('');
-  const [fechaFin, setFechaFin] = useState('');
+  const hoy = new Date().toISOString().split('T')[0];
+  const [fechaInicio, setFechaInicio] = useState(hoy);
+  const [fechaFin, setFechaFin] = useState(hoy);
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerar = () => {

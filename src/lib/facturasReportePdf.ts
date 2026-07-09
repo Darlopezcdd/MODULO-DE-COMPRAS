@@ -1,4 +1,5 @@
-import PDFDocument from 'pdfkit';
+// @ts-expect-error Ignorando tipado de pdfkit por ahora
+import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
 
 const COLORS = {
   primary: '#1E3A5F',

@@ -70,6 +70,7 @@ export default function ReportesPage() {
 
   // ── Estado tab Facturas ───────────────────────────────────────────────────
   const [facturas, setFacturas] = useState<FacturaReporteData[] | null>(null);
+  const [filtroFacturas, setFiltroFacturas] = useState({ fechaInicio: '', fechaFin: '' });
   const [isLoadingFact, setIsLoadingFact] = useState(false);
   const [generandoCompras, setGenerandoCompras] = useState(false);
 
@@ -129,8 +130,9 @@ export default function ReportesPage() {
   };
 
   // ── Cargar facturas por rango de fechas ───────────────────────────────────
-  const handleGenerarReporteFacturas = async ({ fechaInicio, fechaFin }: { fechaInicio: string; fechaFin: string }) => {
+  const handleGenerarReporteFacturas = useCallback(async ({ fechaInicio, fechaFin }: { fechaInicio: string; fechaFin: string }) => {
     setIsLoadingFact(true);
+    setFiltroFacturas({ fechaInicio, fechaFin });
     try {
       const params = new URLSearchParams({ fechaInicio, fechaFin });
       const res = await fetch(`/api/reportes/facturas?${params.toString()}`);
@@ -161,14 +163,25 @@ export default function ReportesPage() {
     } finally {
       setIsLoadingFact(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (tabActivo === 'facturas' && facturas === null) {
+      const hoy = new Date().toISOString().split('T')[0];
+      handleGenerarReporteFacturas({ fechaInicio: hoy, fechaFin: hoy });
+    }
+  }, [tabActivo, facturas, handleGenerarReporteFacturas]);
 
 
   // ── Descargar PDF facturas ────────────────────────────────────────────────
   const descargarPdfFacturas = async () => {
     setGenerandoCompras(true);
     try {
-      const res = await fetch('/api/reportes/compras/pdf');
+      const params = new URLSearchParams();
+      if (filtroFacturas.fechaInicio) params.set('fechaInicio', filtroFacturas.fechaInicio);
+      if (filtroFacturas.fechaFin) params.set('fechaFin', filtroFacturas.fechaFin);
+      
+      const res = await fetch(`/api/reportes/compras/pdf?${params.toString()}`);
       if (!res.ok) throw new Error();
       const blob = await res.blob();
       const objectUrl = URL.createObjectURL(blob);

@@ -19,13 +19,22 @@ const fmtM = (num: number) => `$${num.toFixed(2)}`;
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
+    const fechaInicio = searchParams.get('fechaInicio');
+    const fechaFin = searchParams.get('fechaFin');
     const tipo = searchParams.get('tipo') || 'todas';
     const fechaParam = searchParams.get('fecha');
 
     let whereClause: any = {};
     let periodoStr = 'Histórico completo';
 
-    if (tipo !== 'todas' && fechaParam) {
+    if (fechaInicio && fechaFin) {
+      const [y1, m1, d1] = fechaInicio.split('-').map(Number);
+      const [y2, m2, d2] = fechaFin.split('-').map(Number);
+      const startD = new Date(y1, m1 - 1, d1, 0, 0, 0);
+      const endD = new Date(y2, m2 - 1, d2, 23, 59, 59, 999);
+      whereClause = { fecha: { gte: startD, lte: endD } };
+      periodoStr = `Del ${fechaInicio} al ${fechaFin}`;
+    } else if (tipo !== 'todas' && fechaParam) {
       const [y, m, d] = fechaParam.split('-').map(Number);
 
       if (tipo === 'dia') {

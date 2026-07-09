@@ -146,7 +146,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ success: true, count: facturas.length, data: facturasConDetalle });
-  } catch {
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+  } catch (error: any) {
+    console.error("Error al generar PDF o reporte de facturas:", error);
+    return NextResponse.json({ error: error.message || 'Error interno', stack: String(error.stack) }, { status: 500 });
   }
 }

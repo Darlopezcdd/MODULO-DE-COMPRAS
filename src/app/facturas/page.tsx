@@ -22,6 +22,19 @@ export default function FacturasPage() {
   const itemsPerPage = 10;
 
   useEffect(() => {
+    // Revisar si venimos redirigidos con un ID de factura para previsualizar
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const previewId = params.get('preview');
+      if (previewId) {
+        setPreviewUrl(`/api/facturas/${previewId}/pdf`);
+        // Limpiar la URL para evitar que se abra de nuevo si el usuario recarga la página
+        window.history.replaceState({}, '', '/facturas');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     fetch('/api/auth/me')
       .then(res => res.json())
       .then(data => {
