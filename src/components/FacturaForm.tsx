@@ -73,6 +73,14 @@ function FacturaFormContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
+  const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 4000);
+  };
   const [tipoPago, setTipoPago] = useState<'CONTADO' | 'CREDITO'>('CONTADO');
   const [fechaVencimiento, setFechaVencimiento] = useState('');
   
@@ -593,9 +601,9 @@ function FacturaFormContent() {
                                   }
                                 });
                                 await refetchCatalog();
-                                alert("Agregado al catálogo del proveedor con éxito");
+                                showNotification("Agregado al catálogo del proveedor con éxito", "success");
                               } catch (e: any) {
-                                alert("Error al agregar: " + e.message);
+                                showNotification("Error al agregar: " + e.message, "error");
                               }
                             }}
                             className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded hover:bg-amber-200 transition"
@@ -734,6 +742,29 @@ function FacturaFormContent() {
             });
           }}
         />
+      )}
+
+      {/* Toast Notification */}
+      {notification && (
+        <div className="fixed top-6 right-6 z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${
+            notification.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            {notification.type === 'success' ? (
+              <Check className="w-5 h-5 text-emerald-600" />
+            ) : (
+              <X className="w-5 h-5 text-red-600" />
+            )}
+            <p className="text-sm font-medium">{notification.message}</p>
+            <button 
+              type="button"
+              onClick={() => setNotification(null)}
+              className="ml-4 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
