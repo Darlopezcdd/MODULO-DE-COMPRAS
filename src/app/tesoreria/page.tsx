@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Banknote, CheckCircle2 } from 'lucide-react';
+import CuentasBancariasView, { CuentaBancaria } from '@/components/CuentasBancariasView';
 
 interface Saldo {
   id: number;
@@ -25,7 +26,9 @@ export default function TesoreriaPage() {
   const ITEMS_POR_PAGINA = 10;
   
   // Estados para el Modal de Pago
-  const [cuentasEmpresa, setCuentasEmpresa] = useState<any[]>([]);
+  const [cuentasEmpresa, setCuentasEmpresa] = useState<CuentaBancaria[]>([]);
+  const [cargandoCuentas, setCargandoCuentas] = useState(true);
+  const [errorCuentas, setErrorCuentas] = useState<string | null>(null);
   const [saldoSeleccionado, setSaldoSeleccionado] = useState<Saldo | null>(null);
   const [cuentaBancariaId, setCuentaBancariaId] = useState('');
   const [isPagarCargando, setIsPagarCargando] = useState(false);
@@ -45,6 +48,8 @@ export default function TesoreriaPage() {
   };
 
   const fetchCuentas = async () => {
+    setCargandoCuentas(true);
+    setErrorCuentas(null);
     try {
       const res = await fetch('/api/cuentas');
       const data = await res.json();
@@ -56,6 +61,9 @@ export default function TesoreriaPage() {
       }
     } catch (e) {
       console.error("Error al obtener cuentas bancarias", e);
+      setErrorCuentas('No se pudieron cargar las cuentas bancarias.');
+    } finally {
+      setCargandoCuentas(false);
     }
   };
 
@@ -114,6 +122,14 @@ export default function TesoreriaPage() {
             <CheckCircle2 className="w-5 h-5" /> {aviso}
           </div>
         )}
+
+        {/* Tarjetas de Cuentas Bancarias — HU13 (Aldahir Requene) */}
+        <CuentasBancariasView
+          cuentas={cuentasEmpresa}
+          isLoading={cargandoCuentas}
+          error={errorCuentas}
+          onRefresh={fetchCuentas}
+        />
 
         <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
           <table className="w-full text-left border-collapse">

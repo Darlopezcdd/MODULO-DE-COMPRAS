@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FileText } from 'lucide-react';
 import SearchInput from '@/components/SearchInput';
 import ExportButtons from '@/components/ExportButtons';
+import QuickPrintButton from '@/components/QuickPrintButton';
 import { useDebounce } from '@/hooks/useDebounce';
 
 interface Factura {
@@ -158,6 +159,7 @@ export default function FacturasPage() {
                 <th className="p-4 text-sm font-semibold text-slate-600">Tipo de Pago</th>
                 <th className="p-4 text-sm font-semibold text-slate-600 text-right">Total</th>
                 <th className="p-4 text-sm font-semibold text-slate-600">Estado</th>
+                <th className="p-4 text-sm font-semibold text-slate-600 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -186,11 +188,14 @@ export default function FacturasPage() {
                       {f.estado}
                     </span>
                   </td>
+                  <td className="p-4 text-center">
+                    <QuickPrintButton pdfUrl={`/api/facturas/${f.id}/pdf`} size={16} />
+                  </td>
                 </tr>
               ))}
               {facturas.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-12 text-center text-slate-500">
+                  <td colSpan={6} className="p-12 text-center text-slate-500">
                     <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>No se encontraron facturas registradas.</p>
                   </td>

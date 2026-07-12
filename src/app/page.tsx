@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Users, FileText, BarChart3, AlertTriangle, PackageSearch, Banknote } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import AlertBanner from '@/components/AlertBanner';
 
 export default function Home() {
   const [productos, setProductos] = useState<any[]>([]);
@@ -68,6 +69,24 @@ export default function Home() {
             Monitorea el nivel de stock global de la empresa y reabastece los productos críticos con un solo clic, al mejor precio posible.
           </p>
         </div>
+
+        {/* Alertas Consolidadas de Inventario Crítico (HU15) */}
+        {!cargando && productos.some(p => p.stockActual === 0) && (
+          <AlertBanner
+            type="error"
+            title="Inventario Crítico"
+            message={`¡Alerta! Hay ${productos.filter(p => p.stockActual === 0).length} productos agotados en el inventario global que requieren abastecimiento inmediato.`}
+            className="mb-8"
+          />
+        )}
+        {!cargando && !productos.some(p => p.stockActual === 0) && productos.some(p => p.stockActual <= 5) && (
+          <AlertBanner
+            type="warning"
+            title="Inventario Bajo"
+            message={`¡Atención! Hay ${productos.filter(p => p.stockActual > 0 && p.stockActual <= 5).length} productos con niveles de stock cercanos al límite.`}
+            className="mb-8"
+          />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           

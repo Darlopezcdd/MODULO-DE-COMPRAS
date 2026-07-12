@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 import { Calendar, FileText, ClipboardList } from 'lucide-react';
+import QuickPrintButton from './QuickPrintButton';
 
 // Estructura esperada del JSON (Endpoint que hará Dario López)
 export interface FacturaReporteData {
@@ -106,6 +107,7 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
               <th className="px-6 py-4 text-right">Subtotal</th>
               <th className="px-6 py-4 text-right">IVA</th>
               <th className="px-6 py-4 text-right">Total</th>
+              <th className="px-6 py-4 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -141,6 +143,9 @@ export default function ReportesTabla({ data, isLoading }: ReportesTablaProps) {
                 </td>
                 <td className="px-6 py-4 text-right text-emerald-600 font-bold font-mono">
                   {fmt(factura.total)}
+                </td>
+                <td className="px-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                  <QuickPrintButton pdfUrl={`/api/facturas/${factura.id}/pdf`} size={14} />
                 </td>
               </tr>
             ))}
