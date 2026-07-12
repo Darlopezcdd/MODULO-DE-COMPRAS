@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FileText } from 'lucide-react';
+import SearchInput from '@/components/SearchInput';
+import ExportButtons from '@/components/ExportButtons';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Factura {
   id: number;
@@ -16,6 +19,8 @@ interface Factura {
 export default function FacturasPage() {
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [filtroEstado, setFiltroEstado] = useState('');
+  const [busqueda, setBusqueda] = useState('');
+  const debouncedBusqueda = useDebounce(busqueda, 400);
   const [user, setUser] = useState<any>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -81,24 +86,51 @@ export default function FacturasPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtroEstado]);
 
+  // Resetear página al buscar
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedBusqueda]);
+
+  // Filtrar facturas por búsqueda (debounced)
+  const facturasFiltradas = debouncedBusqueda
+    ? facturas.filter(f =>
+        f.numeroFactura?.toLowerCase().includes(debouncedBusqueda.toLowerCase()) ||
+        f.tipoPago?.toLowerCase().includes(debouncedBusqueda.toLowerCase()) ||
+        f.estado?.toLowerCase().includes(debouncedBusqueda.toLowerCase())
+      )
+    : facturas;
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentFacturas = facturas.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.max(1, Math.ceil(facturas.length / itemsPerPage));
+  const currentFacturas = facturasFiltradas.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.max(1, Math.ceil(facturasFiltradas.length / itemsPerPage));
 
   return (
     <div className="min-h-screen bg-background p-8 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold tracking-tight text-slate-900">Facturas de Compra</h1>
-          {user?.permisos?.crear_facturas && (
-            <Link href="/facturas/nueva" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
-              + Nueva Factura
-            </Link>
-          )}
+          <div className="flex items-center gap-3">
+            <ExportButtons
+              data={facturasFiltradas}
+              fileName="Facturas_Compra"
+              columns={[
+                { header: 'Número', key: 'numeroFactura' },
+                { header: 'Fecha', key: 'fecha' },
+                { header: 'Tipo de Pago', key: 'tipoPago' },
+                { header: 'Total', key: 'total', format: (v) => `$${Number(v).toFixed(2)}` },
+                { header: 'Estado', key: 'estado' },
+              ]}
+            />
+            {user?.permisos?.crear_facturas && (
+              <Link href="/facturas/nueva" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
+                + Nueva Factura
+              </Link>
+            )}
+          </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl flex gap-4 items-center border border-slate-200 shadow-sm">
+        <div className="bg-white p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-start sm:items-center border border-slate-200 shadow-sm">
           <span className="text-sm font-semibold text-slate-600">Filtros:</span>
           <select 
             className="bg-white border border-slate-200 text-slate-900 px-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -110,6 +142,11 @@ export default function FacturasPage() {
             <option value="EMITIDA">Emitida</option>
             <option value="ANULADA">Anulada</option>
           </select>
+          <SearchInput
+            placeholder="Buscar por número, tipo de pago o estado..."
+            onSearch={setBusqueda}
+            className="flex-1 min-w-[250px]"
+          />
         </div>
 
         <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
@@ -163,10 +200,10 @@ export default function FacturasPage() {
           </table>
         </div>
 
-        {facturas.length > 0 && (
+        {facturasFiltradas.length > 0 && (
           <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
             <span className="text-sm text-slate-600">
-              Mostrando <span className="font-semibold text-slate-900">{indexOfFirstItem + 1}</span> a <span className="font-semibold text-slate-900">{Math.min(indexOfLastItem, facturas.length)}</span> de <span className="font-semibold text-slate-900">{facturas.length}</span> facturas
+              Mostrando <span className="font-semibold text-slate-900">{indexOfFirstItem + 1}</span> a <span className="font-semibold text-slate-900">{Math.min(indexOfLastItem, facturasFiltradas.length)}</span> de <span className="font-semibold text-slate-900">{facturasFiltradas.length}</span> facturas
             </span>
             <div className="flex gap-2">
               <button

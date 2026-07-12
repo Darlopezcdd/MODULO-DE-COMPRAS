@@ -6,6 +6,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { FileText, Users, TrendingUp, TrendingDown, Building2, Calendar, Download } from 'lucide-react';
+import SearchInput from '@/components/SearchInput';
+import { useDebounce } from '@/hooks/useDebounce';
 
 // ── Organismos ────────────────────────────────────────────────────────────────
 import FiltrosReporteProveedores from '@/components/organisms/FiltrosReporteProveedores';
@@ -73,6 +75,12 @@ export default function ReportesPage() {
   const [filtroFacturas, setFiltroFacturas] = useState({ fechaInicio: '', fechaFin: '' });
   const [isLoadingFact, setIsLoadingFact] = useState(false);
   const [generandoCompras, setGenerandoCompras] = useState(false);
+
+  // ── Búsqueda con debounce ──────────────────────────────────────────────────
+  const [busquedaProv, setBusquedaProv] = useState('');
+  const debouncedBusquedaProv = useDebounce(busquedaProv, 400);
+  const [busquedaFact, setBusquedaFact] = useState('');
+  const debouncedBusquedaFact = useDebounce(busquedaFact, 400);
 
   // ── Cargar proveedores ────────────────────────────────────────────────────
   const cargarProveedores = useCallback(async () => {
@@ -298,9 +306,25 @@ export default function ReportesPage() {
               isGenerandoPdf={generandoPdf}
             />
 
-            {/* Tabla de proveedores (Molécula) */}
+            {/* Buscador avanzado (HU11 — Aldahir Requene) */}
+            <SearchInput
+              placeholder="Buscar proveedores por nombre, ciudad o estado..."
+              onSearch={setBusquedaProv}
+              className="max-w-md"
+            />
+
+            {/* Tabla de proveedores (Molécula) — filtrada por búsqueda */}
             <TablaProveedores
-              data={proveedores ? proveedores.slice((paginaActualProv - 1) * ITEMS_POR_PAGINA, paginaActualProv * ITEMS_POR_PAGINA) : proveedores}
+              data={proveedores ? (() => {
+                const filtered = debouncedBusquedaProv
+                  ? proveedores.filter(p =>
+                      p.nombre?.toLowerCase().includes(debouncedBusquedaProv.toLowerCase()) ||
+                      p.ciudad?.toLowerCase().includes(debouncedBusquedaProv.toLowerCase()) ||
+                      p.estado?.toLowerCase().includes(debouncedBusquedaProv.toLowerCase())
+                    )
+                  : proveedores;
+                return filtered.slice((paginaActualProv - 1) * ITEMS_POR_PAGINA, paginaActualProv * ITEMS_POR_PAGINA);
+              })() : proveedores}
               isLoading={isLoadingProv}
             />
 
@@ -392,9 +416,24 @@ export default function ReportesPage() {
               isLoading={isLoadingFact}
             />
 
-            {/* Tabla de facturas (componente existente de Aldahir) */}
+            {/* Buscador avanzado facturas (HU11 — Aldahir Requene) */}
+            <SearchInput
+              placeholder="Buscar facturas por número o proveedor..."
+              onSearch={setBusquedaFact}
+              className="max-w-md"
+            />
+
+            {/* Tabla de facturas (componente existente de Aldahir) — filtrada */}
             <ReportesTabla
-              data={facturas ? facturas.slice((paginaActualFact - 1) * ITEMS_POR_PAGINA, paginaActualFact * ITEMS_POR_PAGINA) : facturas}
+              data={facturas ? (() => {
+                const filtered = debouncedBusquedaFact
+                  ? facturas.filter(f =>
+                      f.numero?.toLowerCase().includes(debouncedBusquedaFact.toLowerCase()) ||
+                      f.proveedor?.toLowerCase().includes(debouncedBusquedaFact.toLowerCase())
+                    )
+                  : facturas;
+                return filtered.slice((paginaActualFact - 1) * ITEMS_POR_PAGINA, paginaActualFact * ITEMS_POR_PAGINA);
+              })() : facturas}
               isLoading={isLoadingFact}
             />
 

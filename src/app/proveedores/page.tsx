@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import CatalogoProveedorModalWrapper from '@/components/CatalogoProveedorModal';
+import SearchInput from '@/components/SearchInput';
+import ExportButtons from '@/components/ExportButtons';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Proveedor {
   id: number;
@@ -17,6 +20,8 @@ export default function ProveedoresPage() {
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [filtroEstado, setFiltroEstado] = useState('');
   const [filtroTipo, setFiltroTipo] = useState('');
+  const [busqueda, setBusqueda] = useState('');
+  const debouncedBusqueda = useDebounce(busqueda, 400);
   const [aviso, setAviso] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [catalogoModal, setCatalogoModal] = useState<{ isOpen: boolean; id: number; nombre: string }>({ isOpen: false, id: 0, nombre: '' });
@@ -97,16 +102,43 @@ export default function ProveedoresPage() {
     }
   };
 
+  // Resetear página al buscar
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [debouncedBusqueda]);
+
+  // Filtrar proveedores por búsqueda (debounced)
+  const proveedoresFiltrados = debouncedBusqueda
+    ? proveedores.filter(p =>
+        p.nombre?.toLowerCase().includes(debouncedBusqueda.toLowerCase()) ||
+        p.cedulaRuc?.toLowerCase().includes(debouncedBusqueda.toLowerCase()) ||
+        p.ciudad?.toLowerCase().includes(debouncedBusqueda.toLowerCase())
+      )
+    : proveedores;
+
   return (
     <div className="min-h-screen bg-background p-8 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold tracking-tight text-slate-900">Proveedores</h1>
-          {user?.permisos?.crear_proveedores && (
-            <Link href="/proveedores/nuevo" className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
-              + Nuevo Proveedor
-            </Link>
-          )}
+          <div className="flex items-center gap-3">
+            <ExportButtons
+              data={proveedoresFiltrados}
+              fileName="Proveedores"
+              columns={[
+                { header: 'Nombre', key: 'nombre' },
+                { header: 'Cédula/RUC', key: 'cedulaRuc' },
+                { header: 'Ciudad', key: 'ciudad' },
+                { header: 'Tipo', key: 'tipo' },
+                { header: 'Estado', key: 'estado' },
+              ]}
+            />
+            {user?.permisos?.crear_proveedores && (
+              <Link href="/proveedores/nuevo" className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
+                + Nuevo Proveedor
+              </Link>
+            )}
+          </div>
         </div>
 
         {aviso && (
@@ -115,7 +147,7 @@ export default function ProveedoresPage() {
           </div>
         )}
 
-        <div className="glass-panel p-4 rounded-xl flex gap-4 items-center">
+        <div className="glass-panel p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <span className="text-sm font-semibold text-slate-600">Filtros:</span>
           <select 
             className="bg-white border border-slate-200 text-slate-900 px-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition-all"
@@ -136,6 +168,12 @@ export default function ProveedoresPage() {
             <option value="CONTADO">Contado</option>
             <option value="CREDITO">Crédito</option>
           </select>
+
+          <SearchInput
+            placeholder="Buscar por nombre, cédula/RUC o ciudad..."
+            onSearch={setBusqueda}
+            className="flex-1 min-w-[250px]"
+          />
         </div>
 
         <div className="glass-panel rounded-xl overflow-hidden">
@@ -150,7 +188,7 @@ export default function ProveedoresPage() {
               </tr>
             </thead>
             <tbody>
-              {proveedores
+              {proveedoresFiltrados
                 .slice((paginaActual - 1) * ITEMS_POR_PAGINA, paginaActual * ITEMS_POR_PAGINA)
                 .map(p => (
                 <tr 
@@ -189,7 +227,7 @@ export default function ProveedoresPage() {
                   </td>
                 </tr>
               ))}
-              {proveedores.length === 0 && (
+              {proveedoresFiltrados.length === 0 && (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-slate-500">
                     No se encontraron proveedores.
@@ -200,10 +238,10 @@ export default function ProveedoresPage() {
           </table>
         </div>
 
-        {proveedores.length > 0 && (
+        {proveedoresFiltrados.length > 0 && (
           <div className="flex items-center justify-between mt-4 p-4 glass-panel rounded-xl">
             <span className="text-sm text-slate-500">
-              Mostrando {(paginaActual - 1) * ITEMS_POR_PAGINA + 1} a {Math.min(paginaActual * ITEMS_POR_PAGINA, proveedores.length)} de {proveedores.length} proveedores
+              Mostrando {(paginaActual - 1) * ITEMS_POR_PAGINA + 1} a {Math.min(paginaActual * ITEMS_POR_PAGINA, proveedoresFiltrados.length)} de {proveedoresFiltrados.length} proveedores
             </span>
             <div className="flex gap-2">
               <button 
@@ -214,7 +252,7 @@ export default function ProveedoresPage() {
                 Anterior
               </button>
               <div className="flex items-center gap-1">
-                {Array.from({ length: Math.ceil(proveedores.length / ITEMS_POR_PAGINA) }, (_, i) => i + 1).map(pag => (
+                {Array.from({ length: Math.ceil(proveedoresFiltrados.length / ITEMS_POR_PAGINA) }, (_, i) => i + 1).map(pag => (
                   <button
                     key={pag}
                     onClick={() => setPaginaActual(pag)}
@@ -225,8 +263,8 @@ export default function ProveedoresPage() {
                 ))}
               </div>
               <button 
-                onClick={() => setPaginaActual(p => Math.min(Math.ceil(proveedores.length / ITEMS_POR_PAGINA), p + 1))}
-                disabled={paginaActual === Math.ceil(proveedores.length / ITEMS_POR_PAGINA) || Math.ceil(proveedores.length / ITEMS_POR_PAGINA) === 0}
+                onClick={() => setPaginaActual(p => Math.min(Math.ceil(proveedoresFiltrados.length / ITEMS_POR_PAGINA), p + 1))}
+                disabled={paginaActual === Math.ceil(proveedoresFiltrados.length / ITEMS_POR_PAGINA) || Math.ceil(proveedoresFiltrados.length / ITEMS_POR_PAGINA) === 0}
                 className="px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm text-slate-700 transition-colors shadow-sm"
               >
                 Siguiente
