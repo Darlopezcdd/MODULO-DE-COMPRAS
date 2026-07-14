@@ -10,7 +10,8 @@ import { FacturaPdfPreview } from './FacturaPdfPreview';
 import AutocompleteProducto from "./AutocompleteProducto";
 import NuevoProductoModal from "./NuevoProductoModal";
 import { useSearchParams } from "next/navigation";
-import { Zap, Sparkles, Check, Plus, X } from "lucide-react";
+import { Zap, Sparkles, Check, Plus, X, FileSpreadsheet } from "lucide-react";
+import * as XLSX from "xlsx";
 
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
@@ -47,6 +48,18 @@ const MEJOR_PROVEEDOR = gql`
   }
 `;
 
+const LISTAR_PROVEEDORES = gql`
+  query ListarProveedores($buscar: String) {
+    listarProveedores(buscar: $buscar) {
+      id
+      cedulaRuc
+      nombre
+      direccion
+      telefono
+    }
+  }
+`;
+
 export default function FacturaForm() {
   return (
     <ApolloProvider client={apolloClient}>
@@ -74,6 +87,8 @@ function FacturaFormContent() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [isImportingExcel, setIsImportingExcel] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const showNotification = (message: string, type: 'success' | 'error') => {
     setNotification({ message, type });
@@ -225,6 +240,192 @@ function FacturaFormContent() {
       newProductos[index] = { ...newProductos[index], [field]: value };
       return newProductos;
     });
+  };
+
+  const descargarPlantillaExcel = () => {
+    const aoa = [
+      ["primero poner el proveedor, luego a partir de la fila 5 colocar el producto, la cantidad, el pvp y si graba iva o no"],
+      ["RUC Proveedor"],
+      ["1004384226"],
+      ["Código", "Cantidad", "PVP", "Graba IVA (SI/NO)"],
+      ["PROD-001", 10, 4.50, "SI"],
+      ["PROD-002", 5, 12.00, "NO"]
+    ];
+    const worksheet = XLSX.utils.aoa_to_sheet(aoa);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Plantilla");
+    worksheet["!cols"] = [
+      { wch: 25 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 20 }
+    ];
+    XLSX.writeFile(workbook, "Plantilla_Importar_Detalle_Factura.xlsx");
+  };
+
+  const handleImportarExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImportingExcel(true);
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      
+      const aoa: any[][] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+      let rucExcel = "";
+      let headerRowIndex = 0;
+      
+      for (let i = 0; i < Math.min(aoa.length, 10); i++) {
+        const row = aoa[i];
+        if (!row || row.length === 0) continue;
+        
+        const firstCell = String(row[0] || "").trim().toUpperCase();
+        const secondCell = String(row[1] || "").trim().toUpperCase();
+        
+        if (firstCell === "RUC PROVEEDOR" || firstCell === "RUC") {
+          rucExcel = String(aoa[i+1]?.[0] || "").trim();
+        }
+        
+        if (firstCell === "CÓDIGO" || firstCell === "CODIGO" || firstCell === "CODE" || secondCell === "CANTIDAD" || secondCell === "QTY") {
+          headerRowIndex = i;
+          break;
+        }
+      }
+      
+      const rows: any[] = XLSX.utils.sheet_to_json(firstSheet, { range: headerRowIndex });
+
+      if (rows.length === 0) {
+        alert("El archivo Excel está vacío.");
+        return;
+      }
+
+      const importados: any[] = [];
+      for (const row of rows) {
+        const codigo = String(row.Código || row.codigo || row.Codigo || "").trim();
+        const cantidad = parseFloat(String(row.Cantidad || row.cantidad || "1"));
+        const pvpVal = row.PVP || row.pvp || row.Precio || row.precio;
+        const pvp = pvpVal !== undefined && pvpVal !== null && pvpVal !== "" ? parseFloat(String(pvpVal).replace(",", ".")) : 0;
+        const grabaIvaStr = String(row["Graba IVA (SI/NO)"] || row["Graba Iva"] || row.grabaIva || row.graba_iva || "SI").trim().toUpperCase();
+        const grabaIva = grabaIvaStr === "SI" || grabaIvaStr === "YES" || grabaIvaStr === "TRUE" || grabaIvaStr === "1";
+
+        if (codigo && !isNaN(cantidad) && cantidad > 0 && !isNaN(pvp) && pvp >= 0) {
+          importados.push({
+            codigo,
+            cantidad,
+            pvp,
+            grabaIva,
+          });
+        }
+      }
+
+      if (importados.length === 0) {
+        alert("No se encontraron registros válidos en el archivo Excel. Asegúrate de usar las cabeceras: Código, Cantidad, PVP, Graba IVA (SI/NO)");
+        return;
+      }
+
+      // Intentar auto-seleccionar leyendo el RUC encontrado en el Excel
+      let autoProveedor = selectedProveedor;
+      
+      if (rucExcel) {
+        try {
+          const { data: provData } = await apollo.query({
+            query: LISTAR_PROVEEDORES,
+            variables: { buscar: rucExcel },
+          });
+          const proveedorEncontrado = provData?.listarProveedores?.find((p: any) => p.cedulaRuc === rucExcel);
+          if (proveedorEncontrado) {
+            autoProveedor = proveedorEncontrado;
+            setSelectedProveedor(autoProveedor);
+            showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor.nombre} leyendo el RUC del Excel.`, "success");
+          }
+        } catch (e) {
+          console.error("Error buscando proveedor por RUC del Excel", e);
+        }
+      }
+
+      // Si no se encontró el proveedor por el Excel, usar el mejor proveedor del primer producto
+      if (!autoProveedor && importados.length > 0) {
+        try {
+          const { data: bestProvData } = await apollo.query({
+            query: MEJOR_PROVEEDOR,
+            variables: { productoCodigo: importados[0].codigo },
+          });
+          if (bestProvData?.mejorProveedor?.proveedor) {
+            autoProveedor = bestProvData.mejorProveedor.proveedor;
+            setSelectedProveedor(autoProveedor);
+            showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor.nombre} para los productos importados.`, "success");
+          }
+        } catch (e) {
+          console.error("Error auto-seleccionando proveedor en importación", e);
+        }
+      }
+
+      let activeProveedorId = autoProveedor?.id;
+      let activeCatalogoMap = new Map<string, number>();
+
+      if (activeProveedorId) {
+        try {
+          const { data: catRes } = await apollo.query({
+            query: LISTAR_CATALOGO,
+            variables: { proveedorId: activeProveedorId },
+            fetchPolicy: "network-only",
+          });
+          if (catRes?.listarCatalogoProveedor) {
+            catRes.listarCatalogoProveedor.forEach((c: any) => {
+              activeCatalogoMap.set(c.productoCodigo, Number(c.precioCompra));
+            });
+          }
+        } catch (e) {
+          console.error("Error cargando catálogo del proveedor para importación", e);
+        }
+      }
+
+      const codigosList = importados.map(p => p.codigo).join(",");
+      const res = await fetch(`/api/inventarios?limite=200&codigos=${codigosList}`);
+      const result = await res.json();
+      const globalProducts = result.success ? result.data : [];
+
+      const productosValidados = importados.map(imp => {
+        const pInv = globalProducts.find((p: any) => p.codigo === imp.codigo);
+        
+        let precioFinal = imp.pvp;
+        if (activeCatalogoMap.has(imp.codigo)) {
+          precioFinal = activeCatalogoMap.get(imp.codigo) || 0;
+        } else if (precioFinal === 0 && pInv) {
+          precioFinal = pInv.precioUnitario || 0;
+        }
+
+        return {
+          codigo: imp.codigo,
+          descripcion: pInv ? pInv.nombre : "Producto no registrado en Inventario",
+          cantidad: imp.cantidad,
+          pvp: precioFinal,
+          grabaIva: pInv ? pInv.grabaIva : imp.grabaIva,
+          porcentajeIva: pInv ? pInv.porcentajeIva : 15
+        };
+      });
+
+      const confirmarReemplazar = confirm(`Se leyeron ${productosValidados.length} productos válidos del Excel.\n\n¿Deseas REEMPLAZAR el detalle actual de la factura?\n\n(Presiona "Aceptar" para reemplazar, o "Cancelar" para añadir estos productos al final de tu lista actual)`);
+
+      if (confirmarReemplazar) {
+        setProductos(productosValidados);
+      } else {
+        const prevFilas = productos.filter(p => p.codigo !== "");
+        setProductos([...prevFilas, ...productosValidados]);
+      }
+
+      showNotification(`Se importaron ${productosValidados.length} productos del Excel con éxito`, "success");
+    } catch (err) {
+      console.error(err);
+      alert("Error al procesar archivo Excel. Verifica el formato.");
+    } finally {
+      setIsImportingExcel(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const roundToTwo = (num: number): number => Math.round((num + Number.EPSILON) * 100) / 100;
@@ -520,7 +721,44 @@ function FacturaFormContent() {
       <div className="mt-8 border-t border-slate-200 pt-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-slate-900">Detalle de Productos</h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {/* Descargar Plantilla */}
+            <button
+              type="button"
+              onClick={descargarPlantillaExcel}
+              className="px-3 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium border border-slate-200 flex items-center gap-1.5"
+              title="Descargar plantilla de Excel"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-slate-500" /> Plantilla Excel
+            </button>
+
+            {/* Cargar Excel */}
+            <input 
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept=".xlsx, .xls, .csv"
+              onChange={handleImportarExcel}
+            />
+            <button
+              type="button"
+              disabled={isImportingExcel}
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-colors text-sm font-medium border border-emerald-200 flex items-center gap-1.5 disabled:opacity-50"
+              title="Cargar productos desde archivo Excel"
+            >
+              {isImportingExcel ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" /> Cargar Excel
+                </>
+              )}
+            </button>
+
             {selectedProveedor?.id && (
               <button
                 type="button"
@@ -572,18 +810,40 @@ function FacturaFormContent() {
                             return next;
                           });
                         }}
-                        onSelect={(p) => {
+                        onSelect={async (p) => {
                           updateProduct(index, "codigo", p.codigo);
                           updateProduct(index, "descripcion", p.nombre);
                           updateProduct(index, "grabaIva", p.grabaIva);
                           updateProduct(index, "porcentajeIva", p.porcentajeIva);
                           
-                          // Autocompletar precio si está en catálogo
-                          if (catalogoMap.has(p.codigo)) {
-                            updateProduct(index, "pvp", catalogoMap.get(p.codigo) || 0);
+                          let pvp = p.precioUnitario || 0;
+                          
+                          const enCatalogoActual = selectedProveedor && catalogoMap.has(p.codigo);
+                          
+                          if (!selectedProveedor || !enCatalogoActual) {
+                            try {
+                              const { data: bestProvData } = await apollo.query({
+                                query: MEJOR_PROVEEDOR,
+                                variables: { productoCodigo: p.codigo },
+                              });
+                              if (bestProvData?.mejorProveedor?.proveedor) {
+                                const prov = bestProvData.mejorProveedor.proveedor;
+                                setSelectedProveedor(prov);
+                                pvp = bestProvData.mejorProveedor.precioCompra || pvp;
+                                showNotification(`Se seleccionó automáticamente el proveedor ${prov.nombre} que ofrece este producto.`, "success");
+                              } else {
+                                if (enCatalogoActual) {
+                                  pvp = catalogoMap.get(p.codigo) || 0;
+                                }
+                              }
+                            } catch (e) {
+                              console.error(e);
+                            }
                           } else {
-                            updateProduct(index, "pvp", p.precioUnitario || 0);
+                            pvp = catalogoMap.get(p.codigo) || 0;
                           }
+                          
+                          updateProduct(index, "pvp", pvp);
                         }}
                       />
                       {prod.codigo && !catalogoMap.has(prod.codigo) && selectedProveedor?.id && (

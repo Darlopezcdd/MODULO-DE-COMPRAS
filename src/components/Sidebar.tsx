@@ -42,7 +42,18 @@ export default function Sidebar() {
         </h1>
         {user && (
           <div className="mt-2 text-xs font-medium bg-slate-100 text-slate-600 px-2 py-1 rounded-md inline-block">
-            Rol: {user.rol}
+            Rol: {
+              user.rol === 'ADMIN' ? 'Administrador' :
+              user.rol === 'COMP_ADMIN' ? 'Administrador' :
+              user.rol === 'COMPRADOR' ? 'Comprador' :
+              user.rol === 'COMP_COMPRADOR' ? 'Comprador' :
+              user.rol === 'GESTOR_PROVEEDORES' ? 'Gestor de Proveedores' :
+              user.rol === 'COMP_GESTOR_DE_PROVEEDORES' ? 'Gestor de Proveedores' :
+              user.rol === 'TESORERO' ? 'Tesorero' :
+              user.rol === 'COMP_TESORERO' ? 'Tesorero' :
+              user.rol === 'AUDITOR' ? 'Auditor' :
+              user.rol === 'INV_BODEGUERO' ? 'Bodeguero' : user.rol
+            }
           </div>
         )}
       </div>

@@ -45,15 +45,21 @@ const proveedorContadoActivo = {
 };
 
 const hoy = new Date();
-const fechaHoy = hoy.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+const formatLocalDate = (d: Date) => {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+const fechaHoy = formatLocalDate(hoy);
 
 const fechaManana = new Date(hoy);
 fechaManana.setDate(fechaManana.getDate() + 1);
-const fechaMananaStr = fechaManana.toISOString().split('T')[0];
+const fechaMananaStr = formatLocalDate(fechaManana);
 
 const fechaVence = new Date(hoy);
 fechaVence.setDate(fechaVence.getDate() + 30);
-const fechaVenceStr = fechaVence.toISOString().split('T')[0];
+const fechaVenceStr = formatLocalDate(fechaVence);
 
 const inputBase = {
   fecha: fechaHoy,
