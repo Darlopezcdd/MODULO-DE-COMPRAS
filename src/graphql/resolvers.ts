@@ -449,8 +449,8 @@ export const resolvers = {
     },
     crearProductoGlobalYCatalogo: async (_: any, { proveedorId, precioCompra, input }: any) => {
       try {
-        // 1. Crear en API externa
-        await crearProductoGlobal(input);
+        // Se deshabilitó la creación en API externa porque el catálogo es propio del Módulo de Compras
+        // await crearProductoGlobal(input);
 
         // 2. Agregar al catálogo local
         const item = await prisma.catalogo_proveedor.create({

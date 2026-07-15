@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { registrarAuditoria } from '@/lib/auditoriaService';
-import { registrarDebito } from '@/lib/cuentasClient';
-import { buscarProductos, actualizarProductoGlobal } from '@/lib/inventariosClient';
+import { registrarDebito, obtenerCuentasEmpresa } from '@/lib/cuentasClient';
+import { buscarProductos, registrarMovimientoKardex } from '@/lib/inventariosClient';
+import { cookies } from 'next/headers';
 
 /**
  * @swagger
@@ -71,6 +72,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Debe especificar la cuenta bancaria origen para pagos al contado' }, { status: 400 });
     }
 
+    let totalFactura = 0;
+    for (const prod of productos) {
+      const subtotal = prod.cantidad * prod.pvp;
+      const valor_iva = prod.grabaIva ? subtotal * (prod.porcentajeIva / 100) : 0;
+      totalFactura += subtotal + valor_iva;
+    }
+
+    if (tipoPago === 'CONTADO') {
+      const resCuentas = await obtenerCuentasEmpresa();
+      if (!resCuentas.success || !resCuentas.data) {
+        return NextResponse.json({ error: 'Error al consultar saldo de cuentas' }, { status: 500 });
+      }
+
+      const cuenta = resCuentas.data.find(c => c.id === cuentaBancariaId);
+      if (!cuenta) {
+        return NextResponse.json({ error: 'Cuenta bancaria no encontrada' }, { status: 404 });
+      }
+
+      if (cuenta.saldo < totalFactura) {
+        return NextResponse.json({ error: `Fondos insuficientes en la cuenta seleccionada. Saldo disponible: $${cuenta.saldo}` }, { status: 400 });
+      }
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const factura = await prisma.$transaction(async (tx: any) => {
       // 1. Crear cabecera como BORRADOR (obligatorio para permitir insertar detalles por los triggers)
@@ -87,7 +111,7 @@ export async function POST(req: Request) {
         },
       });
 
-      // 2. Crear detalles
+      // 2. Crear detalles y actualizar catálogo del proveedor automáticamente
       for (const prod of productos) {
         const subtotal = prod.cantidad * prod.pvp;
         const valor_iva = prod.grabaIva ? subtotal * (prod.porcentajeIva / 100) : 0;
@@ -108,22 +132,37 @@ export async function POST(req: Request) {
             total_linea,
           },
         });
+
+        // Upsert al catálogo del proveedor: Si no existe lo crea, si existe actualiza el último precio de compra
+        await tx.catalogo_proveedor.upsert({
+          where: {
+            proveedor_id_producto_codigo: {
+              proveedor_id: proveedorId,
+              producto_codigo: prod.codigo,
+            }
+          },
+          update: {
+            precio_compra: prod.pvp,
+          },
+          create: {
+            proveedor_id: proveedorId,
+            producto_codigo: prod.codigo,
+            precio_compra: prod.pvp,
+          }
+        });
       }
 
       // 3. Manejo de Pagos o Crédito
-      let totalFactura = 0;
-      for (const prod of productos) {
-        const subtotal = prod.cantidad * prod.pvp;
-        const valor_iva = prod.grabaIva ? subtotal * (prod.porcentajeIva / 100) : 0;
-        totalFactura += subtotal + valor_iva;
-      }
-
       if (tipoPago === 'CONTADO') {
-        // Descontar inmediatamente de la cuenta de la empresa
-        const resDebito = await registrarDebito(cuentaBancariaId, totalFactura, `Pago Contado Factura Compra ${nuevaFactura.id}`);
-        if (!resDebito.success) {
-          throw new Error(resDebito.error || 'Error al procesar el pago al contado en CXC');
-        }
+        // Descontar inmediatamente de la cuenta de la empresa guardando en gastos_cxc
+        await tx.gastos_cxc.create({
+          data: {
+            cuenta_bancaria_id: cuentaBancariaId,
+            monto: totalFactura,
+            motivo: `Pago Contado Factura Compra ${nuevaFactura.id}`,
+            factura_id: nuevaFactura.id
+          }
+        });
       } else if (tipoPago === 'CREDITO') {
         // Múltiples cuotas
         const numCuotas = Math.max(1, Number(numeroCuotas));
@@ -157,32 +196,35 @@ export async function POST(req: Request) {
       });
 
       return facturaFinalizada;
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
 
     await registrarAuditoria(1, 'Admin', 'CREAR', 'facturas_compra', factura.id, null, factura, 'Generación completa de Factura');
 
-    // 5. Actualizar el inventario global (Stock y Costo)
+    // 5. Registrar Movimiento en Kardex del Inventario
     try {
-      for (const prod of productos) {
-        const resInv = await buscarProductos('', 1, 1, [prod.codigo]);
-        if (resInv.success && resInv.data.length > 0) {
-          const productoActual = resInv.data[0];
-          const nuevoStock = productoActual.stockActual + Number(prod.cantidad);
-          
-          await actualizarProductoGlobal(prod.codigo, {
-            codigo: prod.codigo,
-            nombre: productoActual.nombre,
-            descripcion: productoActual.descripcion,
-            graba_iva: productoActual.grabaIva,
-            costo: Number(prod.pvp), // El nuevo costo es el precio de compra
-            pvp: productoActual.precioUnitario,
-            stock_actual: nuevoStock,
-            estado: productoActual.estado,
-          });
-        }
-      }
+      const detallesKardex = productos.map((prod: any) => ({
+        codigoProducto: prod.codigo,
+        cantidad: Number(prod.cantidad),
+        precioVenta: 0, // No aplica en COMPRA
+        costoUnitario: Number(prod.pvp), // El precio que el proveedor nos cobra es el nuevo costo
+        descripcion: prod.descripcion || 'Compra a proveedor'
+      }));
+      
+      // Obtener el token de autenticación de las cookies para pasarlo al API de inventario
+      const cookieStore = cookies();
+      const token = cookieStore.get('auth-token')?.value || '';
+
+      await registrarMovimientoKardex({
+        tipoMovimiento: 'COMPRA',
+        documentoReferencia: `Factura ${factura.id}`,
+        fechaMovimiento: new Date().toISOString(),
+        detalles: detallesKardex
+      }, token);
     } catch (errInv) {
-      console.error('Error al actualizar stock global:', errInv);
+      console.error('Error al registrar movimiento en kardex global:', errInv);
     }
 
     return NextResponse.json({ success: true, factura });

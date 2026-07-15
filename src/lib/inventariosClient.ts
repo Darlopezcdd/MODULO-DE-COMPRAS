@@ -247,3 +247,44 @@ export async function actualizarProductoGlobal(codigo: string, input: {
 
   return true;
 }
+
+// ── Función para registrar movimiento de Kardex (COMPRA/VENTA) ─────
+
+export async function registrarMovimientoKardex(input: {
+  tipoMovimiento: string;
+  documentoReferencia: string;
+  fechaMovimiento: string;
+  detalles: Array<{
+    codigoProducto: string;
+    cantidad: number;
+    precioVenta: number;
+    costoUnitario: number;
+    descripcion: string;
+  }>;
+}, token?: string) {
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BASE_URL}/api/kardex/movimientos`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    throw new Error(`Error al registrar movimiento en Kardex: ${errorBody}`);
+  }
+
+  // Invalidar caché para que las consultas de stock reflejen el cambio
+  cacheCatalogo = null;
+
+  return true;
+}
