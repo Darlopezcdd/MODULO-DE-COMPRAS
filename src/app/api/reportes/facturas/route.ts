@@ -4,6 +4,7 @@ import { generarReporteFacturasPDF } from '../../../../lib/facturasReportePdf';
 import { getUserFromRequest } from '../../../../lib/authUtils';
 import { registrarAuditoria } from '../../../../lib/auditoriaService';
 
+export const dynamic = 'force-dynamic';
 /**
  * @swagger
  * /api/reportes/facturas:
