@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { registrarDebito } from '@/lib/cuentasClient';
+import { obtenerCuentasEmpresa } from '@/lib/cuentasClient';
 
 export async function POST(req: Request) {
   try {
@@ -28,12 +28,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No hay monto pendiente por pagar' }, { status: 400 });
     }
 
-    // Registrar debito en la API externa de Cuentas por Cobrar/Pagar
-    const debitoRes = await registrarDebito(cuentaBancariaId, montoAPagar, `Pago Cuota Saldo Proveedor #${saldo.id}`);
-
-    if (!debitoRes.success) {
-      return NextResponse.json({ error: debitoRes.error || 'Fondos insuficientes o error en cuenta' }, { status: 400 });
+    // Validar saldo
+    const resCuentas = await obtenerCuentasEmpresa();
+    if (!resCuentas.success || !resCuentas.data) {
+      return NextResponse.json({ error: 'Error al consultar saldo de Cuentas por Cobrar' }, { status: 500 });
     }
+
+    const cuentaSelec = resCuentas.data.find(c => c.id === cuentaBancariaId);
+    if (!cuentaSelec) {
+      return NextResponse.json({ error: 'Cuenta bancaria no encontrada' }, { status: 404 });
+    }
+
+    if (cuentaSelec.saldo < montoAPagar) {
+      return NextResponse.json({ error: `Fondos insuficientes. Saldo disponible: $${cuentaSelec.saldo}` }, { status: 400 });
+    }
+
+    // Registrar debito en nuestra base de datos para que CxC lo lea
+    await prisma.gastos_cxc.create({
+      data: {
+        cuenta_bancaria_id: cuentaBancariaId,
+        monto: montoAPagar,
+        motivo: `Pago Cuota Saldo Proveedor #${saldo.id}`,
+        saldo_credito_id: saldo.id
+      }
+    });
 
     // Actualizar el saldo en nuestra base de datos
     const saldoActualizado = await prisma.saldos_credito_proveedor.update({
@@ -46,7 +64,7 @@ export async function POST(req: Request) {
       }
     });
 
-    return NextResponse.json({ success: true, data: saldoActualizado, nuevoSaldoCta: debitoRes.nuevoSaldo });
+    return NextResponse.json({ success: true, data: saldoActualizado, nuevoSaldoCta: cuentaSelec.saldo - montoAPagar });
   } catch (error: any) {
     console.error('Error al pagar saldo:', error);
     return NextResponse.json({ error: error.message || 'Error interno' }, { status: 500 });

@@ -229,3 +229,15 @@ model catalogo_proveedor {
   @@index([proveedor_id], map: "idx_catalogo_proveedor_id")
   @@index([producto_codigo], map: "idx_catalogo_producto_codigo")
 }
+
+model gastos_cxc {
+  id                 Int      @id @default(autoincrement())
+  cuenta_bancaria_id String   @db.VarChar(100)
+  monto              Decimal  @db.Decimal(14, 2)
+  motivo             String?
+  factura_id         Int?
+  saldo_credito_id   Int?
+  fecha_pago         DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([cuenta_bancaria_id])
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const API_URL = 'https://proyecto-moduloseguridad.onrender.com/api/auth/forgot-password/';
+const GRAPHQL_URL = 'https://proyecto-moduloseguridad.onrender.com/graphql/';
 const FETCH_TIMEOUT_MS = 45000; // Render free tier: cold start puede tardar 30-50s
 
 function isValidEmail(email: unknown): email is string {
@@ -28,15 +28,24 @@ export async function POST(request: Request) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
+    const query = `
+      mutation ForgotPassword($email: String!) {
+        forgotPassword(email: $email) {
+          success
+          message
+        }
+      }
+    `;
+
     let res: Response;
     try {
-      res = await fetch(API_URL, {
+      res = await fetch(GRAPHQL_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ query, variables: { email } }),
         signal: controller.signal,
       });
     } catch (fetchError: any) {
@@ -64,19 +73,26 @@ export async function POST(request: Request) {
       data = { success: res.ok };
     }
 
-    if (!res.ok || data?.success === false) {
+    if (data.errors) {
+      console.error('Errores en GraphQL:', data.errors);
+      return NextResponse.json({ success: false, message: data.errors[0]?.message || 'Error al solicitar el código de recuperación' }, { status: 400 });
+    }
+
+    const mutationResult = data?.data?.forgotPassword;
+
+    if (!res.ok || mutationResult?.success === false) {
       return NextResponse.json(
-        { success: false, message: data?.message || data?.error || 'Error al solicitar el código de recuperación' },
+        { success: false, message: mutationResult?.message || 'Error al solicitar el código de recuperación' },
         { status: res.status || 400 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: data?.message || 'Código enviado al correo',
+      message: mutationResult?.message || 'Código enviado al correo',
     });
   } catch (error: any) {
     console.error('Error interno en API forgot-password:', error);
     return NextResponse.json({ success: false, message: 'Error interno del servidor' }, { status: 500 });
   }
-}
+}
