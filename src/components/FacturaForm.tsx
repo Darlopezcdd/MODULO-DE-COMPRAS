@@ -362,8 +362,8 @@ function FacturaFormContent() {
         }
       }
 
-      let activeProveedorId = autoProveedor?.id;
-      let activeCatalogoMap = new Map<string, number>();
+      const activeProveedorId = autoProveedor?.id;
+      const activeCatalogoMap = new Map<string, number>();
 
       if (activeProveedorId) {
         try {

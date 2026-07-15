@@ -2,8 +2,6 @@ import prisma from '../lib/prisma';
 import { GraphQLError } from 'graphql';
 import { getUserFromRequest } from '../lib/authUtils';
 import { registrarAuditoria } from '../lib/auditoriaService';
-import { crearProductoGlobal } from '../lib/inventariosClient';
-
 // ── Validaciones Proveedores (HU1) ────────────────────────────────────────────
 const validateCedulaRuc = (val: string) => {
   if (!/^\d{10}(\d{3})?$/.test(val)) throw new GraphQLError('Cédula/RUC inválido (debe tener 10 o 13 dígitos numéricos).');

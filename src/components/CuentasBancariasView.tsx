@@ -51,7 +51,7 @@ export default function CuentasBancariasView({
   };
 
   // Obtener ícono del banco
-  const getBancoIcon = (banco: string) => {
+  const getBancoIcon = (_banco: string) => {
     return <Building2 className="w-6 h-6" />;
   };
 
@@ -67,7 +67,7 @@ export default function CuentasBancariasView({
     setErrorEdicion(null);
   };
 
-  const handleSaveEdit = async (cuentaId: string) => {
+  const handleSaveEdit = async (_cuentaId: string) => {
     setErrorEdicion(null);
 
     // Validaciones
