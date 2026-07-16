@@ -80,7 +80,7 @@ export const resolvers = {
       }
     },
     obtenerProveedor: async (_: any, { id }: any) => {
-      return await prisma.proveedor.findUnique({ where: { id, deletedAt: null } });
+      return await prisma.proveedor.findUnique({ where: { id } });
     },
 
     // ── Catálogo Proveedor ──────────────────────────────────
