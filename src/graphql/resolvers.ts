@@ -2,8 +2,6 @@ import prisma from '../lib/prisma';
 import { GraphQLError } from 'graphql';
 import { getUserFromRequest } from '../lib/authUtils';
 import { registrarAuditoria } from '../lib/auditoriaService';
-import { crearProductoGlobal } from '../lib/inventariosClient';
-
 // ── Validaciones Proveedores (HU1) ────────────────────────────────────────────
 const validateCedulaRuc = (val: string) => {
   if (!/^\d{10}(\d{3})?$/.test(val)) throw new GraphQLError('Cédula/RUC inválido (debe tener 10 o 13 dígitos numéricos).');
@@ -449,8 +447,8 @@ export const resolvers = {
     },
     crearProductoGlobalYCatalogo: async (_: any, { proveedorId, precioCompra, input }: any) => {
       try {
-        // 1. Crear en API externa
-        await crearProductoGlobal(input);
+        // Se deshabilitó la creación en API externa porque el catálogo es propio del Módulo de Compras
+        // await crearProductoGlobal(input);
 
         // 2. Agregar al catálogo local
         const item = await prisma.catalogo_proveedor.create({

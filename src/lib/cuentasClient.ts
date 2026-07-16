@@ -7,7 +7,7 @@ export interface CuentaBancaria {
   saldo: number;
 }
 
-const CXC_BASE_URL = 'https://cuentasxcobrar-backend-300n.onrender.com';
+const CXC_BASE_URL = 'https://cuentasxcobrar-backend-380n.onrender.com';
 const FETCH_TIMEOUT_MS = 15000;
 
 export async function obtenerCuentasEmpresa(): Promise<{ success: boolean; data?: CuentaBancaria[]; error?: string }> {

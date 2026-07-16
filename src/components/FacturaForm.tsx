@@ -330,7 +330,7 @@ function FacturaFormContent() {
       
       if (rucExcel) {
         try {
-          const { data: provData } = await apollo.query({
+          const { data: provData } = await apollo.query<any>({
             query: LISTAR_PROVEEDORES,
             variables: { buscar: rucExcel },
           });
@@ -338,7 +338,7 @@ function FacturaFormContent() {
           if (proveedorEncontrado) {
             autoProveedor = proveedorEncontrado;
             setSelectedProveedor(autoProveedor);
-            showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor.nombre} leyendo el RUC del Excel.`, "success");
+            showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor?.nombre} leyendo el RUC del Excel.`, "success");
           }
         } catch (e) {
           console.error("Error buscando proveedor por RUC del Excel", e);
@@ -348,26 +348,26 @@ function FacturaFormContent() {
       // Si no se encontró el proveedor por el Excel, usar el mejor proveedor del primer producto
       if (!autoProveedor && importados.length > 0) {
         try {
-          const { data: bestProvData } = await apollo.query({
+          const { data: bestProvData } = await apollo.query<any>({
             query: MEJOR_PROVEEDOR,
             variables: { productoCodigo: importados[0].codigo },
           });
           if (bestProvData?.mejorProveedor?.proveedor) {
             autoProveedor = bestProvData.mejorProveedor.proveedor;
             setSelectedProveedor(autoProveedor);
-            showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor.nombre} para los productos importados.`, "success");
+            showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor?.nombre} para los productos importados.`, "success");
           }
         } catch (e) {
           console.error("Error auto-seleccionando proveedor en importación", e);
         }
       }
 
-      let activeProveedorId = autoProveedor?.id;
-      let activeCatalogoMap = new Map<string, number>();
+      const activeProveedorId = autoProveedor?.id;
+      const activeCatalogoMap = new Map<string, number>();
 
       if (activeProveedorId) {
         try {
-          const { data: catRes } = await apollo.query({
+          const { data: catRes } = await apollo.query<any>({
             query: LISTAR_CATALOGO,
             variables: { proveedorId: activeProveedorId },
             fetchPolicy: "network-only",
@@ -822,7 +822,7 @@ function FacturaFormContent() {
                           
                           if (!selectedProveedor || !enCatalogoActual) {
                             try {
-                              const { data: bestProvData } = await apollo.query({
+                              const { data: bestProvData } = await apollo.query<any>({
                                 query: MEJOR_PROVEEDOR,
                                 variables: { productoCodigo: p.codigo },
                               });
