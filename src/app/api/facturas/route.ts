@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { registrarAuditoria } from '@/lib/auditoriaService';
-import { registrarDebito, obtenerCuentasEmpresa } from '@/lib/cuentasClient';
-import { buscarProductos, registrarMovimientoKardex } from '@/lib/inventariosClient';
+import { obtenerCuentasEmpresa } from '@/lib/cuentasClient';
+import { registrarMovimientoKardex } from '@/lib/inventariosClient';
 import { cookies } from 'next/headers';
 
 /**

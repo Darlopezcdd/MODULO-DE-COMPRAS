@@ -51,7 +51,7 @@ export default function CuentasBancariasView({
   };
 
   // Obtener ícono del banco
-  const getBancoIcon = (banco: string) => {
+  const getBancoIcon = () => {
     return <Building2 className="w-6 h-6" />;
   };
 
@@ -67,7 +67,7 @@ export default function CuentasBancariasView({
     setErrorEdicion(null);
   };
 
-  const handleSaveEdit = async (cuentaId: string) => {
+  const handleSaveEdit = async () => {
     setErrorEdicion(null);
 
     // Validaciones
@@ -205,7 +205,7 @@ export default function CuentasBancariasView({
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className={`w-12 h-12 rounded-xl ${colors.bg} ${colors.border} border flex items-center justify-center ${colors.text}`}>
-                    {getBancoIcon(cuenta.banco)}
+                    {getBancoIcon()}
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900">{cuenta.banco}</h3>
@@ -253,7 +253,7 @@ export default function CuentasBancariasView({
                         autoFocus
                       />
                       <button
-                        onClick={() => handleSaveEdit(cuenta.id)}
+                        onClick={() => handleSaveEdit()}
                         disabled={guardando}
                         className="p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
                         title="Guardar"

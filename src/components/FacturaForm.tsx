@@ -366,9 +366,12 @@ function FacturaFormContent() {
           if (bestProvData?.mejorProveedor?.proveedor) {
             autoProveedor = bestProvData.mejorProveedor.proveedor;
             setSelectedProveedor(autoProveedor);
+<<<<<<< HEAD
             if (autoProveedor?.tipo) {
               setTipoPago(autoProveedor.tipo);
             }
+=======
+>>>>>>> origin/develop
             showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor?.nombre} para los productos importados.`, "success");
           }
         } catch (e) {
@@ -376,8 +379,8 @@ function FacturaFormContent() {
         }
       }
 
-      let activeProveedorId = autoProveedor?.id;
-      let activeCatalogoMap = new Map<string, number>();
+      const activeProveedorId = autoProveedor?.id;
+      const activeCatalogoMap = new Map<string, number>();
 
       if (activeProveedorId) {
         try {

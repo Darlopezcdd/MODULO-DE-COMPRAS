@@ -45,7 +45,7 @@ export const dynamic = 'force-dynamic';
  *       500:
  *         description: Error interno del servidor
  */
-export async function GET(req: Request) {
+export async function GET() {
   try {
     // 1. Obtener los gastos que no se han sincronizado
     const gastos = await prisma.gastos_cxc.findMany({

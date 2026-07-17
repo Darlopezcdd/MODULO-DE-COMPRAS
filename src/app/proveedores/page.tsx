@@ -7,9 +7,9 @@ import SearchInput from '@/components/SearchInput';
 import ExportButtons from '@/components/ExportButtons';
 import { useDebounce } from '@/hooks/useDebounce';
 import * as XLSX from 'xlsx';
-import ConfirmModal from '@/components/ConfirmModal';
-import { Printer, FileSpreadsheet, Edit3, Trash2, BookOpen } from 'lucide-react';
+import { Printer, FileSpreadsheet, Edit3, Trash2, BookOpen, RefreshCw } from 'lucide-react';
 import AlertBanner from '@/components/AlertBanner';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 interface Proveedor {
   id: number;
@@ -31,7 +31,19 @@ export default function ProveedoresPage() {
   const [catalogoModal, setCatalogoModal] = useState<{ isOpen: boolean; id: number; nombre: string }>({ isOpen: false, id: 0, nombre: '' });
   const [user, setUser] = useState<any>(null);
   const [exportandoExcelId, setExportandoExcelId] = useState<number | null>(null);
-  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, proveedorId: number | null}>({ isOpen: false, proveedorId: null });
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'success' | 'info';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info',
+    onConfirm: () => {},
+  });
   const ITEMS_POR_PAGINA = 10;
 
   useEffect(() => {
@@ -84,37 +96,77 @@ export default function ProveedoresPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtroEstado, filtroTipo, user]);
 
-  const desactivarProveedor = (id: number) => {
-    setConfirmModal({ isOpen: true, proveedorId: id });
+  const desactivarProveedor = async (id: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Desactivar Proveedor',
+      message: '¿Estás seguro de que deseas desactivar este proveedor?',
+      type: 'danger',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          await fetch('/api/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `
+                mutation Eliminar($id: Int!) {
+                  eliminarProveedor(id: $id) {
+                    id
+                    estado
+                  }
+                }
+              `,
+              variables: { id },
+            }),
+          });
+          await fetchProveedores();
+          setAviso('Proveedor desactivado correctamente');
+          setTimeout(() => setAviso(''), 3000);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
   };
 
-  const procesarDesactivacion = async () => {
-    const id = confirmModal.proveedorId;
-    setConfirmModal({ isOpen: false, proveedorId: null });
-    if (!id) return;
-    
-    try {
-      await fetch('/api/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: `
-            mutation Eliminar($id: Int!) {
-              eliminarProveedor(id: $id) {
-                id
-                estado
-              }
-            }
-          `,
-          variables: { id },
-        }),
-      });
-      await fetchProveedores();
-      setAviso('Proveedor desactivado correctamente');
-      setTimeout(() => setAviso(''), 3000);
-    } catch (e) {
-      console.error(e);
-    }
+  const activarProveedor = async (id: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Activar Proveedor',
+      message: '¿Estás seguro de que deseas activar este proveedor?',
+      type: 'success',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          await fetch('/api/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `
+                mutation Actualizar($id: Int!, $input: ProveedorUpdateInput!) {
+                  actualizarProveedor(id: $id, input: $input) {
+                    id
+                    estado
+                  }
+                }
+              `,
+              variables: {
+                id,
+                input: {
+                  estado: 'ACTIVO'
+                }
+              },
+            }),
+          });
+          await fetchProveedores();
+          setAviso('Proveedor activado correctamente');
+          setTimeout(() => setAviso(''), 3000);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
   };
 
   // Resetear página al buscar
@@ -372,6 +424,17 @@ export default function ProveedoresPage() {
                         </span>
                       </div>
                     )}
+
+                    {/* Activar Proveedor */}
+                    {user?.permisos?.editar_proveedores && p.estado === 'INACTIVO' && (
+                      <button 
+                        onClick={() => activarProveedor(p.id)}
+                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded transition-colors shadow-sm animate-all duration-300"
+                        title="Activar proveedor"
+                      >
+                        <RefreshCw size={16} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -431,15 +494,13 @@ export default function ProveedoresPage() {
         />
       )}
 
-      <ConfirmModal
+      <ConfirmationModal
         isOpen={confirmModal.isOpen}
-        title="Desactivar Proveedor"
-        message="¿Estás seguro de que deseas desactivar este proveedor? Se ocultará de las listas activas pero se conservará su historial."
-        type="danger"
-        confirmText="Sí, desactivar"
-        cancelText="Cancelar"
-        onConfirm={procesarDesactivacion}
-        onCancel={() => setConfirmModal({ isOpen: false, proveedorId: null })}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
       />
     </div>
   );

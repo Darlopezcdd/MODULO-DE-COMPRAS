@@ -48,6 +48,10 @@ export default function Breadcrumbs() {
           // Formatear el texto (ej. "nuevo-proveedor" -> "Nuevo-proveedor")
           const label = decodeURIComponent(segment).replace(/-/g, ' ');
 
+          // Lista de rutas intermedias que no tienen página propia y no deben ser clickeables
+          const nonClickablePaths = ['/proveedores/editar'];
+          const isClickable = !nonClickablePaths.includes(href);
+
           return (
             <React.Fragment key={href}>
               <li>
@@ -63,7 +67,7 @@ export default function Breadcrumbs() {
                   >
                     {capitalize(label)}
                   </span>
-                ) : (
+                ) : isClickable ? (
                   // Enlace para los segmentos anteriores
                   <Link
                     href={href}
@@ -71,6 +75,11 @@ export default function Breadcrumbs() {
                   >
                     {capitalize(label)}
                   </Link>
+                ) : (
+                  // Texto estático para rutas intermedias no clickeables
+                  <span className="font-medium text-slate-400 cursor-default">
+                    {capitalize(label)}
+                  </span>
                 )}
               </li>
             </React.Fragment>
