@@ -366,12 +366,9 @@ function FacturaFormContent() {
           if (bestProvData?.mejorProveedor?.proveedor) {
             autoProveedor = bestProvData.mejorProveedor.proveedor;
             setSelectedProveedor(autoProveedor);
-<<<<<<< HEAD
             if (autoProveedor?.tipo) {
               setTipoPago(autoProveedor.tipo);
             }
-=======
->>>>>>> origin/develop
             showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor?.nombre} para los productos importados.`, "success");
           }
         } catch (e) {

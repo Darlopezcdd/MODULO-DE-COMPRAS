@@ -374,6 +374,7 @@ export async function POST(request: Request) {
           usuario_nombre: userNombre,
           accion: 'LOGIN',
           modulo: 'COMPRAS',
+          tabla_afectada: 'N/A',
           descripcion: 'Inicio de sesión en Módulo de Compras',
           resultado: 'EXITO'
         }
