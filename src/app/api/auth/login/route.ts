@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { signToken } from '../../../../lib/authUtils';
+import prisma from '@/lib/prisma';
 
 /**
  * @swagger
@@ -115,7 +116,6 @@ export async function POST(request: Request) {
       } else if (rol === 'TESORERO') {
         permisos = {
           ...permisos,
-          ver_proveedores: true,
           ver_facturas: true,
           ver_reportes: true,
           gestionar_pagos: true,
@@ -350,7 +350,6 @@ export async function POST(request: Request) {
     } else if (userRole === 'TESORERO' || userRole === 'COMP_TESORERO') {
       permisos = {
         ...permisos,
-        ver_proveedores: true,
         ver_facturas: true,
         ver_reportes: true,
         gestionar_pagos: true,
@@ -366,6 +365,22 @@ export async function POST(request: Request) {
     };
 
     const token = await signToken(tokenPayload);
+
+    // Registro de Auditoría Local
+    try {
+      await prisma.pista_auditoria.create({
+        data: {
+          usuario_id: userId,
+          usuario_nombre: userNombre,
+          accion: 'LOGIN',
+          modulo: 'COMPRAS',
+          descripcion: 'Inicio de sesión en Módulo de Compras',
+          resultado: 'EXITO'
+        }
+      });
+    } catch (auditErr) {
+      console.error('Error registrando auditoría de login:', auditErr);
+    }
 
     const response = NextResponse.json({ success: true, usuario: tokenPayload });
     

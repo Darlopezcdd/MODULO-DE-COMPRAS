@@ -237,6 +237,7 @@ model gastos_cxc {
   motivo             String?
   factura_id         Int?
   saldo_credito_id   Int?
+  sincronizado       Boolean  @default(false)
   fecha_pago         DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([cuenta_bancaria_id])

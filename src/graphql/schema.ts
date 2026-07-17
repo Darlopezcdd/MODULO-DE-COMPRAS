@@ -160,7 +160,7 @@ export const typeDefs = `
   }
 
   extend type Mutation {
-    agregarAlCatalogo(proveedorId: Int!, productoCodigo: String!, precioCompra: Float!, pvp: Float): CatalogoProveedor!
+    agregarAlCatalogo(proveedorId: Int!, productoCodigo: String!, precioCompra: Float!, pvp: Float, grabaIva: Boolean): CatalogoProveedor!
     crearProductoGlobalYCatalogo(proveedorId: Int!, precioCompra: Float!, input: ProductoGlobalInput!): CatalogoProveedor!
     eliminarDelCatalogo(id: Int!): Boolean!
   }

@@ -13,6 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { Zap, Sparkles, Check, Plus, X, FileSpreadsheet } from "lucide-react";
 import * as XLSX from "xlsx";
 import AlertBanner from "@/components/AlertBanner";
+import Tooltip from "./Tooltip";
 
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
@@ -546,27 +547,31 @@ function FacturaFormContent() {
           La factura <strong className="text-emerald-600">{facturaGenerada?.numero_factura || `FC-${facturaGenerada?.id?.toString().padStart(8, '0')}`}</strong> ha sido guardada y procesada correctamente en el sistema.
         </p>
         <div className="flex gap-4">
-          <button
-            onClick={() => router.push('/facturas')}
-            title="Ver la lista completa de facturas registradas"
+          <Tooltip content="Ver la lista completa de facturas registradas" position="top">
+            <button
+              onClick={() => router.push('/facturas')}
+              
             className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors"
           >
-            Ver lista de facturas
-          </button>
-          <button
-            onClick={() => {
-              setSaveSuccess(false);
-              setFacturaGenerada(null);
-              setSelectedProveedor(null);
-              setProductos([{ codigo: "", descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }]);
-              setTipoPago('CONTADO');
-              setFechaVencimiento('');
-            }}
-            title="Limpiar formulario para crear una nueva factura"
+              Ver lista de facturas
+            </button>
+          </Tooltip>
+          <Tooltip content="Limpiar formulario para crear una nueva factura" position="top">
+            <button
+              onClick={() => {
+                setSaveSuccess(false);
+                setFacturaGenerada(null);
+                setSelectedProveedor(null);
+                setProductos([{ codigo: "", descripcion: "", cantidad: 1, pvp: 0, grabaIva: true, porcentajeIva: 15 }]);
+                setTipoPago('CONTADO');
+                setFechaVencimiento('');
+              }}
+              
             className="px-6 py-2 bg-[#d20a11] hover:bg-[#b0080e] text-white font-medium rounded-lg transition-colors shadow-sm"
           >
-            Crear otra factura
-          </button>
+              Crear otra factura
+            </button>
+          </Tooltip>
         </div>
         <p className="text-sm text-slate-400 mt-8 animate-pulse">Redirigiendo automáticamente en 3 segundos...</p>
       </div>
@@ -743,14 +748,16 @@ function FacturaFormContent() {
           <h3 className="text-xl font-semibold text-slate-900">Detalle de Productos</h3>
           <div className="flex gap-2 items-center">
             {/* Descargar Plantilla */}
-            <button
-              type="button"
-              onClick={descargarPlantillaExcel}
-              title="Descargar plantilla de Excel para importar productos"
+            <Tooltip content="Descargar plantilla de Excel para importar productos" position="top">
+              <button
+                type="button"
+                onClick={descargarPlantillaExcel}
+                
               className="px-3 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium border border-slate-200 flex items-center gap-1.5"
             >
-              <FileSpreadsheet className="w-4 h-4 text-slate-500" /> Plantilla Excel
-            </button>
+                <FileSpreadsheet className="w-4 h-4 text-slate-500" /> Plantilla Excel
+              </button>
+            </Tooltip>
 
             {/* Cargar Excel */}
             <input 
@@ -760,14 +767,15 @@ function FacturaFormContent() {
               accept=".xlsx, .xls, .csv"
               onChange={handleImportarExcel}
             />
-            <button
-              type="button"
-              disabled={isImportingExcel}
-              onClick={() => fileInputRef.current?.click()}
-              title="Cargar productos desde un archivo Excel"
+            <Tooltip content="Cargar productos desde un archivo Excel" position="top">
+              <button
+                type="button"
+                disabled={isImportingExcel}
+                onClick={() => fileInputRef.current?.click()}
+                
               className="px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-colors text-sm font-medium border border-emerald-200 flex items-center gap-1.5 disabled:opacity-50"
             >
-              {isImportingExcel ? (
+                {isImportingExcel ? (
                 <>
                   <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                   Procesando...
@@ -777,27 +785,33 @@ function FacturaFormContent() {
                   <Plus className="w-4 h-4" /> Cargar Excel
                 </>
               )}
-            </button>
+            
+              </button>
+            </Tooltip>
 
             {selectedProveedor?.id && (
-              <button
-                type="button"
-                onClick={() => setShowNewProductModal(true)}
-                title="Registrar un nuevo producto en el catálogo"
+              <Tooltip content="Registrar un nuevo producto en el catálogo" position="top">
+                <button
+                  type="button"
+                  onClick={() => setShowNewProductModal(true)}
+                  
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
               >
-                <Sparkles className="w-4 h-4" /> Crear Producto Nuevo
-              </button>
+                  <Sparkles className="w-4 h-4" /> Crear Producto Nuevo
+                </button>
+              </Tooltip>
             )}
-            <button
-              type="button"
-              data-testid="add-product-btn"
-              onClick={handleAddProduct}
-              title="Agregar una nueva fila de producto"
+            <Tooltip content="Agregar una nueva fila de producto" position="top">
+              <button
+                type="button"
+                data-testid="add-product-btn"
+                onClick={handleAddProduct}
+                
               className="px-4 py-2 bg-[#d20a11] text-white rounded-lg hover:bg-[#b0080e] transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
             >
-              <Plus className="w-4 h-4" /> Agregar Fila
-            </button>
+                <Plus className="w-4 h-4" /> Agregar Fila
+              </button>
+            </Tooltip>
           </div>
         </div>
 
@@ -929,15 +943,17 @@ function FacturaFormContent() {
                       ${subtotal.toFixed(2)}
                     </td>
                     <td className="p-3 text-center">
-                      <button
-                        type="button"
-                        data-testid={`remove-${index}`}
-                        onClick={() => handleRemoveProduct(index)}
-                        title="Eliminar esta fila de producto"
+                      <Tooltip content="Eliminar esta fila de producto" position="left">
+                        <button
+                          type="button"
+                          data-testid={`remove-${index}`}
+                          onClick={() => handleRemoveProduct(index)}
+                          
                         className="text-red-400 hover:text-red-600 p-1 rounded-md transition-colors"
                       >
-                        <X size={18} strokeWidth={2.5} />
-                      </button>
+                          <X size={18} strokeWidth={2.5} />
+                        </button>
+                      </Tooltip>
                     </td>
                   </tr>
                 );
@@ -966,19 +982,22 @@ function FacturaFormContent() {
             </div>
             
             <div className="mt-5 flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={handleSaveFactura}
-                disabled={isSaving}
-                title="Guardar y procesar esta factura en el sistema"
+              <Tooltip content="Guardar y procesar esta factura en el sistema" position="top">
+                <button
+                  type="button"
+                  onClick={handleSaveFactura}
+                  disabled={isSaving}
+                  
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-300 shadow-sm flex items-center justify-center gap-2"
               >
-                {isSaving ? "Guardando..." : (
+                  {isSaving ? "Guardando..." : (
                   <>
                     <Check className="w-5 h-5" /> Guardar Factura
                   </>
                 )}
-              </button>
+              
+                </button>
+              </Tooltip>
               
               <FacturaPdfPreview 
                 data={{ 

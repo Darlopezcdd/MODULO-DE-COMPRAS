@@ -1,7 +1,7 @@
 import protobuf from 'protobufjs';
 import path from 'path';
 
-const AUTH_URL = 'https://712286fslb.execute-api.us-east-1.amazonaws.com/default/api-auth-central';
+const AUTH_URL = 'https://712286fsib.execute-api.us-east-1.amazonaws.com/default/api-auth-central';
 const AUDIT_URL = 'https://98l52rpey8.execute-api.us-east-1.amazonaws.com/default/api-pistas-auditoria';
 const API_KEY = 'dev_key_compras_444';
 

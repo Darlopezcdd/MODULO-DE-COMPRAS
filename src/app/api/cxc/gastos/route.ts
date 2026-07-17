@@ -47,12 +47,32 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(req: Request) {
   try {
+    // 1. Obtener los gastos que no se han sincronizado
     const gastos = await prisma.gastos_cxc.findMany({
+      where: {
+        sincronizado: false
+      },
       orderBy: {
         fecha_pago: 'desc'
       }
     });
 
+    // 2. Si se encontraron gastos, marcarlos como sincronizados
+    if (gastos.length > 0) {
+      const ids = gastos.map((g: any) => g.id);
+      await prisma.gastos_cxc.updateMany({
+        where: {
+          id: {
+            in: ids
+          }
+        },
+        data: {
+          sincronizado: true
+        }
+      });
+    }
+
+    // 3. Devolver solo esos gastos (uno por uno / pocos)
     return NextResponse.json({ success: true, data: gastos });
   } catch (error: any) {
     console.error('Error al obtener gastos CxC:', error);

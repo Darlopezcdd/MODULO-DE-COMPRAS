@@ -51,7 +51,7 @@ export default function TablaProveedores({ data, isLoading }: TablaProveedoresPr
   // ── ESTADO 1: Cargando (skeletons) ─────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl border border-[#E5E5E5] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#E5E5E5] shadow-sm">
         <div className="px-6 py-4 border-b border-[#E5E5E5]" style={{ backgroundColor: '#f8fafc' }}>
           <div className="h-5 w-44 rounded animate-pulse" style={{ backgroundColor: '#E5E5E5' }} />
         </div>
@@ -110,7 +110,7 @@ export default function TablaProveedores({ data, isLoading }: TablaProveedoresPr
 
   // ── ESTADO 4: Tabla con datos ───────────────────────────────────────────────
   return (
-    <div className="bg-white rounded-2xl border border-[#E5E5E5] shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-white rounded-2xl border border-[#E5E5E5] shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
 
       {/* Cabecera de la tabla */}
       <div className="px-6 py-4 border-b border-[#E5E5E5] flex items-center justify-between bg-slate-50">

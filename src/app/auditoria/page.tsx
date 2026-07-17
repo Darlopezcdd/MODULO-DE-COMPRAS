@@ -62,16 +62,18 @@ export default function AuditoriaPage() {
 
   const LIMITE = 15;
 
-  const cargarRegistros = useCallback(async (pag: number) => {
+  const cargarRegistros = useCallback(async (pag: number, isClean: boolean = false) => {
     setIsLoading(true);
     setError('');
     try {
       const params = new URLSearchParams({ pagina: String(pag), limite: String(LIMITE) });
-      if (filtroAccion) params.set('accion', filtroAccion);
-      if (filtroUsuario) params.set('usuarioId', filtroUsuario);
-      if (filtroTabla) params.set('tablaAfectada', filtroTabla);
-      if (fechaInicio) params.set('fechaInicio', fechaInicio);
-      if (fechaFin) params.set('fechaFin', fechaFin);
+      if (!isClean) {
+        if (filtroAccion) params.set('accion', filtroAccion);
+        if (filtroUsuario) params.set('usuarioNombre', filtroUsuario);
+        if (filtroTabla) params.set('tablaAfectada', filtroTabla);
+        if (fechaInicio) params.set('fechaInicio', fechaInicio);
+        if (fechaFin) params.set('fechaFin', fechaFin);
+      }
 
       const res = await fetch(`/api/auditoria?${params.toString()}`);
       let json: any;
@@ -114,7 +116,7 @@ export default function AuditoriaPage() {
     setFechaInicio('');
     setFechaFin('');
     setPagina(1);
-    cargarRegistros(1);
+    cargarRegistros(1, true);
   };
 
   const exportarCSV = () => {
@@ -185,12 +187,12 @@ export default function AuditoriaPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Usuario ID</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Nombre de Usuario</label>
               <input
-                type="number"
+                type="text"
                 value={filtroUsuario}
                 onChange={(e) => setFiltroUsuario(e.target.value)}
-                placeholder="Ej: 1"
+                placeholder="Ej: Juan Perez"
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 outline-none focus:ring-2 focus:ring-[#d10a11]/30 focus:border-[#d10a11]"
               />
             </div>

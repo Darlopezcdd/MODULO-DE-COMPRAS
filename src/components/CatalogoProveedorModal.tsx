@@ -7,9 +7,10 @@ import { apolloClient } from "@/lib/apolloClient";
 import AutocompleteProducto from "./AutocompleteProducto";
 import NuevoProductoModal from "./NuevoProductoModal";
 import * as XLSX from 'xlsx';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Edit2, Check, X as XIcon } from 'lucide-react';
 import AlertBanner from "@/components/AlertBanner";
 import ConfirmModal from "@/components/ConfirmModal";
+import Tooltip from "@/components/Tooltip";
 
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
@@ -81,6 +82,11 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose, canMana
   const [productoSeleccionado, setProductoSeleccionado] = useState<any>(null);
   const [precioInput, setPrecioInput] = useState<string>("");
 
+  // Estado para edición en línea
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editPrecio, setEditPrecio] = useState<string>("");
+  const [editCodigo, setEditCodigo] = useState<string>("");
+
   // Cargar detalles de los productos usando sus códigos
   useEffect(() => {
     const fetchDetalles = async () => {
@@ -138,6 +144,39 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose, canMana
   const handleAddFromAutocomplete = (prod: any) => {
     setProductoSeleccionado(prod);
     setPrecioInput("");
+  };
+
+  
+  
+  const handleEditarSubmit = async () => {
+    if (!editingItem) return;
+    const numPrecio = parseFloat(editPrecio) || 0;
+    if (numPrecio <= 0) {
+      mostrarAviso("El precio de compra debe ser mayor a 0", "warning");
+      return;
+    }
+
+    try {
+      if (editingItem.productoCodigo !== editCodigo) {
+        // Si el codigo cambió, eliminamos el registro anterior
+        await eliminar({ variables: { id: editingItem.id } });
+      }
+
+      await agregar({
+        variables: {
+          proveedorId,
+          productoCodigo: editCodigo,
+          precioCompra: numPrecio
+        }
+      });
+      setEditingItem(null);
+      setEditPrecio("");
+      setEditCodigo("");
+      refetch();
+      mostrarAviso("Producto actualizado correctamente", "success");
+    } catch (e: any) {
+      mostrarAviso("Error al actualizar: " + e.message, "warning");
+    }
   };
 
   const confirmarAgregar = async () => {
@@ -417,19 +456,82 @@ function CatalogoProveedorModal({ proveedorId, proveedorNombre, onClose, canMana
                 ) : (
                   productosFull.map(item => (
                     <tr key={item.id} className="hover:bg-slate-50 text-sm">
-                      <td className="p-3 font-mono text-slate-500">{item.productoCodigo}</td>
-                      <td className="p-3 font-medium text-slate-900">{item.nombre}</td>
+                      {editingItem?.id === item.id ? (
+                        <td colSpan={2} className="p-2 relative z-[9999]">
+                           <AutocompleteProducto 
+                             value={`${editCodigo} - ${item.nombre}`}
+                             onSelect={(prod) => {
+                               setEditCodigo(prod.codigo);
+                             }}
+                           />
+                        </td>
+                      ) : (
+                        <>
+                          <td className="p-3 font-mono text-slate-500">{item.productoCodigo}</td>
+                          <td className="p-3 font-medium text-slate-900">{item.nombre}</td>
+                        </>
+                      )}
                       <td className="p-3 text-slate-600">{item.stockActual}</td>
-                      <td className="p-3 text-right font-bold text-[#d20a11]">${item.precioCompra.toFixed(2)}</td>
+                      {editingItem?.id === item.id ? (
+                        <td className="p-3 text-right">
+                          <input 
+                            type="number" 
+                            step="0.01" 
+                            className="w-24 px-2 py-1 border border-slate-300 rounded focus:ring-1 focus:ring-emerald-500 outline-none text-right"
+                            value={editPrecio}
+                            onChange={(e) => setEditPrecio(e.target.value)}
+                            autoFocus
+                          />
+                        </td>
+                      ) : (
+                        <td className="p-3 text-right font-bold text-[#d20a11]">${item.precioCompra.toFixed(2)}</td>
+                      )}
+                      
                       {canManage && (
                         <td className="p-3 text-center">
-                          <button 
-                            onClick={() => handleEliminar(item.id)}
-                            className="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded transition"
-                            title="Quitar del catálogo"
-                          >
-                            Quitar
-                          </button>
+                          {editingItem?.id === item.id ? (
+                            <div className="flex justify-center gap-2">
+                              <Tooltip content="Guardar cambios" position="top">
+                                <button 
+                                  onClick={handleEditarSubmit}
+                                  className="text-emerald-600 hover:text-emerald-800 p-1 bg-emerald-50 hover:bg-emerald-100 rounded transition"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                              </Tooltip>
+                              <Tooltip content="Cancelar edición" position="top">
+                                <button 
+                                  onClick={() => setEditingItem(null)}
+                                  className="text-slate-500 hover:text-slate-700 p-1 bg-slate-100 hover:bg-slate-200 rounded transition"
+                                >
+                                  <XIcon className="w-4 h-4" />
+                                </button>
+                              </Tooltip>
+                            </div>
+                          ) : (
+                            <div className="flex justify-center gap-2">
+                              <Tooltip content="Editar precio de compra" position="top">
+                                <button 
+                                  onClick={() => {
+                                    setEditingItem(item);
+                                    setEditPrecio(item.precioCompra.toString());
+                                    setEditCodigo(item.productoCodigo);
+                                  }}
+                                  className="text-blue-500 hover:text-blue-700 p-1 bg-blue-50 hover:bg-blue-100 rounded transition"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                              </Tooltip>
+                              <Tooltip content="Quitar producto del catálogo" position="top">
+                                <button 
+                                  onClick={() => handleEliminar(item.id)}
+                                  className="text-red-500 hover:text-red-700 p-1 bg-red-50 hover:bg-red-100 rounded transition"
+                                >
+                                  <XIcon className="w-4 h-4" />
+                                </button>
+                              </Tooltip>
+                            </div>
+                          )}
                         </td>
                       )}
                     </tr>

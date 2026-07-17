@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Banknote, CheckCircle2 } from 'lucide-react';
+import { Banknote, CheckCircle2, CreditCard, Check } from 'lucide-react';
 import CuentasBancariasView, { CuentaBancaria } from '@/components/CuentasBancariasView';
 import AlertBanner from '@/components/AlertBanner';
+import Tooltip from "@/components/Tooltip";
 
 interface Saldo {
   id: number;
@@ -130,7 +131,6 @@ export default function TesoreriaPage() {
           </div>
         )}
 
-        {/* Tarjetas de Cuentas Bancarias — HU13 (Aldahir Requene) */}
         <CuentasBancariasView
           cuentas={cuentasEmpresa}
           isLoading={cargandoCuentas}
@@ -186,13 +186,14 @@ export default function TesoreriaPage() {
                         </span>
                       </td>
                       <td className="p-4 text-center">
-                        <button 
-                          onClick={() => handlePagarClick(s)}
-                          title="Procesar pago de esta factura pendiente"
-                          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                        >
-                          Pagar
-                        </button>
+                        <Tooltip content="Procesar pago de esta factura pendiente" position="top">
+                          <button 
+                            onClick={() => handlePagarClick(s)}
+                            className="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg transition-colors shadow-sm"
+                          >
+                            <CreditCard className="w-4 h-4" />
+                          </button>
+                        </Tooltip>
                       </td>
                     </tr>
                   );
@@ -211,7 +212,6 @@ export default function TesoreriaPage() {
               <button 
                 onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
                 disabled={paginaActual === 1}
-                title="Ir a la página anterior"
                 className="px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm text-slate-700 transition-colors shadow-sm"
               >
                 Anterior
@@ -221,7 +221,6 @@ export default function TesoreriaPage() {
                   <button
                     key={pag}
                     onClick={() => setPaginaActual(pag)}
-                    title={`Ir a la página ${pag}`}
                     className={`w-8 h-8 rounded text-sm transition-colors shadow-sm ${paginaActual === pag ? 'bg-purple-600 text-white font-bold border border-purple-600' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-700'}`}
                   >
                     {pag}
@@ -231,7 +230,6 @@ export default function TesoreriaPage() {
               <button 
                 onClick={() => setPaginaActual(p => Math.min(Math.ceil(saldos.length / ITEMS_POR_PAGINA), p + 1))}
                 disabled={paginaActual === Math.ceil(saldos.length / ITEMS_POR_PAGINA) || Math.ceil(saldos.length / ITEMS_POR_PAGINA) === 0}
-                title="Ir a la página siguiente"
                 className="px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm text-slate-700 transition-colors shadow-sm"
               >
                 Siguiente
@@ -282,23 +280,29 @@ export default function TesoreriaPage() {
             </div>
 
             <div className="flex gap-3 justify-end mt-6">
-              <button
-                type="button"
-                onClick={() => setSaldoSeleccionado(null)}
-                title="Cancelar y cerrar este modal"
-                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors font-medium"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                disabled={isPagarCargando}
-                onClick={handleConfirmarPago}
-                title="Confirmar el pago y realizar el débito de la cuenta seleccionada"
-                className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium shadow-sm flex items-center gap-2"
-              >
-                {isPagarCargando ? "Procesando..." : "Confirmar y Pagar"}
-              </button>
+              <Tooltip content="Cancelar y cerrar este modal" position="top">
+                <button
+                  type="button"
+                  onClick={() => setSaldoSeleccionado(null)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors font-medium"
+                >
+                  Cancelar
+                </button>
+              </Tooltip>
+              <Tooltip content="Confirmar el pago y realizar el débito de la cuenta seleccionada" position="top">
+                <button
+                  type="button"
+                  disabled={isPagarCargando}
+                  onClick={handleConfirmarPago}
+                  className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium shadow-sm flex items-center gap-2"
+                >
+                  {isPagarCargando ? "Procesando..." : (
+                    <>
+                      <Check className="w-5 h-5" /> Confirmar y Pagar
+                    </>
+                  )}
+                </button>
+              </Tooltip>
             </div>
           </div>
         </div>

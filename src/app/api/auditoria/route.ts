@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
   }
 
   // ── 2. Verificar que el rol tiene permiso ───────────────────
-  if (!['ADMIN', 'AUDITOR'].includes(payload.rol)) {
+  if (!['ADMIN', 'COMP_ADMIN', 'AUDITOR'].includes(payload.rol)) {
     return NextResponse.json(
       { success: false, error: 'Acceso denegado. Solo ADMIN y AUDITOR pueden ver el historial de auditoría.' },
       { status: 403 }
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
 
   const pagina       = Math.max(parseInt(searchParams.get('pagina')  || '1'),  1);
   const limite       = Math.min(parseInt(searchParams.get('limite')  || '20'), 200);
-  const usuarioId    = searchParams.get('usuarioId');
+  const usuarioNombre = searchParams.get('usuarioNombre');
   const accion       = searchParams.get('accion');
   const tablaAfectada = searchParams.get('tablaAfectada');
   const fechaInicio  = searchParams.get('fechaInicio');
@@ -111,14 +111,14 @@ export async function GET(request: NextRequest) {
   // ── 4. Construir filtros dinámicos ──────────────────────────
   const where: any = {};
 
-  if (usuarioId)    where.usuario_id     = parseInt(usuarioId);
-  if (accion)       where.accion         = accion;
-  if (tablaAfectada) where.tabla_afectada = tablaAfectada;
+  if (usuarioNombre) where.usuario_nombre = { contains: usuarioNombre, mode: 'insensitive' };
+  if (accion)        where.accion         = accion;
+  if (tablaAfectada) where.tabla_afectada = { contains: tablaAfectada, mode: 'insensitive' };
 
   if (fechaInicio || fechaFin) {
     where.fecha_hora = {};
-    if (fechaInicio) where.fecha_hora.gte = new Date(fechaInicio + 'T00:00:00');
-    if (fechaFin)    where.fecha_hora.lte = new Date(fechaFin    + 'T23:59:59');
+    if (fechaInicio) where.fecha_hora.gte = new Date(fechaInicio + 'T00:00:00-05:00');
+    if (fechaFin)    where.fecha_hora.lte = new Date(fechaFin    + 'T23:59:59-05:00');
   }
 
   // ── 5. Consultar BD en paralelo (total + datos) ─────────────

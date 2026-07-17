@@ -414,9 +414,12 @@ export const resolvers = {
       };
     },
 
-    agregarAlCatalogo: async (_: any, { proveedorId, productoCodigo, precioCompra, pvp }: any) => {
+    agregarAlCatalogo: async (_: any, { proveedorId, productoCodigo, precioCompra, pvp, grabaIva }: any) => {
       try {
-        if (pvp !== undefined && pvp !== null) {
+        const hasPvp = pvp !== undefined && pvp !== null;
+        const hasIva = grabaIva !== undefined && grabaIva !== null;
+
+        if (hasPvp || hasIva) {
           try {
             const searchRes = await buscarProductos('', 1, 1, [productoCodigo]);
             if (searchRes.success && searchRes.data.length > 0) {
@@ -425,9 +428,9 @@ export const resolvers = {
                 codigo: prod.codigo,
                 nombre: prod.nombre,
                 descripcion: prod.descripcion,
-                graba_iva: prod.grabaIva,
-                costo: precioCompra, // actualizamos el costo
-                pvp: pvp,            // actualizamos el pvp
+                graba_iva: hasIva ? grabaIva : prod.grabaIva,
+                costo: precioCompra,
+                pvp: hasPvp ? pvp : (prod.precioUnitario || 0),
                 stock_actual: prod.stockActual,
                 estado: prod.estado
               });
