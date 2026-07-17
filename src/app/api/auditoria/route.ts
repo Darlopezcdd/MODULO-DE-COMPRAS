@@ -79,7 +79,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-  // ── 1. Verificar autenticación ──────────────────────────────
+  // Verificar autenticacion
   const payload = await getUserFromRequest(request) as any;
 
   if (!payload) {
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // ── 2. Verificar que el rol tiene permiso ───────────────────
+  // Verificar que el rol tiene permiso
   if (!['ADMIN', 'AUDITOR'].includes(payload.rol)) {
     return NextResponse.json(
       { success: false, error: 'Acceso denegado. Solo ADMIN y AUDITOR pueden ver el historial de auditoría.' },
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // ── 3. Leer parámetros de la URL ────────────────────────────
+  // Leer parámetros de la URL
   const { searchParams } = request.nextUrl;
 
   const pagina       = Math.max(parseInt(searchParams.get('pagina')  || '1'),  1);
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
   const fechaInicio  = searchParams.get('fechaInicio');
   const fechaFin     = searchParams.get('fechaFin');
 
-  // ── 4. Construir filtros dinámicos ──────────────────────────
+  // Construir filtros dinámicos
   const where: any = {};
 
   if (usuarioId)    where.usuario_id     = parseInt(usuarioId);
@@ -121,7 +121,6 @@ export async function GET(request: NextRequest) {
     if (fechaFin)    where.fecha_hora.lte = new Date(fechaFin    + 'T23:59:59');
   }
 
-  // ── 5. Consultar BD en paralelo (total + datos) ─────────────
   const skip = (pagina - 1) * limite;
 
   const [total, registros] = await Promise.all([
@@ -134,7 +133,7 @@ export async function GET(request: NextRequest) {
     }),
   ]);
 
-  // ── 6. Serializar (BigInt → String) y responder ─────────────
+  // Serializa
   const data = registros.map((r: any) => ({
     id:             r.id.toString(),
     fechaHora:      r.fecha_hora.toISOString(),

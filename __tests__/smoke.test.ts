@@ -7,7 +7,6 @@ jest.mock('@/lib/authUtils', () => ({
 
 import { signToken, verifyToken } from '@/lib/authUtils';
 
-// ── 1. MATH UTILITIES ──────────────────────────────────────────
 describe('Smoke — Math utilities', () => {
   it('roundToTwo funciona con valores normales', () => {
     expect(roundToTwo(10.555)).toBe(10.56);
@@ -48,7 +47,6 @@ describe('Smoke — Math utilities', () => {
   });
 });
 
-// ── 2. PAGINATION LOGIC ────────────────────────────────────────
 describe('Smoke — Pagination logic', () => {
   function paginar(total: number, pagina: number, limite: number) {
     const totalPaginas = Math.ceil(total / limite);
@@ -93,7 +91,6 @@ describe('Smoke — Pagination logic', () => {
   });
 });
 
-// ── 3. AUTH UTILITIES ──────────────────────────────────────────
 describe('Smoke — Auth utilities', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -119,7 +116,6 @@ describe('Smoke — Auth utilities', () => {
   });
 });
 
-// ── 4. GRAPHQL SCHEMA VALIDITY ─────────────────────────────────
 describe('Smoke — GraphQL schema definitions', () => {
   const typeDefs = `
     enum TipoProveedor { CONTADO CREDITO }
@@ -163,7 +159,6 @@ describe('Smoke — GraphQL schema definitions', () => {
   });
 });
 
-// ── 5. ROUTE AVAILABILITY ──────────────────────────────────────
 describe('Smoke — Route availability', () => {
   const protectedRoutes = [
     '/proveedores',
@@ -219,7 +214,6 @@ describe('Smoke — Route availability', () => {
   });
 });
 
-// ── 6. ENVIRONMENT CONFIGURATION ───────────────────────────────
 describe('Smoke — Environment configuration', () => {
   const fs = require('fs');
   const path = require('path');
@@ -241,7 +235,6 @@ describe('Smoke — Environment configuration', () => {
   });
 });
 
-// ── 7. GENERATE PDF FUNCTIONS ──────────────────────────────────
 describe('Smoke — PDF generation files', () => {
   const fs = require('fs');
   const path = require('path');
@@ -264,7 +257,6 @@ describe('Smoke — PDF generation files', () => {
   });
 });
 
-// ── 8. CRITICAL EXTERNAL CLIENTS ───────────────────────────────
 describe('Smoke — External client files', () => {
   const fs = require('fs');
   const path = require('path');

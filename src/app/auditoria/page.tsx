@@ -100,7 +100,7 @@ export default function AuditoriaPage() {
 
   useEffect(() => {
     cargarRegistros(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   const handleFiltrar = () => {

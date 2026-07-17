@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Users, FileText, BarChart3, AlertTriangle, PackageSearch, Banknote } from 'lucide-react';
+import { ArrowRight, Users, FileText, BarChart3, AlertTriangle, PackageSearch, Banknote, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
@@ -121,6 +121,18 @@ export default function Home() {
                 <div>
                   <h3 className="font-semibold text-slate-900">Tesorería</h3>
                   <p className="text-sm text-slate-500">Gestión de pagos y cuentas</p>
+                </div>
+              </Link>
+            )}
+
+            {user?.permisos?.ver_auditoria && (
+              <Link href="/auditoria" className="group flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 hover:border-[#d20a11] hover:shadow-md transition-all">
+                <div className="bg-[#d20a11]/10 p-3 rounded-lg group-hover:bg-[#d20a11]/20 transition-colors">
+                  <Shield className="w-6 h-6 text-[#d20a11]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Auditoría</h3>
+                  <p className="text-sm text-slate-500">Historial y trazabilidad</p>
                 </div>
               </Link>
             )}
