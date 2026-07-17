@@ -2,7 +2,7 @@ import prisma from '../lib/prisma';
 import { GraphQLError } from 'graphql';
 import { getUserFromRequest } from '../lib/authUtils';
 import { registrarAuditoria } from '../lib/auditoriaService';
-import { crearProductoGlobal } from '../lib/inventariosClient';
+import { crearProductoGlobal, buscarProductos, actualizarProductoGlobal } from '../lib/inventariosClient';
 
 // ── Validaciones Proveedores (HU1) ────────────────────────────────────────────
 const validateCedulaRuc = (val: string) => {
@@ -108,19 +108,23 @@ export const resolvers = {
         const catalogos = await prisma.catalogo_proveedor.findMany({
           where: { producto_codigo: productoCodigo },
           orderBy: { precio_compra: 'asc' },
-          take: 1,
         });
         if (catalogos.length === 0) return null;
         
-        const proveedor = await prisma.proveedor.findUnique({
-          where: { id: catalogos[0].proveedor_id },
-        });
+        for (const cat of catalogos) {
+          const proveedor = await prisma.proveedor.findUnique({
+            where: { id: cat.proveedor_id },
+          });
+          
+          if (proveedor && proveedor.estado === 'ACTIVO' && proveedor.deletedAt === null) {
+            return {
+              proveedor,
+              precioCompra: cat.precio_compra,
+            };
+          }
+        }
         
-        if (!proveedor) return null;
-        return {
-          proveedor,
-          precioCompra: catalogos[0].precio_compra,
-        };
+        return null;
       } catch (e: any) {
         throw new GraphQLError(e.message);
       }
@@ -410,8 +414,29 @@ export const resolvers = {
       };
     },
 
-    agregarAlCatalogo: async (_: any, { proveedorId, productoCodigo, precioCompra }: any) => {
+    agregarAlCatalogo: async (_: any, { proveedorId, productoCodigo, precioCompra, pvp }: any) => {
       try {
+        if (pvp !== undefined && pvp !== null) {
+          try {
+            const searchRes = await buscarProductos('', 1, 1, [productoCodigo]);
+            if (searchRes.success && searchRes.data.length > 0) {
+              const prod = searchRes.data[0];
+              await actualizarProductoGlobal(productoCodigo, {
+                codigo: prod.codigo,
+                nombre: prod.nombre,
+                descripcion: prod.descripcion,
+                graba_iva: prod.grabaIva,
+                costo: precioCompra, // actualizamos el costo
+                pvp: pvp,            // actualizamos el pvp
+                stock_actual: prod.stockActual,
+                estado: prod.estado
+              });
+            }
+          } catch (err) {
+            console.error("Error al actualizar producto global", err);
+          }
+        }
+
         const existente = await prisma.catalogo_proveedor.findFirst({
           where: {
             proveedor_id: proveedorId,
@@ -449,8 +474,8 @@ export const resolvers = {
     },
     crearProductoGlobalYCatalogo: async (_: any, { proveedorId, precioCompra, input }: any) => {
       try {
-        // Se deshabilitó la creación en API externa porque el catálogo es propio del Módulo de Compras
-        // await crearProductoGlobal(input);
+        // 1. Crear el producto en la API del Inventario Global
+        await crearProductoGlobal(input);
 
         // 2. Agregar al catálogo local
         const item = await prisma.catalogo_proveedor.create({

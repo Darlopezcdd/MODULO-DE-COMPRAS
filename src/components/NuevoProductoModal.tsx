@@ -47,7 +47,7 @@ export default function NuevoProductoModal({ proveedorId, onClose, onSuccess }: 
           precioCompra,
           input: {
             ...form,
-            costo: Number(form.costo),
+            costo: precioCompra, // Se envía el precio de compra al proveedor como costo inicial
             pvp: Number(form.pvp)
           }
         }
@@ -110,8 +110,8 @@ export default function NuevoProductoModal({ proveedorId, onClose, onSuccess }: 
           </div>
 
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Cancelar</button>
-            <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm disabled:opacity-50">
+            <button type="button" onClick={onClose} title="Cerrar ventana sin guardar" className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Cancelar</button>
+            <button type="submit" disabled={loading} title="Guardar este nuevo producto en el catálogo e inventario global" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm disabled:opacity-50">
               {loading ? "Guardando..." : "Crear y Añadir a Catálogo"}
             </button>
           </div>

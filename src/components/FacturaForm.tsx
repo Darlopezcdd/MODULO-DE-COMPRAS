@@ -12,6 +12,7 @@ import NuevoProductoModal from "./NuevoProductoModal";
 import { useSearchParams } from "next/navigation";
 import { Zap, Sparkles, Check, Plus, X, FileSpreadsheet } from "lucide-react";
 import * as XLSX from "xlsx";
+import AlertBanner from "@/components/AlertBanner";
 
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
@@ -42,6 +43,7 @@ const MEJOR_PROVEEDOR = gql`
         nombre
         direccion
         telefono
+        tipo
       }
       precioCompra
     }
@@ -50,12 +52,13 @@ const MEJOR_PROVEEDOR = gql`
 
 const LISTAR_PROVEEDORES = gql`
   query ListarProveedores($buscar: String) {
-    listarProveedores(buscar: $buscar) {
+    listarProveedores(buscar: $buscar, estado: ACTIVO) {
       id
       cedulaRuc
       nombre
       direccion
       telefono
+      tipo
     }
   }
 `;
@@ -74,6 +77,7 @@ interface ProveedorSeleccionado {
   nombre?: string;
   direccion?: string;
   telefono?: string;
+  tipo?: 'CONTADO' | 'CREDITO';
 }
 
 function FacturaFormContent() {
@@ -198,6 +202,9 @@ function FacturaFormContent() {
 
           if (data?.mejorProveedor) {
             setSelectedProveedor(data.mejorProveedor.proveedor);
+            if (data.mejorProveedor.proveedor.tipo) {
+              setTipoPago(data.mejorProveedor.proveedor.tipo);
+            }
             setProductos([{
               codigo: productoGlobal.codigo,
               descripcion: productoGlobal.nombre,
@@ -330,7 +337,7 @@ function FacturaFormContent() {
       
       if (rucExcel) {
         try {
-          const { data: provData } = await apollo.query({
+          const { data: provData } = await apollo.query<any>({
             query: LISTAR_PROVEEDORES,
             variables: { buscar: rucExcel },
           });
@@ -338,7 +345,10 @@ function FacturaFormContent() {
           if (proveedorEncontrado) {
             autoProveedor = proveedorEncontrado;
             setSelectedProveedor(autoProveedor);
-            showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor.nombre} leyendo el RUC del Excel.`, "success");
+            if (autoProveedor?.tipo) {
+              setTipoPago(autoProveedor.tipo);
+            }
+            showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor?.nombre} leyendo el RUC del Excel.`, "success");
           }
         } catch (e) {
           console.error("Error buscando proveedor por RUC del Excel", e);
@@ -348,14 +358,17 @@ function FacturaFormContent() {
       // Si no se encontró el proveedor por el Excel, usar el mejor proveedor del primer producto
       if (!autoProveedor && importados.length > 0) {
         try {
-          const { data: bestProvData } = await apollo.query({
+          const { data: bestProvData } = await apollo.query<any>({
             query: MEJOR_PROVEEDOR,
             variables: { productoCodigo: importados[0].codigo },
           });
           if (bestProvData?.mejorProveedor?.proveedor) {
             autoProveedor = bestProvData.mejorProveedor.proveedor;
             setSelectedProveedor(autoProveedor);
-            showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor.nombre} para los productos importados.`, "success");
+            if (autoProveedor?.tipo) {
+              setTipoPago(autoProveedor.tipo);
+            }
+            showNotification(`Se seleccionó automáticamente el proveedor ${autoProveedor?.nombre} para los productos importados.`, "success");
           }
         } catch (e) {
           console.error("Error auto-seleccionando proveedor en importación", e);
@@ -367,7 +380,7 @@ function FacturaFormContent() {
 
       if (activeProveedorId) {
         try {
-          const { data: catRes } = await apollo.query({
+          const { data: catRes } = await apollo.query<any>({
             query: LISTAR_CATALOGO,
             variables: { proveedorId: activeProveedorId },
             fetchPolicy: "network-only",
@@ -535,6 +548,7 @@ function FacturaFormContent() {
         <div className="flex gap-4">
           <button
             onClick={() => router.push('/facturas')}
+            title="Ver la lista completa de facturas registradas"
             className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors"
           >
             Ver lista de facturas
@@ -548,6 +562,7 @@ function FacturaFormContent() {
               setTipoPago('CONTADO');
               setFechaVencimiento('');
             }}
+            title="Limpiar formulario para crear una nueva factura"
             className="px-6 py-2 bg-[#d20a11] hover:bg-[#b0080e] text-white font-medium rounded-lg transition-colors shadow-sm"
           >
             Crear otra factura
@@ -566,7 +581,12 @@ function FacturaFormContent() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <AutocompleteProveedor
-          onSelect={(prov) => setSelectedProveedor(prov)}
+          onSelect={(prov) => {
+            setSelectedProveedor(prov);
+            if (prov.tipo) {
+              setTipoPago(prov.tipo);
+            }
+          }}
           value={selectedProveedor?.nombre || ''}
         />
 
@@ -726,8 +746,8 @@ function FacturaFormContent() {
             <button
               type="button"
               onClick={descargarPlantillaExcel}
+              title="Descargar plantilla de Excel para importar productos"
               className="px-3 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium border border-slate-200 flex items-center gap-1.5"
-              title="Descargar plantilla de Excel"
             >
               <FileSpreadsheet className="w-4 h-4 text-slate-500" /> Plantilla Excel
             </button>
@@ -744,8 +764,8 @@ function FacturaFormContent() {
               type="button"
               disabled={isImportingExcel}
               onClick={() => fileInputRef.current?.click()}
+              title="Cargar productos desde un archivo Excel"
               className="px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-colors text-sm font-medium border border-emerald-200 flex items-center gap-1.5 disabled:opacity-50"
-              title="Cargar productos desde archivo Excel"
             >
               {isImportingExcel ? (
                 <>
@@ -763,6 +783,7 @@ function FacturaFormContent() {
               <button
                 type="button"
                 onClick={() => setShowNewProductModal(true)}
+                title="Registrar un nuevo producto en el catálogo"
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
               >
                 <Sparkles className="w-4 h-4" /> Crear Producto Nuevo
@@ -772,6 +793,7 @@ function FacturaFormContent() {
               type="button"
               data-testid="add-product-btn"
               onClick={handleAddProduct}
+              title="Agregar una nueva fila de producto"
               className="px-4 py-2 bg-[#d20a11] text-white rounded-lg hover:bg-[#b0080e] transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" /> Agregar Fila
@@ -822,14 +844,14 @@ function FacturaFormContent() {
                           
                           if (!selectedProveedor || !enCatalogoActual) {
                             try {
-                              const { data: bestProvData } = await apollo.query({
+                              const { data: bestProvData } = await apollo.query<any>({
                                 query: MEJOR_PROVEEDOR,
                                 variables: { productoCodigo: p.codigo },
                               });
                               if (bestProvData?.mejorProveedor?.proveedor) {
                                 const prov = bestProvData.mejorProveedor.proveedor;
                                 setSelectedProveedor(prov);
-                                pvp = bestProvData.mejorProveedor.precioCompra || pvp;
+                                pvp = bestProvData?.mejorProveedor?.precioCompra || pvp;
                                 showNotification(`Se seleccionó automáticamente el proveedor ${prov.nombre} que ofrece este producto.`, "success");
                               } else {
                                 if (enCatalogoActual) {
@@ -911,8 +933,8 @@ function FacturaFormContent() {
                         type="button"
                         data-testid={`remove-${index}`}
                         onClick={() => handleRemoveProduct(index)}
+                        title="Eliminar esta fila de producto"
                         className="text-red-400 hover:text-red-600 p-1 rounded-md transition-colors"
-                        title="Eliminar fila"
                       >
                         <X size={18} strokeWidth={2.5} />
                       </button>
@@ -948,6 +970,7 @@ function FacturaFormContent() {
                 type="button"
                 onClick={handleSaveFactura}
                 disabled={isSaving}
+                title="Guardar y procesar esta factura en el sistema"
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-300 shadow-sm flex items-center justify-center gap-2"
               >
                 {isSaving ? "Guardando..." : (
@@ -1006,24 +1029,14 @@ function FacturaFormContent() {
 
       {/* Toast Notification */}
       {notification && (
-        <div className="fixed top-6 right-6 z-50 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${
-            notification.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
-          }`}>
-            {notification.type === 'success' ? (
-              <Check className="w-5 h-5 text-emerald-600" />
-            ) : (
-              <X className="w-5 h-5 text-red-600" />
-            )}
-            <p className="text-sm font-medium">{notification.message}</p>
-            <button 
-              type="button"
-              onClick={() => setNotification(null)}
-              className="ml-4 text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="fixed top-6 right-6 z-50 w-96 max-w-[90vw]">
+          <AlertBanner
+            type={notification.type}
+            message={notification.message}
+            onClose={() => setNotification(null)}
+            autoCloseMs={4000}
+            className="shadow-xl border-l-4"
+          />
         </div>
       )}
     </div>

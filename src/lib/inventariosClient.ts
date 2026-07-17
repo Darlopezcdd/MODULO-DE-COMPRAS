@@ -58,6 +58,7 @@ export interface InventariosResponse {
 // ── Configuración ───────────────────────────────────────────────────
 
 const BASE_URL = 'https://api-inventario-v1gh.onrender.com';
+const API_KEY = process.env.INVENTARIO_API_KEY || 'utn-compras-fact-2026-secret-key';
 
 // ── Normalización ───────────────────────────────────────────────────
 
@@ -104,7 +105,10 @@ async function fetchProductos(): Promise<ProductoInventarioNormalizado[]> {
   // Intentar primero con /api/productos/catalogo (más datos de IVA)
   try {
     const res = await fetch(`${BASE_URL}/api/productos/catalogo`, {
-      headers: { 'Accept': 'application/json' },
+      headers: { 
+        'Accept': 'application/json',
+        'x-api-key': API_KEY
+      },
       cache: 'no-store',
     });
 
@@ -122,7 +126,10 @@ async function fetchProductos(): Promise<ProductoInventarioNormalizado[]> {
   // Fallback a /api/productos (lista completa)
   try {
     const res = await fetch(`${BASE_URL}/api/productos`, {
-      headers: { 'Accept': 'application/json' },
+      headers: { 
+        'Accept': 'application/json',
+        'x-api-key': API_KEY
+      },
       cache: 'no-store',
     });
 
@@ -195,6 +202,7 @@ export async function crearProductoGlobal(input: {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'x-api-key': API_KEY,
     },
     body: JSON.stringify(input),
   });
@@ -230,6 +238,7 @@ export async function actualizarProductoGlobal(codigo: string, input: {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'x-api-key': API_KEY,
     },
     body: JSON.stringify(input),
   });
@@ -266,6 +275,7 @@ export async function registrarMovimientoKardex(input: {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'x-api-key': API_KEY,
   };
 
   if (token) {

@@ -6,12 +6,13 @@ import { useQuery } from '@apollo/client/react';
 
 const LISTAR_PROVEEDORES = gql`
   query ListarProveedores($buscar: String) {
-    listarProveedores(buscar: $buscar) {
+    listarProveedores(buscar: $buscar, estado: ACTIVO) {
       id
       cedulaRuc
       nombre
       direccion
       telefono
+      tipo
     }
   }
 `;
@@ -22,6 +23,7 @@ interface Proveedor {
   nombre: string;
   direccion: string;
   telefono: string;
+  tipo?: 'CONTADO' | 'CREDITO';
 }
 
 interface AutocompleteProveedorProps {

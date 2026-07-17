@@ -102,6 +102,7 @@ export async function POST(request: Request) {
           ver_proveedores: true,
           ver_facturas: true,
           crear_facturas: true,
+          gestionar_catalogo: true,
         };
       } else if (rol === 'GESTOR_PROVEEDORES') {
         permisos = {
@@ -336,6 +337,7 @@ export async function POST(request: Request) {
         ver_proveedores: true,
         ver_facturas: true,
         crear_facturas: true,
+        gestionar_catalogo: true,
       };
     } else if (userRole === 'GESTOR_PROVEEDORES' || userRole === 'COMP_GESTOR_DE_PROVEEDORES') {
       permisos = {

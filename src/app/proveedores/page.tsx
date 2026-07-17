@@ -7,7 +7,9 @@ import SearchInput from '@/components/SearchInput';
 import ExportButtons from '@/components/ExportButtons';
 import { useDebounce } from '@/hooks/useDebounce';
 import * as XLSX from 'xlsx';
-import { Printer, FileSpreadsheet, Edit3, Trash2 } from 'lucide-react';
+import ConfirmModal from '@/components/ConfirmModal';
+import { Printer, FileSpreadsheet, Edit3, Trash2, BookOpen } from 'lucide-react';
+import AlertBanner from '@/components/AlertBanner';
 
 interface Proveedor {
   id: number;
@@ -29,6 +31,7 @@ export default function ProveedoresPage() {
   const [catalogoModal, setCatalogoModal] = useState<{ isOpen: boolean; id: number; nombre: string }>({ isOpen: false, id: 0, nombre: '' });
   const [user, setUser] = useState<any>(null);
   const [exportandoExcelId, setExportandoExcelId] = useState<number | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, proveedorId: number | null}>({ isOpen: false, proveedorId: null });
   const ITEMS_POR_PAGINA = 10;
 
   useEffect(() => {
@@ -59,7 +62,7 @@ export default function ProveedoresPage() {
             }
           `,
           variables: {
-            estado: filtroEstado || null,
+            estado: (user && user.permisos?.editar_proveedores) ? (filtroEstado || null) : 'ACTIVO',
             tipo: filtroTipo || null,
           },
         }),
@@ -75,12 +78,21 @@ export default function ProveedoresPage() {
 
   useEffect(() => {
     setPaginaActual(1);
-    fetchProveedores();
+    if (user !== null || !user) { // Trigger when user loads
+      fetchProveedores();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtroEstado, filtroTipo]);
+  }, [filtroEstado, filtroTipo, user]);
 
-  const desactivarProveedor = async (id: number) => {
-    if (!confirm('¿Estás seguro de que deseas desactivar este proveedor?')) return;
+  const desactivarProveedor = (id: number) => {
+    setConfirmModal({ isOpen: true, proveedorId: id });
+  };
+
+  const procesarDesactivacion = async () => {
+    const id = confirmModal.proveedorId;
+    setConfirmModal({ isOpen: false, proveedorId: null });
+    if (!id) return;
+    
     try {
       await fetch('/api/graphql', {
         method: 'POST',
@@ -209,22 +221,30 @@ export default function ProveedoresPage() {
         </div>
 
         {aviso && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg shadow-sm">
-            ✓ {aviso}
+          <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[90vw]">
+            <AlertBanner
+              type="success"
+              message={aviso}
+              onClose={() => setAviso('')}
+              autoCloseMs={3000}
+              className="shadow-xl border-l-4"
+            />
           </div>
         )}
 
         <div className="glass-panel p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <span className="text-sm font-semibold text-slate-600">Filtros:</span>
-          <select 
-            className="bg-white border border-slate-200 text-slate-900 px-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            value={filtroEstado}
-            onChange={(e) => setFiltroEstado(e.target.value)}
-          >
-            <option value="">Todos los Estados</option>
-            <option value="ACTIVO">Activo</option>
-            <option value="INACTIVO">Inactivo</option>
-          </select>
+          {user?.permisos?.editar_proveedores && (
+            <select 
+              className="bg-white border border-slate-200 text-slate-900 px-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+            >
+              <option value="">Todos los Estados</option>
+              <option value="ACTIVO">Activo</option>
+              <option value="INACTIVO">Inactivo</option>
+            </select>
+          )}
 
           <select 
             className="bg-white border border-slate-200 text-slate-900 px-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition-all"
@@ -243,15 +263,15 @@ export default function ProveedoresPage() {
           />
         </div>
 
-        <div className="glass-panel rounded-xl overflow-hidden">
+        <div className="glass-panel rounded-xl">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="p-4 text-sm font-semibold text-slate-600">Nombre</th>
+                <th className="p-4 text-sm font-semibold text-slate-600 rounded-tl-xl">Nombre</th>
                 <th className="p-4 text-sm font-semibold text-slate-600">Ciudad</th>
                 <th className="p-4 text-sm font-semibold text-slate-600">Tipo</th>
                 <th className="p-4 text-sm font-semibold text-slate-600">Estado</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">Acciones</th>
+                <th className="p-4 text-sm font-semibold text-slate-600 rounded-tr-xl">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -263,9 +283,7 @@ export default function ProveedoresPage() {
                   className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
                   onClick={(e) => {
                     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) return;
-                    if (user?.permisos?.gestionar_catalogo) {
-                      setCatalogoModal({ isOpen: true, id: p.id, nombre: p.nombre });
-                    }
+                    setCatalogoModal({ isOpen: true, id: p.id, nombre: p.nombre });
                   }}
                 >
                   <td className="p-4 font-medium text-slate-900">{p.nombre}</td>
@@ -280,50 +298,79 @@ export default function ProveedoresPage() {
                       {p.estado}
                     </span>
                   </td>
-                  <td className="p-4 flex gap-2" onClick={(e) => e.stopPropagation()}>
+                  <td className="p-4 flex gap-2 relative" onClick={(e) => e.stopPropagation()}>
+                    {/* Ver catálogo en pantalla */}
+                    <div className="relative group">
+                      <button 
+                        onClick={() => setCatalogoModal({ isOpen: true, id: p.id, nombre: p.nombre })}
+                        className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded transition-colors shadow-sm"
+                      >
+                        <BookOpen size={16} />
+                      </button>
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2.5 py-1 bg-slate-800 text-white text-xs font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-[100] scale-95 group-hover:scale-100">
+                        Ver catálogo
+                      </span>
+                    </div>
+
                     {/* Imprimir catálogo PDF */}
-                    <button 
-                      onClick={() => window.open(`/api/proveedores/${p.id}/catalogo/pdf`, '_blank')}
-                      className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded transition-colors shadow-sm animate-all duration-300"
-                      title="Imprimir catálogo en PDF"
-                    >
-                      <Printer size={16} />
-                    </button>
+                    <div className="relative group">
+                      <button 
+                        onClick={() => window.open(`/api/proveedores/${p.id}/catalogo/pdf`, '_blank')}
+                        className="p-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded transition-colors shadow-sm"
+                      >
+                        <Printer size={16} />
+                      </button>
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2.5 py-1 bg-slate-800 text-white text-xs font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-[100] scale-95 group-hover:scale-100">
+                        Imprimir PDF
+                      </span>
+                    </div>
 
                     {/* Exportar catálogo Excel */}
-                    <button 
-                      onClick={() => exportarCatalogoExcel(p.id, p.nombre)}
-                      disabled={exportandoExcelId !== null}
-                      className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center min-w-[28px] animate-all duration-300"
-                      title="Exportar catálogo a Excel"
-                    >
-                      {exportandoExcelId === p.id ? (
-                        <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <FileSpreadsheet size={16} />
-                      )}
-                    </button>
+                    <div className="relative group">
+                      <button 
+                        onClick={() => exportarCatalogoExcel(p.id, p.nombre)}
+                        disabled={exportandoExcelId !== null}
+                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center min-w-[28px]"
+                      >
+                        {exportandoExcelId === p.id ? (
+                          <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <FileSpreadsheet size={16} />
+                        )}
+                      </button>
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2.5 py-1 bg-slate-800 text-white text-xs font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-[100] scale-95 group-hover:scale-100">
+                        Exportar Excel
+                      </span>
+                    </div>
 
                     {/* Editar Proveedor */}
                     {user?.permisos?.editar_proveedores && (
-                      <Link 
-                        href={`/proveedores/editar/${p.id}`} 
-                        className="p-1.5 bg-slate-50 text-slate-600 hover:bg-slate-100 rounded transition-colors shadow-sm animate-all duration-300"
-                        title="Editar proveedor"
-                      >
-                        <Edit3 size={16} />
-                      </Link>
+                      <div className="relative group">
+                        <Link 
+                          href={`/proveedores/editar/${p.id}`} 
+                          className="block p-1.5 bg-slate-50 text-slate-600 hover:bg-slate-100 rounded transition-colors shadow-sm"
+                        >
+                          <Edit3 size={16} />
+                        </Link>
+                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2.5 py-1 bg-slate-800 text-white text-xs font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-[100] scale-95 group-hover:scale-100">
+                          Editar proveedor
+                        </span>
+                      </div>
                     )}
 
                     {/* Desactivar Proveedor */}
                     {user?.permisos?.editar_proveedores && p.estado === 'ACTIVO' && (
-                      <button 
-                        onClick={() => desactivarProveedor(p.id)}
-                        className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded transition-colors shadow-sm animate-all duration-300"
-                        title="Desactivar proveedor"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="relative group">
+                        <button 
+                          onClick={() => desactivarProveedor(p.id)}
+                          className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded transition-colors shadow-sm"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2.5 py-1 bg-slate-800 text-white text-xs font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-[100] scale-95 group-hover:scale-100">
+                          Desactivar
+                        </span>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -380,8 +427,20 @@ export default function ProveedoresPage() {
           proveedorId={catalogoModal.id}
           proveedorNombre={catalogoModal.nombre}
           onClose={() => setCatalogoModal({ isOpen: false, id: 0, nombre: '' })}
+          canManage={!!user?.permisos?.gestionar_catalogo}
         />
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title="Desactivar Proveedor"
+        message="¿Estás seguro de que deseas desactivar este proveedor? Se ocultará de las listas activas pero se conservará su historial."
+        type="danger"
+        confirmText="Sí, desactivar"
+        cancelText="Cancelar"
+        onConfirm={procesarDesactivacion}
+        onCancel={() => setConfirmModal({ isOpen: false, proveedorId: null })}
+      />
     </div>
   );
 }
