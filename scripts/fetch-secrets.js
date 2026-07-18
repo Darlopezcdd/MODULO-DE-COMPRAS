@@ -34,7 +34,7 @@ async function init() {
       }
 
       if (databaseUrl) {
-          const envContent = `DATABASE_URL="${databaseUrl}"\nNODE_ENV="production"\n`;
+          const envContent = `DATABASE_URL="${databaseUrl}"\nNODE_ENV="production"\nNODE_TLS_REJECT_UNAUTHORIZED="0"\n`;
           const envPath = path.join(__dirname, '..', '.env.production');
           fs.writeFileSync(envPath, envContent, { encoding: 'utf8' });
           console.log("✅ Secretos obtenidos correctamente. Archivo .env.production generado.");
