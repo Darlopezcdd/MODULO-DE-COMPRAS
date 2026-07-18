@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 async function init() {
-  const secret_name = "compras/db-credentials-7hxUNN"; // Nombre base o ARN parcial
+  const secret_name = "arn:aws:secretsmanager:us-east-1:946445280288:secret:compras/db-credentials-7hxUNN"; // ARN completo
   
   const client = new SecretsManagerClient({
     region: "us-east-1",
