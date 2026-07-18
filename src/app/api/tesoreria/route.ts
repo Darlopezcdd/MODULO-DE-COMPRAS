@@ -21,8 +21,8 @@ export async function GET() {
       return NextResponse.json({ success: true, data: [] });
     }
 
-    const proveedorIds = Array.from(new Set(saldos.map(s => s.proveedor_id)));
-    const facturaIds = Array.from(new Set(saldos.map(s => s.factura_id).filter(id => id !== null))) as number[];
+    const proveedorIds = Array.from(new Set(saldos.map((s: any) => s.proveedor_id)));
+    const facturaIds = Array.from(new Set(saldos.map((s: any) => s.factura_id).filter((id: any) => id !== null))) as number[];
 
     // 2. Obtener datos relacionados
     const proveedores = await prisma.proveedor.findMany({
@@ -36,9 +36,9 @@ export async function GET() {
     });
 
     // 3. Mapear resultados
-    const resultado = saldos.map(s => {
-      const prov = proveedores.find(p => p.id === s.proveedor_id);
-      const fac = facturas.find(f => f.id === s.factura_id);
+    const resultado = saldos.map((s: any) => {
+      const prov = proveedores.find((p: any) => p.id === s.proveedor_id);
+      const fac = facturas.find((f: any) => f.id === s.factura_id);
       return {
         id: s.id,
         proveedor_id: s.proveedor_id,

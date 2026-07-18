@@ -2,7 +2,7 @@
 // HU4 — Script base de generación de PDF de Factura de Compra (Tarea: Aldahir Requene)
 // Usa PDFKit para generar el documento como Buffer (Server-side)
 
-// @ts-expect-error Ignorando tipado de pdfkit por ahora
+// ts-expect-error Ignorando tipado de pdfkit por ahora
 import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
 
 // ── Tipos de Datos (Estructura esperada por el template) ─────────────────────

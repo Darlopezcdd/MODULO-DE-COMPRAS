@@ -1,4 +1,4 @@
-// @ts-expect-error Ignorando tipado de pdfkit por ahora
+// ts-expect-error Ignorando tipado de pdfkit por ahora
 import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
 
 export interface CatalogoItemPDF {

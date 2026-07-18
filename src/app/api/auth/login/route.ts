@@ -146,7 +146,7 @@ export async function POST(request: Request) {
         value: token,
         httpOnly: true,
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: false,
         maxAge: 60 * 60 * 24
       });
       return response;
@@ -194,7 +194,7 @@ export async function POST(request: Request) {
         value: token,
         httpOnly: true,
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: false,
         maxAge: 60 * 60 * 24
       });
       return response;
@@ -366,21 +366,6 @@ export async function POST(request: Request) {
 
     const token = await signToken(tokenPayload);
 
-    // Registro de Auditoría Local
-    try {
-      await prisma.pista_auditoria.create({
-        data: {
-          usuario_id: userId,
-          usuario_nombre: userNombre,
-          accion: 'LOGIN',
-          modulo: 'COMPRAS',
-          descripcion: 'Inicio de sesión en Módulo de Compras',
-          resultado: 'EXITO'
-        }
-      });
-    } catch (auditErr) {
-      console.error('Error registrando auditoría de login:', auditErr);
-    }
 
     const response = NextResponse.json({ success: true, usuario: tokenPayload });
     
@@ -389,7 +374,7 @@ export async function POST(request: Request) {
       value: token,
       httpOnly: true,
       path: '/',
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       maxAge: 60 * 60 * 24 // 24 hours
     });
 

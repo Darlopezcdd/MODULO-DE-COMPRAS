@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-// @ts-expect-error Ignorando tipado de pdfkit
+// ts-expect-error Ignorando tipado de pdfkit
 import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
 
 const COLORS = {

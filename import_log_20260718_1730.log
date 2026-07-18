@@ -1,0 +1,16 @@
+SET
+SET
+SET
+SET
+SET
+SET
+ set_config 
+------------
+ 
+(1 row)
+
+SET
+SET
+SET
+SET
+psql:supabase_dump_sin_clean.sql:26: ERROR:  schema "public" already exists

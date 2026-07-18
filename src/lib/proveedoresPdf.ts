@@ -2,7 +2,7 @@
 // Script de generación PDF — HU5: Reporte de Proveedores
 // Librería: PDFKit (buffer-based, server-side)
 
-// @ts-expect-error Ignorando tipado de pdfkit
+// ts-expect-error Ignorando tipado de pdfkit
 import PDFDocument from 'pdfkit/js/pdfkit.standalone.js';
 // ── Paleta de colores corporativa ─────────────────────────────────────────────
 const COLORS = {

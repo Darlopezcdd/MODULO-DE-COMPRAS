@@ -8,6 +8,7 @@ export async function middleware(request: NextRequest) {
   const isPublicPath = path === '/login' || path.startsWith('/api/auth');
   const token = request.cookies.get('auth-token')?.value || '';
 
+    console.log("DEBUG_MIDDLEWARE: Token detectado:", token ? "EXISTE" : "VACÍO");
   if (!isPublicPath && !token) {
     return NextResponse.redirect(new URL('/login', request.nextUrl));
   }
@@ -20,7 +21,7 @@ export async function middleware(request: NextRequest) {
   if (token && !isPublicPath) {
     const payload = await verifyToken(token) as any;
     
-    if (!payload || !payload.permisos) {
+    if (!payload) {
       // Si el token es inválido o no tiene permisos, lo mandamos al login
       const response = NextResponse.redirect(new URL('/login', request.nextUrl));
       response.cookies.delete('auth-token');

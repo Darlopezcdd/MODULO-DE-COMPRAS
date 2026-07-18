@@ -23,7 +23,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     const invRes = await buscarProductos('', 1, 500);
     const productosInventario = invRes.success ? invRes.data : [];
 
-    const productosCatalogo = proveedor.catalogos.map(cat => {
+    const productosCatalogo = proveedor.catalogos.map((cat: any) => {
       const pInv = productosInventario.find((p: any) => p.codigo === cat.producto_codigo);
       return {
         codigo: cat.producto_codigo,
