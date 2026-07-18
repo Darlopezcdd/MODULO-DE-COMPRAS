@@ -18,14 +18,19 @@ async function init() {
     );
 
     if (response.SecretString) {
-      const secret = JSON.parse(response.SecretString);
+      let databaseUrl = "";
       
-      // Armamos la variable DATABASE_URL a partir del JSON si vienen divididos
-      // o usamos la variable completa si ya viene armada.
-      let databaseUrl = secret.DATABASE_URL;
-      
-      if (!databaseUrl && secret.username && secret.password && secret.engine && secret.host && secret.port && secret.dbname) {
-          databaseUrl = `postgresql://${secret.username}:${secret.password}@${secret.host}:${secret.port}/${secret.dbname}`;
+      try {
+        // Intentamos parsearlo como JSON si viene en formato Clave/Valor
+        const secret = JSON.parse(response.SecretString);
+        databaseUrl = secret.DATABASE_URL;
+        
+        if (!databaseUrl && secret.username && secret.password && secret.engine && secret.host && secret.port && secret.dbname) {
+            databaseUrl = `postgresql://${secret.username}:${secret.password}@${secret.host}:${secret.port}/${secret.dbname}`;
+        }
+      } catch (e) {
+        // Si no es JSON (lanza SyntaxError), asumimos que el secreto entero es la cadena de conexión
+        databaseUrl = response.SecretString.trim();
       }
 
       if (databaseUrl) {
