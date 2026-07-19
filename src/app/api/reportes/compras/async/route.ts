@@ -38,22 +38,23 @@ export async function POST(req: Request) {
       }
     }
 
-    // Obtener facturas usando Prisma ORM
+    // Obtener facturas usando Prisma ORM (sin include, para evitar errores de type never en Prisma)
     const facturas = await prisma.facturas_compra.findMany({
       where: whereClause,
-      orderBy: { fecha: 'desc' },
-      include: {
-        proveedor: {
-          select: { nombre: true }
-        }
-      }
+      orderBy: { fecha: 'desc' }
     });
+
+    // Obtener proveedores y armar un mapa en memoria
+    const proveedores = await prisma.proveedor.findMany({
+      select: { id: true, nombre: true }
+    });
+    const provMap = new Map(proveedores.map((p: any) => [p.id, p.nombre]));
 
     // Mapear al formato que espera la Lambda
     const facturasMapeadas = facturas.map((f: any) => ({
       numero_factura: f.numero_factura,
       fecha: f.fecha ? new Date(f.fecha).toISOString().split('T')[0] : 'N/A',
-      proveedor_nombre: f.proveedor?.nombre || 'Desconocido',
+      proveedor_nombre: provMap.get(f.proveedor_id) || 'Desconocido',
       total: Number(f.total)
     }));
 
