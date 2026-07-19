@@ -91,8 +91,10 @@ function FacturaFormContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
-  const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isImportingExcel, setIsImportingExcel] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingExcelProducts, setPendingExcelProducts] = useState<any[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const showNotification = (message: string, type: 'success' | 'error') => {
@@ -103,13 +105,13 @@ function FacturaFormContent() {
   };
   const [tipoPago, setTipoPago] = useState<'CONTADO' | 'CREDITO'>('CONTADO');
   const [fechaVencimiento, setFechaVencimiento] = useState('');
-  
+
   // Nuevos estados para pagos
   const [cuentasEmpresa, setCuentasEmpresa] = useState<any[]>([]);
   const [cuentaBancariaId, setCuentaBancariaId] = useState('');
   const [numeroCuotas, setNumeroCuotas] = useState(1);
   const [diasPorCuota, setDiasPorCuota] = useState(30);
-  
+
   const router = useRouter();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -191,12 +193,12 @@ function FacturaFormContent() {
           const res = await fetch(`/api/inventarios?limite=1&termino=${productoQuery}`);
           const result = await res.json();
           const productoGlobal = result.data?.find((p: any) => p.codigo === productoQuery);
-          
+
           if (!productoGlobal) return;
 
           // 2. Buscar el mejor proveedor en GraphQL
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data } = await apollo.query<any>({
+          const { data } = await apollo.query<any>({
             query: MEJOR_PROVEEDOR,
             variables: { productoCodigo: productoQuery },
           });
@@ -280,28 +282,28 @@ function FacturaFormContent() {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      
+
       const aoa: any[][] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
       let rucExcel = "";
       let headerRowIndex = 0;
-      
+
       for (let i = 0; i < Math.min(aoa.length, 10); i++) {
         const row = aoa[i];
         if (!row || row.length === 0) continue;
-        
+
         const firstCell = String(row[0] || "").trim().toUpperCase();
         const secondCell = String(row[1] || "").trim().toUpperCase();
-        
+
         if (firstCell === "RUC PROVEEDOR" || firstCell === "RUC") {
-          rucExcel = String(aoa[i+1]?.[0] || "").trim();
+          rucExcel = String(aoa[i + 1]?.[0] || "").trim();
         }
-        
+
         if (firstCell === "CÓDIGO" || firstCell === "CODIGO" || firstCell === "CODE" || secondCell === "CANTIDAD" || secondCell === "QTY") {
           headerRowIndex = i;
           break;
         }
       }
-      
+
       const rows: any[] = XLSX.utils.sheet_to_json(firstSheet, { range: headerRowIndex });
 
       if (rows.length === 0) {
@@ -335,7 +337,7 @@ function FacturaFormContent() {
 
       // Intentar auto-seleccionar leyendo el RUC encontrado en el Excel
       let autoProveedor = selectedProveedor;
-      
+
       if (rucExcel) {
         try {
           const { data: provData } = await apollo.query<any>({
@@ -403,7 +405,7 @@ function FacturaFormContent() {
 
       const productosValidados = importados.map(imp => {
         const pInv = globalProducts.find((p: any) => p.codigo === imp.codigo);
-        
+
         let precioFinal = imp.pvp;
         if (activeCatalogoMap.has(imp.codigo)) {
           precioFinal = activeCatalogoMap.get(imp.codigo) || 0;
@@ -421,16 +423,9 @@ function FacturaFormContent() {
         };
       });
 
-      const confirmarReemplazar = confirm(`Se leyeron ${productosValidados.length} productos válidos del Excel.\n\n¿Deseas REEMPLAZAR el detalle actual de la factura?\n\n(Presiona "Aceptar" para reemplazar, o "Cancelar" para añadir estos productos al final de tu lista actual)`);
-
-      if (confirmarReemplazar) {
-        setProductos(productosValidados);
-      } else {
-        const prevFilas = productos.filter(p => p.codigo !== "");
-        setProductos([...prevFilas, ...productosValidados]);
-      }
-
-      showNotification(`Se importaron ${productosValidados.length} productos del Excel con éxito`, "success");
+      setPendingExcelProducts(productosValidados);
+      setShowConfirmModal(true);
+      // La confirmación y notificación se manejarán en los callbacks del ConfirmModal
     } catch (err) {
       console.error(err);
       alert("Error al procesar archivo Excel. Verifica el formato.");
@@ -461,7 +456,7 @@ function FacturaFormContent() {
       totales.subtotalSinIva += sub;
     }
   });
-  
+
   totales.total = totales.subtotalSinIva + totales.subtotalConIva + totales.totalIva;
 
   const handleSaveFactura = async () => {
@@ -469,7 +464,7 @@ function FacturaFormContent() {
       alert("Por favor seleccione un proveedor primero.");
       return;
     }
-    
+
     const validProductos = productos.filter(p => p.codigo && p.cantidad > 0 && p.pvp >= 0);
     if (validProductos.length === 0) {
       const escritosSinSeleccionar = productos.some(p => !p.codigo && p.descripcion.trim().length > 0);
@@ -493,7 +488,7 @@ function FacturaFormContent() {
       alert("La fecha de vencimiento inicial es obligatoria para compras a crédito.");
       return;
     }
-    
+
     if (tipoPago === 'CONTADO' && !cuentaBancariaId) {
       alert("Seleccione una cuenta bancaria origen para el débito al contado.");
       return;
@@ -520,12 +515,12 @@ function FacturaFormContent() {
 
       setFacturaGenerada(body.factura);
       setSaveSuccess(true);
-      
+
       // Redirigir a la lista de facturas después de 3 segundos
       setTimeout(() => {
         router.push(`/facturas?preview=${body.factura.id}`);
       }, 3000);
-      
+
     } catch (e: any) {
       alert(e.message);
     } finally {
@@ -550,9 +545,9 @@ function FacturaFormContent() {
           <Tooltip content="Ver la lista completa de facturas registradas" position="top">
             <button
               onClick={() => router.push('/facturas')}
-              
-            className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors"
-          >
+
+              className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors"
+            >
               Ver lista de facturas
             </button>
           </Tooltip>
@@ -566,9 +561,9 @@ function FacturaFormContent() {
                 setTipoPago('CONTADO');
                 setFechaVencimiento('');
               }}
-              
-            className="px-6 py-2 bg-[#d20a11] hover:bg-[#b0080e] text-white font-medium rounded-lg transition-colors shadow-sm"
-          >
+
+              className="px-6 py-2 bg-[#d20a11] hover:bg-[#b0080e] text-white font-medium rounded-lg transition-colors shadow-sm"
+            >
               Crear otra factura
             </button>
           </Tooltip>
@@ -627,7 +622,7 @@ function FacturaFormContent() {
             </select>
           </div>
         </div>
-        
+
         {tipoPago === 'CONTADO' && (
           <div className="md:col-span-2 mt-2 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
             <label className="block text-sm font-medium text-emerald-800 mb-2">
@@ -752,15 +747,15 @@ function FacturaFormContent() {
               <button
                 type="button"
                 onClick={descargarPlantillaExcel}
-                
-              className="px-3 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium border border-slate-200 flex items-center gap-1.5"
-            >
+
+                className="px-3 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium border border-slate-200 flex items-center gap-1.5"
+              >
                 <FileSpreadsheet className="w-4 h-4 text-slate-500" /> Plantilla Excel
               </button>
             </Tooltip>
 
             {/* Cargar Excel */}
-            <input 
+            <input
               type="file"
               ref={fileInputRef}
               className="hidden"
@@ -772,20 +767,20 @@ function FacturaFormContent() {
                 type="button"
                 disabled={isImportingExcel}
                 onClick={() => fileInputRef.current?.click()}
-                
-              className="px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-colors text-sm font-medium border border-emerald-200 flex items-center gap-1.5 disabled:opacity-50"
-            >
+
+                className="px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-colors text-sm font-medium border border-emerald-200 flex items-center gap-1.5 disabled:opacity-50"
+              >
                 {isImportingExcel ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-                  Procesando...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" /> Cargar Excel
-                </>
-              )}
-            
+                  <>
+                    <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" /> Cargar Excel
+                  </>
+                )}
+
               </button>
             </Tooltip>
 
@@ -794,9 +789,9 @@ function FacturaFormContent() {
                 <button
                   type="button"
                   onClick={() => setShowNewProductModal(true)}
-                  
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
-              >
+
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
+                >
                   <Sparkles className="w-4 h-4" /> Crear Producto Nuevo
                 </button>
               </Tooltip>
@@ -806,9 +801,9 @@ function FacturaFormContent() {
                 type="button"
                 data-testid="add-product-btn"
                 onClick={handleAddProduct}
-                
-              className="px-4 py-2 bg-[#d20a11] text-white rounded-lg hover:bg-[#b0080e] transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
-            >
+
+                className="px-4 py-2 bg-[#d20a11] text-white rounded-lg hover:bg-[#b0080e] transition-colors text-sm font-medium shadow-sm flex items-center gap-1.5"
+              >
                 <Plus className="w-4 h-4" /> Agregar Fila
               </button>
             </Tooltip>
@@ -831,7 +826,7 @@ function FacturaFormContent() {
               {productos.map((prod, index) => {
                 const subtotal = roundToTwo(prod.cantidad * prod.pvp);
                 const isNew = prod.codigo && !catalogoMap.has(prod.codigo) && selectedProveedor?.id;
-                
+
                 return (
                   <tr key={index} data-testid={`product-row-${index}`} className={`border-b text-sm transition-colors ${isNew ? 'bg-amber-50 border-amber-200' : 'border-slate-200 hover:bg-slate-50'}`}>
                     <td className="p-3">
@@ -851,11 +846,11 @@ function FacturaFormContent() {
                           updateProduct(index, "descripcion", p.nombre);
                           updateProduct(index, "grabaIva", p.grabaIva);
                           updateProduct(index, "porcentajeIva", p.porcentajeIva);
-                          
+
                           let pvp = p.precioUnitario || 0;
-                          
+
                           const enCatalogoActual = selectedProveedor && catalogoMap.has(p.codigo);
-                          
+
                           if (!selectedProveedor || !enCatalogoActual) {
                             try {
                               const { data: bestProvData } = await apollo.query<any>({
@@ -878,7 +873,7 @@ function FacturaFormContent() {
                           } else {
                             pvp = catalogoMap.get(p.codigo) || 0;
                           }
-                          
+
                           updateProduct(index, "pvp", pvp);
                         }}
                       />
@@ -948,9 +943,9 @@ function FacturaFormContent() {
                           type="button"
                           data-testid={`remove-${index}`}
                           onClick={() => handleRemoveProduct(index)}
-                          
-                        className="text-red-400 hover:text-red-600 p-1 rounded-md transition-colors"
-                      >
+
+                          className="text-red-400 hover:text-red-600 p-1 rounded-md transition-colors"
+                        >
                           <X size={18} strokeWidth={2.5} />
                         </button>
                       </Tooltip>
@@ -980,27 +975,27 @@ function FacturaFormContent() {
               <span>Total:</span>
               <span data-testid="total-general" className="text-[#d20a11]">${totales.total.toFixed(2)}</span>
             </div>
-            
+
             <div className="mt-5 flex flex-col gap-3">
               <Tooltip content="Guardar y procesar esta factura en el sistema" position="top">
                 <button
                   type="button"
                   onClick={handleSaveFactura}
                   disabled={isSaving}
-                  
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-300 shadow-sm flex items-center justify-center gap-2"
-              >
+
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-300 shadow-sm flex items-center justify-center gap-2"
+                >
                   {isSaving ? "Guardando..." : (
-                  <>
-                    <Check className="w-5 h-5" /> Guardar Factura
-                  </>
-                )}
-              
+                    <>
+                      <Check className="w-5 h-5" /> Guardar Factura
+                    </>
+                  )}
+
                 </button>
               </Tooltip>
-              
-              <FacturaPdfPreview 
-                data={{ 
+
+              <FacturaPdfPreview
+                data={{
                   numeroFactura: "Borrador",
                   proveedorNombre: selectedProveedor?.nombre || "Desconocido",
                   proveedorRuc: selectedProveedor?.cedulaRuc || "N/A",
@@ -1016,13 +1011,13 @@ function FacturaFormContent() {
                   subtotalConIva: totales.subtotalConIva,
                   montoIva: totales.totalIva,
                   total: totales.total
-                }} 
+                }}
               />
             </div>
           </div>
         </div>
       </div>
-      
+
       {showNewProductModal && selectedProveedor?.id && (
         <NuevoProductoModal
           proveedorId={selectedProveedor.id}
@@ -1030,7 +1025,7 @@ function FacturaFormContent() {
           onSuccess={async (codigo, nombre, precioCompra) => {
             setShowNewProductModal(false);
             await refetchCatalog();
-            
+
             // Auto agregar el producto a una nueva fila o a la última vacía
             setProductos(prev => {
               const nuevaFila = { codigo, descripcion: nombre, cantidad: 1, pvp: precioCompra, grabaIva: true, porcentajeIva: 15 };
@@ -1058,6 +1053,27 @@ function FacturaFormContent() {
           />
         </div>
       )}
+
+      {/* Modal de Confirmación de Excel */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="Importar productos del Excel"
+        message={`Se leyeron ${pendingExcelProducts.length} productos válidos del archivo Excel.\n\n¿Deseas REEMPLAZAR el detalle actual de la factura con estos productos?`}
+        confirmText="Reemplazar Actual"
+        cancelText="Añadir al Final"
+        type="info"
+        onConfirm={() => {
+          setProductos(pendingExcelProducts);
+          setShowConfirmModal(false);
+          showNotification(`Se importaron ${pendingExcelProducts.length} productos con éxito`, "success");
+        }}
+        onCancel={() => {
+          const prevFilas = productos.filter(p => p.codigo !== "");
+          setProductos([...prevFilas, ...pendingExcelProducts]);
+          setShowConfirmModal(false);
+          showNotification(`Se añadieron ${pendingExcelProducts.length} productos con éxito`, "success");
+        }}
+      />
     </div>
   );
 }
