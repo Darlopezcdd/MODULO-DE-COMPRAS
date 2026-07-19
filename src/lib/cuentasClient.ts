@@ -7,7 +7,7 @@ export interface CuentaBancaria {
   saldo: number;
 }
 
-const CXC_BASE_URL = 'https://cuentasxcobrar-backend-380n.onrender.com';
+const CXC_BASE_URL = process.env.CXC_BASE_URL || 'http://alb-backend-cuentas-1206540742.us-east-1.elb.amazonaws.com';
 const FETCH_TIMEOUT_MS = 15000;
 
 const getMockCuentas = (): CuentaBancaria[] => [
