@@ -23,6 +23,7 @@ exports.handler = async (event) => {
     // 2. Conectar a la base de datos para obtener los datos
     const dbClient = new Client({
       connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
     });
     
     await dbClient.connect();
