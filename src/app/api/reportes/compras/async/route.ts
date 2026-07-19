@@ -1,3 +1,4 @@
+import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { solicitarReporteAsincrono } from '@/lib/awsSqs';
 
@@ -10,12 +11,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Falta el tipo de reporte' }, { status: 400 });
     }
 
-    // Armamos el payload (JSON) que espera la Lambda
+    // Obtener los datos AQUI en Next.js (que sí tiene acceso a la DB) usando queryRaw para más facilidad
+    const facturas = await prisma.$queryRaw`
+      SELECT f.numero_factura, f.fecha, p.nombre as proveedor_nombre, f.total 
+      FROM facturas_compra f 
+      LEFT JOIN "Proveedor" p ON f.proveedor_id = p.id
+      ORDER BY f.fecha DESC
+      LIMIT 200
+    ` as any[];
+    
+    // Mapear al formato que espera la Lambda
+    const facturasMapeadas = facturas.map((f: any) => ({
+      numero_factura: f.numero_factura,
+      fecha: f.fecha ? new Date(f.fecha).toISOString().split('T')[0] : 'N/A',
+      proveedor_nombre: f.proveedor_nombre || 'Desconocido',
+      total: Number(f.total)
+    }));
+
+    // Armamos el payload (JSON) que espera la Lambda con todos los DATOS YA LISTOS
     const parametrosReporte = {
-      tipoReporte, // Ej: 'REPORTE_COMPRAS', 'REPORTE_PROVEEDORES'
+      tipoReporte,
       filtros: filtros || {},
       emailDestino: emailDestino || 'admin@empresa.com',
-      fechaSolicitud: new Date().toISOString()
+      fechaSolicitud: new Date().toISOString(),
+      datosFacturas: facturasMapeadas // PASAMOS LA DATA POR SQS!
     };
 
     // 1. Enviamos el mensaje a la cola SQS

@@ -16,40 +16,26 @@ exports.handler = async (event) => {
   for (const record of event.Records) {
     const msgId = record.messageId; // Usamos el ID del mensaje SQS como identificador del PDF
     const body = JSON.parse(record.body);
-    const { tipoReporte, filtros, emailDestino } = body;
+    const { tipoReporte, filtros, emailDestino, datosFacturas } = body;
 
     console.log(`Procesando reporte ${msgId} para:`, emailDestino);
 
-    // 2. Conectar a la base de datos para obtener los datos
-    const dbClient = new Client({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
-    });
-    
-    await dbClient.connect();
-
     try {
-      // (Aquí deberías añadir la lógica exacta de filtrado como en route.ts, 
-      //  por simplificación obtenemos todas las facturas o filtramos de manera simple)
-      let query = 'SELECT f.*, p.nombre as proveedor_nombre, p."cedulaRuc" as proveedor_ruc FROM facturas_compra f LEFT JOIN "Proveedor" p ON f.proveedor_id = p.id';
-      
-      const { rows: facturas } = await dbClient.query(query);
-
-      // 3. Generar el PDF
+      // 3. Generar el PDF (usando los datos pre-cargados que llegaron por SQS)
+      const facturas = datosFacturas || [];
+      console.log(`Generando PDF con ${facturas.length} facturas recibidas...`);
       const pdfBuffer = await generarPDF(facturas);
 
-      // 4. Escribir el PDF en EFS
-      // La Lambda debe tener configurado EFS y montado en EFS_MOUNT_PATH (ej. /mnt/efs/reports)
-      const efsMountPath = process.env.EFS_MOUNT_PATH || '/mnt/efs/reports';
+      // 4. Escribir el PDF en /tmp
+      const efsMountPath = process.env.EFS_MOUNT_PATH || '/tmp/reports';
       
-      // Asegurarse de que el directorio exista
       if (!fs.existsSync(efsMountPath)){
           fs.mkdirSync(efsMountPath, { recursive: true });
       }
 
       const filePath = path.join(efsMountPath, `${msgId}.pdf`);
       fs.writeFileSync(filePath, pdfBuffer);
-      console.log(`PDF guardado exitosamente en EFS: ${filePath}`);
+      console.log(`PDF guardado exitosamente en ${filePath}`);
 
       // 5. Subir a S3
       const bucketName = process.env.S3_REPORT_BUCKET || 'reporte-compras-pdf';
@@ -69,9 +55,7 @@ exports.handler = async (event) => {
 
     } catch (error) {
       console.error('Error durante el procesamiento del reporte:', error);
-      throw error; // Lanzar el error hace que el mensaje vuelva a la cola si falla
-    } finally {
-      await dbClient.end();
+      throw error;
     }
   }
 
