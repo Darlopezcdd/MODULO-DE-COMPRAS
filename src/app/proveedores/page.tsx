@@ -478,7 +478,7 @@ export default function ProveedoresPage() {
             ? '¿Estás seguro de que deseas desactivar este proveedor? Se ocultará de las listas activas pero se conservará su historial.'
             : '¿Estás seguro de que deseas reactivar este proveedor? Volverá a aparecer en las listas.'
         }
-        type={confirmModal.mode === 'desactivar' ? 'danger' : 'success'}
+        type={confirmModal.mode === 'desactivar' ? 'danger' : 'info'}
         confirmText={confirmModal.mode === 'desactivar' ? 'Sí, desactivar' : 'Sí, activar'}
         cancelText="Cancelar"
         onConfirm={procesarAccion}
