@@ -3,55 +3,52 @@ import prisma from '@/lib/prisma';
 import { uploadPdfToS3 } from '@/lib/awsS3';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-  try {
-    const id = parseInt(params.id, 10);
-    if (isNaN(id)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+  const id = parseInt(params.id, 10);
+  if (isNaN(id)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
 
+  try {
+    // 1. Obtener la factura de la base de datos
     const factura = await prisma.facturas_compra.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        proveedor: true,
+        detalles: { include: { producto: true } }
+      }
     });
 
     if (!factura) {
       return NextResponse.json({ error: 'Factura no encontrada' }, { status: 404 });
     }
 
-    // 1. Si ya tiene su PDF en S3, redirigimos y ahorramos ejecución
+    // SI LA FACTURA YA TIENE UN PDF GENERADO PREVIAMENTE, SIMPLEMENTE LO MOSTRAMOS Y EVITAMOS ERROR DE SUPABASE
     if (factura.pdf_url) {
       return NextResponse.redirect(factura.pdf_url);
     }
 
-    const proveedor = await prisma.proveedor.findUnique({
-      where: { id: factura.proveedor_id }
-    });
-
-    const detalles = await prisma.detalle_factura_compra.findMany({
-      where: { factura_id: id }
-    });
-
-    // 2. Estructuramos los datos para enviarlos a Lambda
+    // 2. Si no tiene PDF, preparamos los datos para enviarlos a AWS Lambda
     const datosPdf = {
-      numeroFactura: factura.numero_factura || `Borrador-${factura.id}`,
-      fechaEmision: factura.fecha ? new Date(factura.fecha).toLocaleDateString('es-EC', { timeZone: 'UTC' }) : new Date().toLocaleDateString('es-EC', { timeZone: 'America/Guayaquil' }),
-      tipoPago: factura.tipo_pago as 'CONTADO' | 'CREDITO',
+      numeroFactura: factura.numero_factura || `FC-${id.toString().padStart(6, '0')}`,
+      fechaEmision: factura.fecha_emision.toISOString().split('T')[0],
+      tipoPago: factura.tipo_pago,
       proveedor: {
-        nombre: proveedor?.nombre || 'Desconocido',
-        cedulaRuc: proveedor?.cedulaRuc || 'N/A',
-        direccion: proveedor?.direccion || 'N/A',
-        telefono: proveedor?.telefono || 'N/A',
+        nombre: factura.proveedor.razon_social,
+        cedulaRuc: factura.proveedor.ruc,
+        direccion: factura.proveedor.direccion || '',
+        telefono: factura.proveedor.telefono || ''
       },
-      productos: detalles.map((d: any) => ({
-        codigo: d.producto_codigo || '',
-        descripcion: d.producto_nombre || '',
-        cantidad: Number(d.cantidad),
-        pvp: Number(d.pvp),
-        grabaIva: Boolean(d.graba_iva),
-        porcentajeIva: Number(d.porcentaje_iva || 0),
+      productos: factura.detalles.map(d => ({
+        codigo: d.producto.codigo,
+        descripcion: d.producto.nombre,
+        cantidad: d.cantidad,
+        pvp: Number(d.precio_unitario),
+        grabaIva: true,
+        porcentajeIva: 15
       })),
       totales: {
-        subtotalSinIva: Number(factura.subtotal_sin_iva || 0),
-        subtotalConIva: Number(factura.subtotal_con_iva || 0),
-        totalIva: Number(factura.total_iva || 0),
-        total: Number(factura.total || 0),
+        subtotalSinIva: Number(factura.subtotal),
+        subtotalConIva: Number(factura.subtotal),
+        totalIva: Number(factura.impuestos),
+        total: Number(factura.total)
       }
     };
 
@@ -65,7 +62,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     });
 
     if (!lambdaResponse.ok) {
-      throw new Error(`Error en Lambda: ${lambdaResponse.statusText}`);
+      const lambdaErrorText = await lambdaResponse.text();
+      throw new Error(`Error en Lambda: ${lambdaResponse.status} - ${lambdaErrorText}`);
     }
 
     const pdfArrayBuffer = await lambdaResponse.arrayBuffer();
@@ -75,7 +73,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     // 4. Subir el buffer generado a Amazon S3
     const s3Url = await uploadPdfToS3(pdfBuffer, fileName);
 
-    // 5. Guardar la URL en la base de datos
+    // 5. Guardar la URL en la base de datos para que la próxima vez no la vuelva a generar
     await prisma.facturas_compra.update({
       where: { id },
       data: {
@@ -88,6 +86,6 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.redirect(s3Url);
   } catch (error: any) {
     console.error('Error generando PDF de factura con Lambda:', error);
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+    return NextResponse.json({ error: `Error interno: ${error.message || error}` }, { status: 500 });
   }
 }
