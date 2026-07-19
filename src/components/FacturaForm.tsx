@@ -14,6 +14,7 @@ import { Zap, Sparkles, Check, Plus, X, FileSpreadsheet } from "lucide-react";
 import * as XLSX from "xlsx";
 import AlertBanner from "@/components/AlertBanner";
 import Tooltip from "./Tooltip";
+import ConfirmModal from "./ConfirmModal";
 
 const LISTAR_CATALOGO = gql`
   query ListarCatalogo($proveedorId: Int!) {
