@@ -75,6 +75,9 @@ export default function ReportesPage() {
   const [filtroFacturas, setFiltroFacturas] = useState({ fechaInicio: '', fechaFin: '' });
   const [isLoadingFact, setIsLoadingFact] = useState(false);
   const [generandoCompras, setGenerandoCompras] = useState(false);
+const [msgId, setMsgId] = useState<string | null>(null);
+const [reporteEnProceso, setReporteEnProceso] = useState(false);
+const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
   // ── Búsqueda con debounce ──────────────────────────────────────────────────
   const [busquedaProv, setBusquedaProv] = useState('');
@@ -181,31 +184,58 @@ export default function ReportesPage() {
   }, [tabActivo, facturas, handleGenerarReporteFacturas]);
 
 
-  // ── Descargar PDF facturas ────────────────────────────────────────────────
-  const descargarPdfFacturas = async () => {
+  // ── Solicitar reporte PDF asíncrono ───────────────────────────────────────
+  const solicitarReporteAsync = async () => {
     setGenerandoCompras(true);
     try {
       const params = new URLSearchParams();
       if (filtroFacturas.fechaInicio) params.set('fechaInicio', filtroFacturas.fechaInicio);
       if (filtroFacturas.fechaFin) params.set('fechaFin', filtroFacturas.fechaFin);
-      
-      const res = await fetch(`/api/reportes/compras/pdf?${params.toString()}`);
+
+      const payload = {
+        tipoReporte: 'REPORTE_COMPRAS',
+        filtros: {
+          fechaInicio: filtroFacturas.fechaInicio,
+          fechaFin: filtroFacturas.fechaFin,
+        },
+        emailDestino: 'hidalgoesau27@gmail.com',
+      };
+
+      const res = await fetch('/api/reportes/compras/async', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
       if (!res.ok) throw new Error();
-      const blob = await res.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = objectUrl;
-      a.download = `Reporte_Facturas_${new Date().toISOString().split('T')[0]}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(objectUrl);
+      const data = await res.json();
+      setMsgId(data.sqsMessageId);
+      setReporteEnProceso(true);
+      alert('El reporte está en proceso. Lo recibirás por correo en breve.');
     } catch {
-      alert('Hubo un error al generar el PDF de facturas.');
+      alert('Hubo un error al solicitar el reporte.');
     } finally {
       setGenerandoCompras(false);
     }
   };
+
+  // ── Polling de estado del reporte ───────────────────────────────────────
+  useEffect(() => {
+    if (!reporteEnProceso || !msgId) return;
+    const interval = setInterval(async () => {
+      try {
+        const statusRes = await fetch(`/api/reportes/compras/status?msgId=${msgId}`);
+        const statusData = await statusRes.json();
+        if (statusData.status === 'COMPLETED') {
+          clearInterval(interval);
+          setReporteEnProceso(false);
+          setDownloadUrl(statusData.downloadUrl);
+        }
+      } catch (e) {
+        console.error('Error al consultar el estado del reporte', e);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [reporteEnProceso, msgId]);
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
@@ -396,16 +426,36 @@ export default function ReportesPage() {
 
                 {/* Botón PDF de compras */}
                 {facturas && facturas.length > 0 && (
-                  <button
-                    onClick={descargarPdfFacturas}
-                    disabled={generandoCompras}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white
-                               transition-all shadow-sm hover:shadow-md disabled:opacity-50"
-                    style={{ backgroundColor: '#706f6f' }}
-                  >
-                    <Download className="w-4 h-4" />
-                    {generandoCompras ? 'Generando...' : 'Descargar PDF'}
-                  </button>
+                  <div className="flex gap-2">
+                    {!downloadUrl && (
+                      <button
+                        onClick={solicitarReporteAsync}
+                        disabled={generandoCompras || reporteEnProceso}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white
+                                   transition-all shadow-sm hover:shadow-md disabled:opacity-50"
+                        style={{ backgroundColor: '#706f6f' }}
+                      >
+                        <Download className="w-4 h-4" />
+                        {generandoCompras || reporteEnProceso ? 'En proceso...' : 'Solicitar PDF'}
+                      </button>
+                    )}
+                    {downloadUrl && (
+                      <button
+                        onClick={() => {
+                          const a = document.createElement('a');
+                          a.href = downloadUrl;
+                          a.target = '_blank';
+                          a.click();
+                        }}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white
+                                   transition-all shadow-sm hover:shadow-md"
+                        style={{ backgroundColor: '#10b981' }}
+                      >
+                        <Download className="w-4 h-4" />
+                        Descargar / Imprimir
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
