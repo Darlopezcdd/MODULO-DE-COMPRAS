@@ -57,7 +57,7 @@ export interface InventariosResponse {
 
 // ── Configuración ───────────────────────────────────────────────────
 
-const BASE_URL = 'https://api-inventario-v1gh.onrender.com';
+const BASE_URL = process.env.INVENTARIO_API_URL || 'http://inventario-apps-utn-api-env.eba-qp2gegts.us-east-1.elasticbeanstalk.com';
 const API_KEY = process.env.INVENTARIO_API_KEY || 'utn-compras-fact-2026-secret-key';
 
 // ── Normalización ───────────────────────────────────────────────────
