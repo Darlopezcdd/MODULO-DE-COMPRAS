@@ -49,6 +49,9 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error('Error al solicitar reporte asíncrono:', error);
-    return NextResponse.json({ error: 'Error interno al encolar el reporte' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error interno al encolar el reporte',
+      detalle: error.message || String(error)
+    }, { status: 500 });
   }
 }
