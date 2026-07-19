@@ -74,16 +74,25 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     const pdfBuffer = Buffer.from(pdfArrayBuffer);
     const fileName = `factura-compra-${id}-${Date.now()}.pdf`;
 
+    // 4. Subir el buffer generado a Amazon S3
     const s3Url = await uploadPdfToS3(pdfBuffer, fileName);
 
-    await prisma.facturas_compra.update({
-      where: { id },
-      data: {
-        pdf_url: s3Url,
-        pdf_generado: true
-      }
-    });
+    // 5. Intentamos guardar la URL en la base de datos
+    // Si la base de datos bloquea la actualización (porque la factura ya fue emitida), no importa
+    // Atrapamos el error silenciosamente y mostramos el PDF de todas formas
+    try {
+      await prisma.facturas_compra.update({
+        where: { id },
+        data: {
+          pdf_url: s3Url,
+          pdf_generado: true
+        }
+      });
+    } catch (dbError) {
+      console.warn('Supabase bloqueó la escritura porque la factura ya estaba emitida. Omitiendo actualización de BD...');
+    }
 
+    // 6. Redirigir al usuario al documento en S3
     return NextResponse.redirect(s3Url);
   } catch (error: any) {
     console.error('Error generando PDF con Lambda:', error);

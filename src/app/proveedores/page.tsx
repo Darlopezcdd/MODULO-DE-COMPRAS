@@ -8,7 +8,7 @@ import ExportButtons from '@/components/ExportButtons';
 import { useDebounce } from '@/hooks/useDebounce';
 import * as XLSX from 'xlsx';
 import ConfirmModal from '@/components/ConfirmModal';
-import { Printer, FileSpreadsheet, Edit3, Trash2, BookOpen } from 'lucide-react';
+import { Printer, FileSpreadsheet, Edit3, Trash2, BookOpen, CheckCircle } from 'lucide-react';
 import AlertBanner from '@/components/AlertBanner';
 
 interface Proveedor {
@@ -31,7 +31,7 @@ export default function ProveedoresPage() {
   const [catalogoModal, setCatalogoModal] = useState<{ isOpen: boolean; id: number; nombre: string }>({ isOpen: false, id: 0, nombre: '' });
   const [user, setUser] = useState<any>(null);
   const [exportandoExcelId, setExportandoExcelId] = useState<number | null>(null);
-  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, proveedorId: number | null}>({ isOpen: false, proveedorId: null });
+  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, proveedorId: number | null, mode: 'desactivar' | 'activar'}>({ isOpen: false, proveedorId: null, mode: 'desactivar' });
   const ITEMS_POR_PAGINA = 10;
 
   useEffect(() => {
@@ -85,32 +85,56 @@ export default function ProveedoresPage() {
   }, [filtroEstado, filtroTipo, user]);
 
   const desactivarProveedor = (id: number) => {
-    setConfirmModal({ isOpen: true, proveedorId: id });
+    setConfirmModal({ isOpen: true, proveedorId: id, mode: 'desactivar' });
   };
 
-  const procesarDesactivacion = async () => {
+  const activarProveedor = (id: number) => {
+    setConfirmModal({ isOpen: true, proveedorId: id, mode: 'activar' });
+  };
+
+  const procesarAccion = async () => {
     const id = confirmModal.proveedorId;
-    setConfirmModal({ isOpen: false, proveedorId: null });
+    const mode = confirmModal.mode;
+    setConfirmModal({ isOpen: false, proveedorId: null, mode: 'desactivar' });
     if (!id) return;
     
     try {
-      await fetch('/api/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: `
-            mutation Eliminar($id: Int!) {
-              eliminarProveedor(id: $id) {
-                id
-                estado
+      if (mode === 'desactivar') {
+        await fetch('/api/graphql', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: `
+              mutation Eliminar($id: Int!) {
+                eliminarProveedor(id: $id) {
+                  id
+                  estado
+                }
               }
-            }
-          `,
-          variables: { id },
-        }),
-      });
+            `,
+            variables: { id },
+          }),
+        });
+        setAviso('Proveedor desactivado correctamente');
+      } else {
+        await fetch('/api/graphql', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: `
+              mutation Activar($id: Int!, $input: ProveedorUpdateInput!) {
+                actualizarProveedor(id: $id, input: $input) {
+                  id
+                  estado
+                }
+              }
+            `,
+            variables: { id, input: { estado: 'ACTIVO' } },
+          }),
+        });
+        setAviso('Proveedor activado correctamente');
+      }
       await fetchProveedores();
-      setAviso('Proveedor desactivado correctamente');
       setTimeout(() => setAviso(''), 3000);
     } catch (e) {
       console.error(e);
@@ -372,6 +396,21 @@ export default function ProveedoresPage() {
                         </span>
                       </div>
                     )}
+                    
+                    {/* Activar Proveedor */}
+                    {user?.permisos?.editar_proveedores && p.estado === 'INACTIVO' && (
+                      <div className="relative group">
+                        <button 
+                          onClick={() => activarProveedor(p.id)}
+                          className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded transition-colors shadow-sm"
+                        >
+                          <CheckCircle size={16} />
+                        </button>
+                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-2.5 py-1 bg-slate-800 text-white text-xs font-semibold rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-[100] scale-95 group-hover:scale-100">
+                          Activar
+                        </span>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -433,13 +472,17 @@ export default function ProveedoresPage() {
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}
-        title="Desactivar Proveedor"
-        message="¿Estás seguro de que deseas desactivar este proveedor? Se ocultará de las listas activas pero se conservará su historial."
-        type="danger"
-        confirmText="Sí, desactivar"
+        title={confirmModal.mode === 'desactivar' ? 'Desactivar Proveedor' : 'Activar Proveedor'}
+        message={
+          confirmModal.mode === 'desactivar' 
+            ? '¿Estás seguro de que deseas desactivar este proveedor? Se ocultará de las listas activas pero se conservará su historial.'
+            : '¿Estás seguro de que deseas reactivar este proveedor? Volverá a aparecer en las listas.'
+        }
+        type={confirmModal.mode === 'desactivar' ? 'danger' : 'success'}
+        confirmText={confirmModal.mode === 'desactivar' ? 'Sí, desactivar' : 'Sí, activar'}
         cancelText="Cancelar"
-        onConfirm={procesarDesactivacion}
-        onCancel={() => setConfirmModal({ isOpen: false, proveedorId: null })}
+        onConfirm={procesarAccion}
+        onCancel={() => setConfirmModal({ isOpen: false, proveedorId: null, mode: 'desactivar' })}
       />
     </div>
   );

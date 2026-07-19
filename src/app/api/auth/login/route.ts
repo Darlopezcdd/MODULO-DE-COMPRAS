@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { signToken } from '../../../../lib/authUtils';
 import prisma from '@/lib/prisma';
+import { registrarAuditoriaCentral } from '@/lib/auditoriaCentral';
 
 /**
  * @swagger
@@ -368,6 +369,38 @@ export async function POST(request: Request) {
 
 
     const response = NextResponse.json({ success: true, usuario: tokenPayload });
+    
+    // Obtener la IP del cliente (si es posible en Next.js App Router)
+    const ipHeader = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
+    const clientIp = ipHeader.split(',')[0].trim();
+
+    // Invocar la auditoría centralizada de forma asíncrona
+    registrarAuditoriaCentral({
+      id_funcion: 1, // ID de función para INICIAR_SESION
+      accion: 'Inicio Sesión',
+      descripcion: 'Inicio de sesión en módulo de compras',
+      observacion: `Usuario ${username} ha iniciado sesión exitosamente con rol ${userRole}.`,
+      ip_usuario: clientIp,
+      usuario: username,
+      clave: password // El manual indica enviar la contraseña en texto plano al Auth Central
+    });
+
+    // También guardar en la base local para que se refleje en la UI
+    try {
+      await prisma.pista_auditoria.create({
+        data: {
+          usuario_id: userId,
+          usuario_nombre: username,
+          accion: 'LOGIN', // El enum en la BD exige que sea LOGIN
+          tabla_afectada: 'N/A',
+          registro_id: null,
+          descripcion: 'Inicio de sesión en el sistema',
+          resultado: 'EXITO' // Cambiado a EXITO sin tilde para evitar problemas
+        }
+      });
+    } catch (dbError) {
+      console.error('Error al guardar auditoría local:', dbError);
+    }
     
     response.cookies.set({
       name: 'auth-token',
