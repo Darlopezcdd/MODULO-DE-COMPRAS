@@ -1,0 +1,9 @@
+{
+  "name": "aws-lambda-facturas",
+  "version": "1.0.0",
+  "description": "Lambda function para generar PDF de facturas",
+  "main": "index.js",
+  "dependencies": {
+    "pdfkit": "^0.15.0"
+  }
+}

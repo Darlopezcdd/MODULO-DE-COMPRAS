@@ -57,7 +57,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       }
     };
 
-    const LAMBDA_URL = 'https://ygetpml7c6pve4d7hhrbtop3740zfhhy.lambda-url.us-east-1.on.aws/';
+    const LAMBDA_URL = 'https://occ2a6q5mkzozpyqlobgsxmtfa0vdhlr.lambda-url.us-east-1.on.aws/';
 
     const lambdaResponse = await fetch(LAMBDA_URL, {
       method: 'POST',
