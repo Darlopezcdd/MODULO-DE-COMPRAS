@@ -11,20 +11,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Falta el tipo de reporte' }, { status: 400 });
     }
 
-    // Obtener los datos AQUI en Next.js (que sí tiene acceso a la DB) usando queryRaw para más facilidad
-    const facturas = await prisma.$queryRaw`
-      SELECT f.numero_factura, f.fecha, p.nombre as proveedor_nombre, f.total 
-      FROM facturas_compra f 
-      LEFT JOIN "Proveedor" p ON f.proveedor_id = p.id
-      ORDER BY f.fecha DESC
-      LIMIT 200
-    ` as any[];
+    // Construir la cláusula where para filtrar por fechas
+    let whereClause: any = {};
+    const { fechaInicio, fechaFin, tipo, fecha } = filtros || {};
+
+    if (fechaInicio && fechaFin) {
+      const [y1, m1, d1] = fechaInicio.split('-').map(Number);
+      const [y2, m2, d2] = fechaFin.split('-').map(Number);
+      const startD = new Date(y1, m1 - 1, d1, 0, 0, 0);
+      const endD = new Date(y2, m2 - 1, d2, 23, 59, 59, 999);
+      whereClause = { fecha: { gte: startD, lte: endD } };
+    } else if (tipo !== 'todas' && fecha) {
+      const [y, m, d] = fecha.split('-').map(Number);
+      if (tipo === 'dia') {
+        const start = new Date(y, m - 1, d, 0, 0, 0);
+        const end = new Date(y, m - 1, d, 23, 59, 59, 999);
+        whereClause = { fecha: { gte: start, lte: end } };
+      } else if (tipo === 'mes') {
+        const start = new Date(y, m - 1, 1, 0, 0, 0);
+        const end = new Date(y, m, 0, 23, 59, 59, 999);
+        whereClause = { fecha: { gte: start, lte: end } };
+      } else if (tipo === 'anio') {
+        const start = new Date(y, 0, 1, 0, 0, 0);
+        const end = new Date(y, 11, 31, 23, 59, 59, 999);
+        whereClause = { fecha: { gte: start, lte: end } };
+      }
+    }
+
+    // Obtener facturas usando Prisma ORM
+    const facturas = await prisma.facturas_compra.findMany({
+      where: whereClause,
+      orderBy: { fecha: 'desc' },
+      include: {
+        proveedor: {
+          select: { nombre: true }
+        }
+      }
+    });
 
     // Mapear al formato que espera la Lambda
     const facturasMapeadas = facturas.map((f: any) => ({
       numero_factura: f.numero_factura,
       fecha: f.fecha ? new Date(f.fecha).toISOString().split('T')[0] : 'N/A',
-      proveedor_nombre: f.proveedor_nombre || 'Desconocido',
+      proveedor_nombre: f.proveedor?.nombre || 'Desconocido',
       total: Number(f.total)
     }));
 
