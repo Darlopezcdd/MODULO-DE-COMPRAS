@@ -38,7 +38,7 @@ exports.handler = async (event) => {
       console.log(`PDF guardado exitosamente en ${filePath}`);
 
       // 5. Subir a S3
-      const bucketName = process.env.S3_REPORT_BUCKET || 'reportes-compras-utn-aws-2026';
+      const bucketName = process.env.S3_REPORT_BUCKET || 'compras-facturas-erp-6469445280288';
       const s3Key = `reportes/${msgId}.pdf`;
       await s3Client.send(new PutObjectCommand({
         Bucket: bucketName,

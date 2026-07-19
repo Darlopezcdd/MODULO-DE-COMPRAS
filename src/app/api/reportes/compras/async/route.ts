@@ -11,20 +11,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Falta el tipo de reporte' }, { status: 400 });
     }
 
-    // Obtener los datos AQUI en Next.js (que sí tiene acceso a la DB) usando queryRaw para más facilidad
-    const facturas = await prisma.$queryRaw`
-      SELECT f.numero_factura, f.fecha, p.nombre as proveedor_nombre, f.total 
-      FROM facturas_compra f 
-      LEFT JOIN "Proveedor" p ON f.proveedor_id = p.id
-      ORDER BY f.fecha DESC
-      LIMIT 200
-    ` as any[];
+    // Obtener facturas usando Prisma tradicional sin joins complejos que puedan dar error
+    const facturas = await prisma.facturas_compra.findMany({
+      orderBy: { fecha: 'desc' },
+      take: 200
+    });
+    
+    // Obtener proveedores
+    const proveedores = await prisma.proveedor.findMany({
+      select: { id: true, nombre: true }
+    });
+    const provMap = new Map(proveedores.map((p: any) => [p.id, p.nombre]));
     
     // Mapear al formato que espera la Lambda
     const facturasMapeadas = facturas.map((f: any) => ({
       numero_factura: f.numero_factura,
       fecha: f.fecha ? new Date(f.fecha).toISOString().split('T')[0] : 'N/A',
-      proveedor_nombre: f.proveedor_nombre || 'Desconocido',
+      proveedor_nombre: provMap.get(f.proveedor_id) || 'Desconocido',
       total: Number(f.total)
     }));
 
@@ -49,6 +52,9 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error('Error al solicitar reporte asíncrono:', error);
-    return NextResponse.json({ error: 'Error interno al encolar el reporte' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error interno al encolar el reporte', 
+      detalle: error.message || String(error)
+    }, { status: 500 });
   }
 }
