@@ -7,52 +7,56 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   if (isNaN(id)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
 
   try {
-    // 1. Obtener la factura de la base de datos
     const factura = await prisma.facturas_compra.findUnique({
-      where: { id },
-      include: {
-        proveedor: true,
-        detalles: { include: { producto: true } }
-      }
+      where: { id }
     });
 
     if (!factura) {
       return NextResponse.json({ error: 'Factura no encontrada' }, { status: 404 });
     }
 
-    // SI LA FACTURA YA TIENE UN PDF GENERADO PREVIAMENTE, SIMPLEMENTE LO MOSTRAMOS Y EVITAMOS ERROR DE SUPABASE
     if (factura.pdf_url) {
       return NextResponse.redirect(factura.pdf_url);
     }
 
-    // 2. Si no tiene PDF, preparamos los datos para enviarlos a AWS Lambda
+    const proveedor = await prisma.proveedor.findUnique({
+      where: { id: factura.proveedor_id }
+    });
+
+    const detalles = await prisma.detalle_factura_compra.findMany({
+      where: { factura_id: factura.id }
+    });
+
+    if (!proveedor) {
+      return NextResponse.json({ error: 'Proveedor no encontrado' }, { status: 404 });
+    }
+
     const datosPdf = {
       numeroFactura: factura.numero_factura || `FC-${id.toString().padStart(6, '0')}`,
-      fechaEmision: factura.fecha_emision.toISOString().split('T')[0],
+      fechaEmision: factura.fecha.toISOString().split('T')[0],
       tipoPago: factura.tipo_pago,
       proveedor: {
-        nombre: factura.proveedor.razon_social,
-        cedulaRuc: factura.proveedor.ruc,
-        direccion: factura.proveedor.direccion || '',
-        telefono: factura.proveedor.telefono || ''
+        nombre: proveedor.nombre,
+        cedulaRuc: proveedor.cedulaRuc,
+        direccion: proveedor.direccion || '',
+        telefono: proveedor.telefono || ''
       },
-      productos: factura.detalles.map(d => ({
-        codigo: d.producto.codigo,
-        descripcion: d.producto.nombre,
-        cantidad: d.cantidad,
-        pvp: Number(d.precio_unitario),
-        grabaIva: true,
-        porcentajeIva: 15
+      productos: detalles.map(d => ({
+        codigo: d.producto_codigo,
+        descripcion: d.producto_nombre,
+        cantidad: Number(d.cantidad),
+        pvp: Number(d.pvp),
+        grabaIva: d.graba_iva,
+        porcentajeIva: Number(d.porcentaje_iva)
       })),
       totales: {
-        subtotalSinIva: Number(factura.subtotal),
-        subtotalConIva: Number(factura.subtotal),
-        totalIva: Number(factura.impuestos),
+        subtotalSinIva: Number(factura.subtotal_sin_iva),
+        subtotalConIva: Number(factura.subtotal_con_iva),
+        totalIva: Number(factura.total_iva),
         total: Number(factura.total)
       }
     };
 
-    // 3. LLAMADA A AWS LAMBDA PARA GENERAR EL PDF
     const LAMBDA_URL = 'https://ygetpml7c6pve4d7hhrbtop3740zfhhy.lambda-url.us-east-1.on.aws/';
 
     const lambdaResponse = await fetch(LAMBDA_URL, {
@@ -70,10 +74,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     const pdfBuffer = Buffer.from(pdfArrayBuffer);
     const fileName = `factura-compra-${id}-${Date.now()}.pdf`;
 
-    // 4. Subir el buffer generado a Amazon S3
     const s3Url = await uploadPdfToS3(pdfBuffer, fileName);
 
-    // 5. Guardar la URL en la base de datos para que la próxima vez no la vuelva a generar
     await prisma.facturas_compra.update({
       where: { id },
       data: {
@@ -82,10 +84,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       }
     });
 
-    // 6. Redirigir al usuario al documento en S3
     return NextResponse.redirect(s3Url);
   } catch (error: any) {
-    console.error('Error generando PDF de factura con Lambda:', error);
+    console.error('Error generando PDF con Lambda:', error);
     return NextResponse.json({ error: `Error interno: ${error.message || error}` }, { status: 500 });
   }
 }
