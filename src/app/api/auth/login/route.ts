@@ -201,7 +201,10 @@ export async function POST(request: Request) {
       return response;
     }
 
-    const graphqlEndpoint = 'http://moduloseguridadgrupo3-env.eba-mpaczmew.us-east-1.elasticbeanstalk.com/graphql';
+    const graphqlEndpoints = [
+      'http://moduloseguridadgrupo3-env.eba-mpaczmew.us-east-1.elasticbeanstalk.com/graphql/',
+      'https://proyecto-moduloseguridad.onrender.com/graphql/'
+    ];
     
     // Se ajusta a la mutación exacta de login
     const query = `
@@ -214,19 +217,59 @@ export async function POST(request: Request) {
       }
     `;
 
-    const graphqlResponse = await fetch(graphqlEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        query,
-        variables: { username, password }
-      })
-    });
+    let data = null;
+    let lastErrorMsg = '';
 
-    const data = await graphqlResponse.json();
+    for (const endpoint of graphqlEndpoints) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
+
+      try {
+        console.log(`Intentando autenticar con: ${endpoint}`);
+        const graphqlResponse = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            query,
+            variables: { username, password }
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        const responseText = await graphqlResponse.text();
+        try {
+          data = JSON.parse(responseText);
+          if (data && !data.errors) {
+            console.log(`✅ Conexión exitosa con ${endpoint}`);
+            break; // Si obtenemos JSON válido y sin errores, salimos del bucle
+          } else if (data && data.errors) {
+            // Si el servidor responde correctamente pero hay un error de credenciales, igual detenemos la búsqueda
+            console.log(`⚠️ Servidor ${endpoint} respondió con error de credenciales`);
+            break; 
+          }
+        } catch (e) {
+          console.warn(`❌ El endpoint ${endpoint} falló o devolvió HTML (Ej: 504 Gateway Timeout).`);
+          lastErrorMsg = 'El servidor externo falló y no devolvió un JSON válido.';
+        }
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+          console.warn(`❌ Tiempo de espera agotado (10s) para ${endpoint}`);
+          lastErrorMsg = 'Tiempo de espera agotado (10s).';
+        } else {
+          console.warn(`❌ Falló la conexión de red con ${endpoint}:`, err.message);
+          lastErrorMsg = err.message;
+        }
+      }
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: `Ambos servidores externos (AWS y Render) están fallando. Usa el acceso de emergencia. Último error: ${lastErrorMsg}` }, { status: 502 });
+    }
 
     if (data.errors) {
       console.error('Errores en GraphQL:', data.errors);
