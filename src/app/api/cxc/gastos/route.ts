@@ -47,33 +47,12 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(req: Request) {
   try {
-    const url = new URL(req.url);
-    const verTodos = url.searchParams.get('todos') === 'true';
-
-    // 1. Obtener los gastos (solo los no sincronizados, a menos que se pidan todos)
+    // 1. Obtener todos los gastos
     const gastos = await prisma.gastos_cxc.findMany({
-      where: verTodos ? undefined : {
-        sincronizado: false
-      },
       orderBy: {
         fecha_pago: 'desc'
       }
     });
-
-    // 2. Si se encontraron gastos y NO estamos en modo "ver todos", marcarlos como sincronizados
-    if (gastos.length > 0 && !verTodos) {
-      const ids = gastos.map((g: any) => g.id);
-      await prisma.gastos_cxc.updateMany({
-        where: {
-          id: {
-            in: ids
-          }
-        },
-        data: {
-          sincronizado: true
-        }
-      });
-    }
 
     // 3. Formatear a camelCase para compatibilidad con el otro sistema (sin duplicar)
     const gastosFormateados = gastos.map((g: any) => ({
