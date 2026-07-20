@@ -201,7 +201,7 @@ export async function POST(request: Request) {
       return response;
     }
 
-    const graphqlEndpoint = 'https://proyecto-moduloseguridad.onrender.com/graphql/';
+    const graphqlEndpoint = 'http://moduloseguridadgrupo3-env.eba-mpaczmew.us-east-1.elasticbeanstalk.com/graphql';
     
     // Se ajusta a la mutación exacta de login
     const query = `
