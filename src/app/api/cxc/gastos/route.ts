@@ -47,9 +47,12 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(req: Request) {
   try {
-    // 1. Obtener los gastos que no se han sincronizado
+    const url = new URL(req.url);
+    const verTodos = url.searchParams.get('todos') === 'true';
+
+    // 1. Obtener los gastos (solo los no sincronizados, a menos que se pidan todos)
     const gastos = await prisma.gastos_cxc.findMany({
-      where: {
+      where: verTodos ? undefined : {
         sincronizado: false
       },
       orderBy: {
@@ -57,8 +60,8 @@ export async function GET(req: Request) {
       }
     });
 
-    // 2. Si se encontraron gastos, marcarlos como sincronizados
-    if (gastos.length > 0) {
+    // 2. Si se encontraron gastos y NO estamos en modo "ver todos", marcarlos como sincronizados
+    if (gastos.length > 0 && !verTodos) {
       const ids = gastos.map((g: any) => g.id);
       await prisma.gastos_cxc.updateMany({
         where: {
@@ -72,8 +75,19 @@ export async function GET(req: Request) {
       });
     }
 
-    // 3. Devolver solo esos gastos (uno por uno / pocos)
-    return NextResponse.json({ success: true, data: gastos });
+    // 3. Formatear a camelCase para compatibilidad con el otro sistema (sin duplicar)
+    const gastosFormateados = gastos.map((g: any) => ({
+      id: g.id,
+      cuentaBancariaId: g.cuenta_bancaria_id,
+      monto: g.monto,
+      motivo: g.motivo,
+      facturaId: g.factura_id,
+      saldoCreditoId: g.saldo_credito_id,
+      sincronizado: g.sincronizado,
+      fechaPago: g.fecha_pago
+    }));
+
+    return NextResponse.json({ success: true, data: gastosFormateados });
   } catch (error: any) {
     console.error('Error al obtener gastos CxC:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
